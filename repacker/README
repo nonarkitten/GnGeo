@@ -1,0 +1,5 @@
+The program gngeo_repack is used to convert the game ZIP files into LZ4W folders. For example, the file gpilots.zip will become an identically named folder with all the .bin files repacked using lz4w. The compression is not QUITE as good as ZIP, but loading data is a few orders of magnitude faster. The original will be renamed to ".zip.old".
+
+USAGE:
+
+gngeo_repack <path-to-zip-file>
