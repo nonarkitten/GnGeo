@@ -29,6 +29,7 @@ AS       := as -m68040
 all: $(OBJECTS)
 	$(CC) -s $(OBJECTS) -o $(APPNAME) $(LIBPATH) $(LIBS)
 #	shrinkler $(APPNAME) $(APPNAME)
+	copy $(APPNAME) ../release/
 
 %.o: ../%.c
 	$(CC) $(CCFLAGS) $(DEFINES) $(INCLUDE) -c $< -o $@
@@ -39,4 +40,5 @@ all: $(OBJECTS)
 clean:
 	delete #?
 	delete $(APPNAME)
+	delete /release/$(APPNAME)
 
