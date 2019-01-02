@@ -1,4 +1,4 @@
-APPNAME  := release/NeoAmigaX
+APPNAME  := release/gngeo
 SOURCES  := $(wildcard src/*.c src/ammx/*.s src/asm/*.s src/vasm/*.s src/blitter/*.c src/generator68k/*.c src/mamez80/*.c src/ym2610/*.c)
 OBJECTS  := $(patsubst %.c,%.o, \
    $(patsubst %.s,%.o, \
