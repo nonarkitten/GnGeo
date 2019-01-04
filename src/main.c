@@ -33,18 +33,20 @@
 #include "video.h"
 #include "screen.h"
 #include "emu.h"
+#include "conf.h"
 #include "sound.h"
 #include "messages.h"
 #include "memory.h"
 #include "debug.h"
 #include "blitter.h"
 #include "effect.h"
-#include "conf.h"
-#include "transpack.h"
 #include "gngeo_icon.h"
 #include "event.h"
 #include "menu.h"
 #include "frame_skip.h"
+
+#include <graphics/gfx.h>
+#include <graphics/gfxbase.h>
 
 #ifdef USE_GUI
 #include "gui_interf.h"
@@ -63,138 +65,99 @@ extern bool fatInitDefault(void);
 
 void calculate_hotkey_bitmasks()
 {
-    int *p;
-    int i, j, mask;
-    const char *p1_key_list[] = { "p1hotkey0", "p1hotkey1", "p1hotkey2", "p1hotkey3" };
-    const char *p2_key_list[] = { "p2hotkey0", "p2hotkey1", "p2hotkey2", "p2hotkey3" };
-
-
-    for ( i = 0; i < 4; i++ ) {
-	p=CF_ARRAY(cf_get_item_by_name(p1_key_list[i]));
-	for ( mask = 0, j = 0; j < 4; j++ ) mask |= p[j];
-	conf.p1_hotkey[i] = mask;
-    }
-
-    for ( i = 0; i < 4; i++ ) {
-	p=CF_ARRAY(cf_get_item_by_name(p2_key_list[i]));
-	for ( mask = 0, j = 0; j < 4; j++ ) mask |= p[j];
-	conf.p2_hotkey[i] = mask;
-    }
+//     int *p;
+//     int i, j, mask;
+//     const char *p1_key_list[] = { "p1hotkey0", "p1hotkey1", "p1hotkey2", "p1hotkey3" };
+//     const char *p2_key_list[] = { "p2hotkey0", "p2hotkey1", "p2hotkey2", "p2hotkey3" };
+// 
+// 
+//     for ( i = 0; i < 4; i++ ) {
+// 		p=CF_ARRAY(cf_get_item_by_name(p1_key_list[i]));
+// 		for ( mask = 0, j = 0; j < 4; j++ ) mask |= p[j];
+// 		conf.p1_hotkey[i] = mask;
+//     }
+// 
+//     for ( i = 0; i < 4; i++ ) {
+// 		p=CF_ARRAY(cf_get_item_by_name(p2_key_list[i]));
+// 		for ( mask = 0, j = 0; j < 4; j++ ) mask |= p[j];
+// 		conf.p2_hotkey[i] = mask;
+//     }
 
 }
 
-void sdl_set_title(char *name) {
- 
-}
+void sdl_set_title(char *name) { }
 
 void init_sdl(void /*char *rom_name*/) {
-
-    
-#ifdef GP2X
-    atexit(gp2x_quit);
-#else
-    //atexit(SDL_Quit);
-#endif
-
     if (screen_init() == FALSE) {
-	printf("Screen initialization failed.\n");
-	exit(-1);
+		printf("Screen initialization failed.\n");
+		exit(-1);
     }
-
-
-    calculate_hotkey_bitmasks();  
- 
+    calculate_hotkey_bitmasks();   
 	init_event();
+}
 
+static void cleanup(void) {
+	close_audio();
+	screen_close();
+    close_game();
 }
-static void catch_me(int signo) {
-	printf("Catch a sigsegv\n");
-	//SDL_Quit();
-	exit(-1);
-}
-int main(int argc, char *argv[])
-{
+
+// static void catch_me(int signo) {
+// 	printf("Catch a sigsegv\n");
+// 	//SDL_Quit();
+// 	exit(-1);
+// }
+static struct GfxBase *GfxBase;
+
+int HostCpuClock = 0;
+int HostPAL = 0;
+int AC68080 = 0;
+
+extern void ParseArguments(int argc, char *argv[]);
+extern void convert_audio_rom(void);
+
+int main(int argc, char *argv[]) {
     char *rom_name;
-
-
-
-#ifdef __AMIGA__
-   BPTR file_lock = GetProgramDir();
-   SetProgramDir(file_lock);
-   
-   
-#endif
-	signal(SIGSEGV, catch_me);
-
-#ifdef WII
-	//   SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_NOPARACHUTE);
-
-	fatInitDefault();
-#endif
-
-    cf_init(); /* must be the first thing to do */
-    cf_init_cmd_line();
-    cf_open_file(NULL); /* Open Default configuration file */
-
-    rom_name=cf_parse_cmd_line(argc,argv); 
-
-    /* print effect/blitter list if asked by user */
-    if (!strcmp(CF_STR(cf_get_item_by_name("effect")),"help")) {
-	print_effect_list();
-	exit(0);
-    }
-    if (!strcmp(CF_STR(cf_get_item_by_name("blitter")),"help")) {
-	print_blitter_list();
-	exit(0);
-    }
-
-    I_InitTimer();
-	init_sdl();
- 
-/* GP2X stuff */
-#ifdef GP2X
-    gp2x_init();
-#endif
-//    if (gn_init_skin()!= TRUE) {
-//	    printf("Can't load skin...\n");
-//            exit(1);
-//    } 
-
-	reset_frame_skip();
-
-    if (conf.debug) conf.sound=0;
-
-/* Launch the specified game, or the rom browser if no game was specified*/
-	if (!rom_name) {
-         printf("about to load no rom name...\n");
-	//	rom_browser_menu();
-	//	run_menu();
-		printf("GAME %s\n",conf.game);
-		if (conf.game==NULL) return 0;
+    BPTR file_lock;
+    int bench = 0;
+    ULONG initStart;
+    
+	if(NULL != (GfxBase = (struct GfxBase *)OpenLibrary("graphics.library",0L))) {
+		HostCpuClock = (GfxBase->DisplayFlags & PAL) ? 3546895L : 3579545L;
+		HostPAL = (GfxBase->DisplayFlags & PAL) ? 1 : 0;
+		CloseLibrary( (struct Library *) GfxBase);
 	} else {
-        printf("about to load...\n");
-		if (init_game(rom_name)!=TRUE) {
-			printf("Can't init %s...\n",rom_name);
-            exit(1);
-		}    
+		return -1;
+	}
+	AC68080 = !!(SysBase->AttnFlags & (1<<10));
+		
+	ParseArguments(argc, argv);
+
+	file_lock = GetProgramDir();
+	SetProgramDir(file_lock);
+	
+	rom_name = arg[OPTION_FILE];
+	if (!rom_name) {
+		printf("No file specified\n");
+		exit(1);
 	}
 
-	/* If asked, do a .gno dump and exit*/
-    if (CF_BOOL(cf_get_item_by_name("dump"))) {
-        char dump[8+4+1];
-        sprintf(dump,"%s.gno",rom_name);
-        dr_save_gno(&memory.rom,dump);
-        close_game();
-        return 0;
-    }
- 
+	atexit(cleanup);
 
-    if (conf.debug)
-	    debug_loop();
-    else
-	    main_loop();
+    I_InitTimer();
+	reset_frame_skip();
 
-    close_game();
+	initStart = getMilliseconds();
+	if (init_game(rom_name)!=TRUE) {
+		printf("Can't init %s...\n",rom_name);
+		exit(1);
+	}
+
+	//convert_audio_rom();
+	init_sdl();
+	
+	printf("Startup took %u ms, ", (ULONG)((int)getMilliseconds() - (int)initStart));
+	main_loop();
 
     return 0;
 }

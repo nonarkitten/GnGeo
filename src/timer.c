@@ -21,6 +21,7 @@
 #endif
 
 #include <stdlib.h>
+#include "conf.h"
 #include "emu.h"
 #include "timer.h"
 #include "state.h"
@@ -120,12 +121,12 @@ void my_timer(void)
 	timer_init_save_state();
 	init = 0;
 
-	if (conf.pal) {
+	if (arg[OPTION_PAL]) {
 		inc = ((double) (0.02) / nb_interlace);/* *(1<<TIMER_SH);*/
-			  //(conf.sound ? (double) nb_interlace : 1.0);
+			  //(arg[OPTION_SAMPLERATE] ? (double) nb_interlace : 1.0);
 	} else {
 		inc = ((double) (0.01666) / nb_interlace); /* *(1<<TIMER_SH); */
-		//(conf.sound ? (double) nb_interlace : 1.0);
+		//(arg[OPTION_SAMPLERATE] ? (double) nb_interlace : 1.0);
 	}
 	for (i = 0; i < MAX_TIMER; i++)
 	    timers[i].del_it = 1;

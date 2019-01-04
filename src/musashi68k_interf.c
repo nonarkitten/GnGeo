@@ -24,11 +24,12 @@
 #include <config.h>
 #endif
 
-#ifdef USE_CYCLONE
+//#ifdef USE_CYCLONE
 
 #include <stdlib.h>
 
-#include "cyclone/Cyclone.h"
+//#include "cyclone/Cyclone.h"
+#include "musashi68k/m68k.h"
 #include "memory.h"
 #include "emu.h"
 #include "state.h"
@@ -362,4 +363,4 @@ int cpu_68k_debuger(void (*execstep)(void),void (*dump)(void)) {
 
 
 
-#endif
+//#endif

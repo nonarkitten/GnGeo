@@ -922,24 +922,27 @@ static void free_region(ROM_REGION *r) {
 }
 
 static int zip_seek_current_file(ZFILE *gz, Uint32 offset) {
-	Uint8 *buf;
-	Uint32 s = 4096, c;
-	buf = malloc(s);
-	if (!buf)
-		return -1;
-	while (offset) {
-		c = offset;
-		if (c > s)
-			c = s;
-
-		c = gn_unzip_fread(gz, buf, c);
-		if (c == 0) {
-			break;
-		}
-		offset -= c;
-	}
-	free(buf);
+	if(offset > gz->len) offset = gz->len;
+	gz->pos = offset;
 	return 0;
+// 	Uint8 *buf;
+// 	Uint32 s = 4096, c;
+// 	buf = malloc(s);
+// 	if (!buf)
+// 		return -1;
+// 	while (offset) {
+// 		c = offset;
+// 		if (c > s)
+// 			c = s;
+// 
+// 		c = gn_unzip_fread(gz, buf, c);
+// 		if (c == 0) {
+// 			break;
+// 		}
+// 		offset -= c;
+// 	}
+// 	free(buf);
+// 	return 0;
 
 }
 
@@ -950,16 +953,16 @@ static int read_data_i(ZFILE *gz, ROM_REGION *r, Uint32 dest, Uint32 size) {
 	Uint8 *p = r->p + dest;
 	Uint32 s = LOAD_BUF_SIZE, c, i;
 	if (r->p == NULL || r->size < (dest & ~0x1) + (size * 2)) {
-		printf("Region not allocated or not big enough %08x %08x\n", r->size,
+		printf("I-Region not allocated or not big enough %08x %08x\n", r->size,
 				dest + (size * 2));
 		return -1;
 	}
 	//buf=malloc(s);
 	if (!iloadbuf)
-    {
-        printf("no iloadbuf\n");
+	{
+		printf("no iloadbuf\n");
 		return -1;
-    }
+	}
 
 	while (size) {
 		c = size;
@@ -987,7 +990,7 @@ static int read_data_i(ZFILE *gz, ROM_REGION *r, Uint32 dest, Uint32 size) {
 static int read_data_p(ZFILE *gz, ROM_REGION *r, Uint32 dest, Uint32 size) {
 	Uint32 s = LOAD_BUF_SIZE, c, i = 0;
 	if (r->p == NULL || r->size < dest + size) {
-		printf("Region not allocated or not big enough\n");
+		printf("P-Region not allocated or not big enough\n");
 		return -1;
 	}
 	while (size) {
@@ -1018,7 +1021,7 @@ static int load_region(PKZIP *pz, GAME_ROMS *r, int region, Uint32 src,
 
 	gz = gn_unzip_fopen(pz, filename, crc);
 	if (gz == NULL) {
-		DEBUG_LOG("KO\n");
+//		DEBUG_LOG("KO\n");
 		DEBUG_LOG("Load file %-17s in region %d: KO\n", filename, region);
 		return 1;
 	}
@@ -1036,43 +1039,43 @@ static int load_region(PKZIP *pz, GAME_ROMS *r, int region, Uint32 src,
 
 	switch (region) {
 		case REGION_SPRITES: /* Special interleaved loading  */
-            printf("reading REGION_SPRITES\n");		
+			printf("reading REGION_SPRITES\n");		
 			read_data_i(gz, &r->tiles, dest, size);
 			break;
 		case REGION_AUDIO_CPU_CARTRIDGE:
-            printf("reading REGION_AUDIO_CPU_CARTRIDGE\n");            
+			printf("reading REGION_AUDIO_CPU_CARTRIDGE\n");            
 			read_data_p(gz, &r->cpu_z80, dest, size);
 			break;
 		case REGION_AUDIO_CPU_ENCRYPTED:
-            printf("reading REGION_AUDIO_CPU_ENCRYPTED\n");            
+			printf("reading REGION_AUDIO_CPU_ENCRYPTED\n");            
 			read_data_p(gz, &r->cpu_z80c, dest, size);
 			break;
 		case REGION_MAIN_CPU_CARTRIDGE:
-            printf("reading REGION_MAIN_CPU_CARTRIDGE\n");
+			printf("reading REGION_MAIN_CPU_CARTRIDGE\n");
 			read_data_p(gz, &r->cpu_m68k, dest, size);
 			break;
 		case REGION_FIXED_LAYER_CARTRIDGE:
-            printf("reading REGION_FIXED_LAYER_CARTRIDGE\n");
+			printf("reading REGION_FIXED_LAYER_CARTRIDGE\n");
 			read_data_p(gz, &r->game_sfix, dest, size);
 			break;
 		case REGION_AUDIO_DATA_1:
-            printf("reading REGION_AUDIO_DATA_1\n");            
+			printf("reading REGION_AUDIO_DATA_1\n");            
 			read_data_p(gz, &r->adpcma, dest, size);
 			break;
 		case REGION_AUDIO_DATA_2:
-            printf("reading REGION_AUDIO_DATA_2\n");                        
+			printf("reading REGION_AUDIO_DATA_2\n");                        
 			read_data_p(gz, &r->adpcmb, dest, size);
 			break;
 		case REGION_MAIN_CPU_BIOS:
-            printf("reading REGION_MAIN_CPU_BIOS\n");                                    
+			printf("reading REGION_MAIN_CPU_BIOS\n");                                    
 			read_data_p(gz, &r->bios_m68k, dest, size);
 			break;
 		case REGION_AUDIO_CPU_BIOS:
-            printf("reading REGION_AUDIO_CPU_BIOS\n");                                    
+			printf("reading REGION_AUDIO_CPU_BIOS\n");                                    
 			read_data_p(gz, &r->bios_m68k, dest, size);
 			break;
 		case REGION_FIXED_LAYER_BIOS:
-            printf("reading REGION_FIXED_LAYER_BIOS\n");                                    
+			printf("reading REGION_FIXED_LAYER_BIOS\n");                                    
 			read_data_p(gz, &r->bios_sfix, dest, size);
 			break;
 
@@ -1177,7 +1180,7 @@ void convert_all_char(Uint8 *Ptr, int Taille,
 #ifdef WORDS_BIGENDIAN
 #define CONVERT_TILE *Ptr++ = *(Src+8);\
 	             usage |= *(Src+8);\
-                     *Ptr++ = *(Src);\
+					 *Ptr++ = *(Src);\
 		     usage |= *(Src);\
 		     *Ptr++ = *(Src+24);\
 		     usage |= *(Src+24);\
@@ -1187,7 +1190,7 @@ void convert_all_char(Uint8 *Ptr, int Taille,
 #else
 #define CONVERT_TILE *Ptr++ = *(Src+16);\
 	             usage |= *(Src+16);\
-                     *Ptr++ = *(Src+24);\
+					 *Ptr++ = *(Src+24);\
 		     usage |= *(Src+24);\
 		     *Ptr++ = *(Src);\
 		     usage |= *(Src);\
@@ -1236,7 +1239,7 @@ int dr_load_bios(GAME_ROMS *r) {
 	ZFILE *z;
 	size_t totread = 0;
 	unsigned int size;
-	char *rpath = CF_STR(cf_get_item_by_name("rompath"));
+	char *rpath = (char*)arg[OPTION_BIOSPATH];
 	char *fpath;
 	char *romfile;
 	fpath = malloc(strlen(rpath) + strlen("neogeo.zip") + 2);
@@ -1273,7 +1276,7 @@ int dr_load_bios(GAME_ROMS *r) {
 	convert_all_char(memory.rom.bios_sfix.p, 0x20000, memory.fix_board_usage);
 
 	if (!(r->info.flags & HAS_CUSTOM_CPU_BIOS)) {
-		if (conf.system == SYS_UNIBIOS) {
+		if (arg[OPTION_SYSTEM] == SYS_UNIBIOS) {
 			char *unipath;
 
 			/* First check in neogeo.zip */
@@ -1296,10 +1299,11 @@ int dr_load_bios(GAME_ROMS *r) {
 				free(unipath);
 			}
 		} else {
-			if (conf.system == SYS_HOME) {
+			if (arg[OPTION_SYSTEM] == SYS_HOME) {
 				romfile = "aes-bios.bin";
+				
 			} else {
-				switch (conf.country) {
+				switch (arg[OPTION_REGION]) {
 					case CTY_JAPAN:
 						romfile = "vs-bios.rom";
 						break;
@@ -1317,6 +1321,7 @@ int dr_load_bios(GAME_ROMS *r) {
 			DEBUG_LOG("Loading %s\n", romfile);
 			r->bios_m68k.p = gn_unzip_file_malloc(pz, romfile, 0x0,
 					&r->bios_m68k.size);
+					
 			if (r->bios_m68k.p == NULL) {
 				printf("Couldn't loas bios %s\n", romfile);
 				goto error;
@@ -1365,19 +1370,17 @@ int dr_load_roms(GAME_ROMS *r, char *rom_path, char *name) {
 
 	memset(r, 0, sizeof (GAME_ROMS));
 
-    printf("About to open %s\n", name);
-    
+	printf("About to open %s\n", name);
+	
 	drv = res_load_drv(name);
 	if (!drv) {
-		sprintf(romerror, "Can't find rom driver for %s\n", name);
+		printf("Can't find rom driver for %s\n", name);
 		return false;
 	}
-    
-    printf("About to open %s\n", name);
-    
+	
 	gz = open_rom_zip(rom_path, name);
 	if (gz == NULL) {
-		sprintf(romerror,"Rom %s/%s.zip not found\n", rom_path, name);
+		printf("Rom %s/%s.zip not found\n", rom_path, name);
 		return false;
 	}
 
@@ -1386,7 +1389,7 @@ int dr_load_roms(GAME_ROMS *r, char *rom_path, char *name) {
 	 */
 	gzp = open_rom_zip(rom_path, drv->parent);
 	if (gzp == NULL) {
-		sprintf(romerror,"Parent %s/%s.zip not found\n", rom_path, name);
+		printf("Parent %s/%s.zip not found\n", rom_path, name);
 		return false;
 	}
 
@@ -1450,6 +1453,7 @@ int dr_load_roms(GAME_ROMS *r, char *rom_path, char *name) {
 //	gn_init_pbar("Loading...", romsize);
 	for (i = 0; i < drv->nb_romfile; i++) {
 		//		gn_update_pbar(i, drv->nb_romfile);
+		printf("Segment %d/%d\n", i, drv->nb_romfile);
 		if (load_region(gz, r, drv->rom[i].region, drv->rom[i].src,
 				drv->rom[i].dest, drv->rom[i].size, drv->rom[i].crc,
 				drv->rom[i].filename) != 0) {
@@ -1522,7 +1526,8 @@ error1:
 
 int dr_load_game(char *name) {
 	//GAME_ROMS rom;
-	char *rpath = CF_STR(cf_get_item_by_name("rompath"));
+	//";// = CF_STR(cf_get_item_by_name("rompath"));
+	char *rpath = (char*)arg[OPTION_ROMPATH];
 	int rc;
 	printf("Loading %s/%s.zip\n", rpath, name);
 	memory.bksw_handler = 0;
@@ -1530,10 +1535,9 @@ int dr_load_game(char *name) {
 	memory.bksw_offset = NULL;
 
 	rc = dr_load_roms(&memory.rom, rpath, name);
-	if (rc == false) {
-		return false;
-	}
-	conf.game = memory.rom.info.name;
+	if (rc == false) return false;
+	
+	//arg[OPTION_FILE] = memory.rom.info.name;
 	/* TODO *///neogeo_fix_bank_type =0;
 	/* TODO */
 	//	set_bankswitchers(0);
@@ -1761,12 +1765,12 @@ int read_region(FILE *gno, GAME_ROMS *roms) {
 		fseek(gno, cmp_size, SEEK_CUR);
 
 		/* TODO: Find the best cache size dynamically! */
-		for (i = 0; cache_size[i] != 0; i++) {
-			if (init_sprite_cache(cache_size[i]*1024 * 1024, block_size) == 0) {
-				printf("Cache size=%dMB\n", cache_size[i]);
-				break;
-			}
-		}
+// 		for (i = 0; cache_size[i] != 0; i++) {
+// 			if (init_sprite_cache(cache_size[i]*1024 * 1024, block_size) == 0) {
+// 				printf("Cache size=%dMB\n", cache_size[i]);
+// 				break;
+// 			}
+// 		}
 	}
 	return TRUE;
 }
@@ -1828,7 +1832,7 @@ int dr_open_gno(char *filename) {
 	//convert_all_tile(r);
 	dr_load_bios(r);
 
-	conf.game = memory.rom.info.name;
+	arg[OPTION_FILE] = memory.rom.info.name;
 
 	memcpy(memory.game_vector, memory.rom.cpu_m68k.p, 0x80);
 	memcpy(memory.rom.cpu_m68k.p, memory.rom.bios_m68k.p, 0x80);
@@ -1880,7 +1884,7 @@ void dr_free_roms(GAME_ROMS *r) {
 		free_region(&r->tiles);
 	} else {
 		fclose(memory.vid.spr_cache.gno);
-		free_sprite_cache();
+		//free_sprite_cache();
 		free(memory.vid.spr_cache.offset);
 	}
 	free_region(&r->game_sfix);
@@ -1908,5 +1912,5 @@ void dr_free_roms(GAME_ROMS *r) {
 	free(r->info.name);
 	free(r->info.longname);
 
-	conf.game = NULL;
+	arg[OPTION_FILE] = NULL;
 }

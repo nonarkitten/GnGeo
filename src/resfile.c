@@ -36,8 +36,9 @@ void zread_uint32le(ZFILE *gz, Uint32 *c) {
  * Load a rom definition file from gngeo.dat (rom/name.drv)
  * return ROM_DEF*, NULL on error
  */
+const char *gngeo_dat = "data/gngeo_data.zip";
 ROM_DEF *res_load_drv(char *name) {
-	char *gngeo_dat = CF_STR(cf_get_item_by_name("datafile"));
+	//char *gngeo_dat;// = CF_STR(cf_get_item_by_name("datafile"));
 	ROM_DEF *drv;
 	char drvfname[32];
 	PKZIP *pz;
@@ -48,7 +49,7 @@ ROM_DEF *res_load_drv(char *name) {
 
 	/* Open the rom driver def */
 	
-	printf("%s\n",gngeo_dat);
+	//printf("%s\n",gngeo_dat);
 	
 	pz = gn_open_zip(gngeo_dat);
 	if (pz == NULL) {
@@ -62,15 +63,18 @@ ROM_DEF *res_load_drv(char *name) {
 		fprintf(stderr, "Can't open rom driver for %s\n", name);
 		return NULL;
 	}
-     printf(" done Driver = %s\n",drvfname);
+    //printf(" done Driver = %s\n",drvfname);
 	//Fill the driver struct
 	zread_char(z, drv->name, 32);
 	zread_char(z, drv->parent, 32);
 	zread_char(z, drv->longname, 128);
 	zread_uint32le(z, &drv->year);
+	
 	for (i = 0; i < 10; i++)
 		zread_uint32le(z, &drv->romsize[i]);
+		
 	zread_uint32le(z, &drv->nb_romfile);
+	
 	for (i = 0; i < drv->nb_romfile; i++) {
 		zread_char(z, drv->rom[i].filename, 32);
 		zread_uint8(z, &drv->rom[i].region);
@@ -92,13 +96,12 @@ ROM_DEF *res_load_drv(char *name) {
  * supported format: bmp, tga, jpeg, png, psd
  * 24&32bpp only
  */
- 
 void *res_load_data(char *name) {
 	PKZIP *pz;
 	Uint8 * buffer;
 	unsigned int size;
 
-	pz = gn_open_zip(CF_STR(cf_get_item_by_name("datafile")));
+	pz = gn_open_zip(gngeo_dat); //gn_open_zip(CF_STR(cf_get_item_by_name("datafile")));
 	if (!pz)
 		return NULL;
 	buffer = gn_unzip_file_malloc(pz, name, 0x0, &size);

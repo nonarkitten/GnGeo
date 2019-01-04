@@ -23,7 +23,7 @@
  
  
 #include <cybergraphx/cybergraphics.h>
-#include <proto/cybergraphics.h>
+#include <inline/cybergraphics.h>
 
  
 #include "../emu.h"
@@ -48,7 +48,7 @@ static Rect screen_rect;
 static int vsync;
 
  
-uint8_t       *bufferpixels = NULL;
+BYTE       *bufferpixels = NULL;
 uint8_t        *videoBuffer = NULL;
 static int initialized = 0;
 static UWORD emptypointer[] = {
@@ -214,36 +214,136 @@ blitter_soft_init()
 	return TRUE;
 }
 
+ULONG eclocks_per_second; /* EClock frequency in Hz */
+extern char fps_str[32];
 
-  ULONG eclocks_per_second; /* EClock frequency in Hz */
- extern char fps_str[32];
- 
- /**********************************************************************/
-static void video_do_fps (struct RastPort *rp, int yoffset)
-{
-  ULONG x;
-  static struct EClockVal start_time = {0, 0};
-  struct EClockVal end_time;
-  char msg[4];
+static const UBYTE tiny_font[] = {
+	0x7E, // 0b01111110,
+	0x81, // 0b10000001,
+	0x81, // 0b10000001,
+	0x81, // 0b10000001,
+	0x7E, // 0b01111110,
+	0x00, // 0b00000000,
+	
+	0x00, // 0b00000000,
+	0x82, // 0b10000010,
+	0xFF, // 0b11111111,
+	0x80, // 0b10000000,
+	0x00, // 0b00000000,
+	0x00, // 0b00000000,
+	
+	0xC2, // 0b11000010,
+	0xA1, // 0b10100001,
+	0x91, // 0b10010001,
+	0x89, // 0b10001001,
+	0x86, // 0b10000110,
+	0x00, // 0b00000000,
+	
+	0x42, // 0b01000010,
+	0x81, // 0b10000001,
+	0x89, // 0b10001001,
+	0x89, // 0b10001001,
+	0x76, // 0b01110110,
+	0x00, // 0b00000000,
+	
+	0x1E, // 0b00011110,
+	0x10, // 0b00010000,
+	0x10, // 0b00010000,
+	0x10, // 0b00010000,
+	0xFF, // 0b11111111,
+	0x00, // 0b00000000,
+	
+	0x4F, // 0b01001111,
+	0x89, // 0b10001001,
+	0x89, // 0b10001001,
+	0x89, // 0b10001001,
+	0x71, // 0b01110001,
+	0x00, // 0b00000000,
+	
+	0x7E, // 0b01111110,
+	0x89, // 0b10001001,
+	0x89, // 0b10001001,
+	0x89, // 0b10001001,
+	0x72, // 0b01110010,
+	0x00, // 0b00000000,
+	
+	0x81, // 0b10000001,
+	0x41, // 0b01000001,
+	0x21, // 0b00100001,
+	0x11, // 0b00010001,
+	0x0F, // 0b00001111,
+	0x00, // 0b00000000,
+	
+	0x76, // 0b01110110,
+	0x89, // 0b10001001,
+	0x89, // 0b10001001,
+	0x89, // 0b10001001,
+	0x76, // 0b01110110,
+	0x00, // 0b00000000,
+	
+	0x0E, // 0b00001110,
+	0xA1, // 0b10010001,
+	0xA1, // 0b10010001,
+	0xA1, // 0b01010001,
+	0x3E, // 0b00111110,
+	0x00, // 0b00000000,
+	
+	0x00, // 0b00000000,
+	0x00, // 0b00000000,
+	0xC0, // 0b11000000,
+	0xC0, // 0b11000000,
+	0x00, // 0b00000000,
+	0x00, // 0b00000000,
 
-  ReadEClock (&end_time);
-  x = end_time.ev_lo - start_time.ev_lo;
-  if (x != 0) {
-    x = (eclocks_per_second + (x >> 1)) / x;   /* round to nearest */
-    msg[0] = (x % 1000) / 100 + '0';
-    msg[1] = (x % 100) / 10 + '0';
-    msg[2] = (x % 10) + '0';
-    msg[3] = '\0';
-    Move (rp, 24, yoffset + 6);
-    Text (rp, fps_str, 2);
-  }
-  start_time = end_time;
+};
+
+static void blitchar(UWORD *buffer, UBYTE *f, ULONG sx, ULONG sy) {
+	ULONG x, y, b;
+	for(x=0; x<6; x++) {
+		for(b=1, y=0; y<8; y++) {
+			if(*f & b) buffer[sx + x + (sy + y) * 320] = 0xFFFF;// : 0x0000;
+			b <<= 1; 
+		}
+		f++;
+	}
+}
+
+/**********************************************************************/
+static void video_do_fps (BYTE *buffer, int yoffset) {
+	ULONG x, sx;
+	static ULONG fps = 600;
+	static struct EClockVal start_time = {0, 0};
+	struct EClockVal end_time;
+	//char msg[6];
+
+	eclocks_per_second = ReadEClock (&end_time);
+	x = (int)end_time.ev_lo - (int)start_time.ev_lo;
+	
+	if (x != 0) {
+		//char *p = &msg[5];
+		UBYTE *f;
+		sx = 100;
+		
+		//*p-- = 0;
+		
+		x = (eclocks_per_second * 10 + (x >> 1)) / x;
+		fps -= fps / 16; fps += x / 16; // Kalman filter
+		x = fps;
+	
+				f = &tiny_font[(x % 10) * 6]; blitchar(buffer, f, sx, 0); x /= 10; sx -= 6;
+				f = &tiny_font[10 * 6]; 	  blitchar(buffer, f, sx, 0); 		   sx -= 6;
+				f = &tiny_font[(x % 10) * 6]; blitchar(buffer, f, sx, 0); x /= 10; sx -= 6;
+
+		if(x) { f = &tiny_font[(x % 10) * 6]; blitchar(buffer, f, sx, 0); x /= 10; sx -= 6; }
+		if(x) { f = &tiny_font[(x % 10) * 6]; blitchar(buffer, f, sx, 0); x /= 10; sx -= 6; }
+
+	}
+	start_time = end_time;
 }
 
  
  
-void blitter_soft_update()
-{    
+void blitter_soft_update() {    
     ULONG  DestMod = 0;
     ULONG * pDest  = NULL;
     struct TagItem mesTags[] = {{LBMI_BASEADDRESS, (ULONG) &pDest},
@@ -251,19 +351,20 @@ void blitter_soft_update()
        {TAG_END}};
 
     APTR  handle  = LockBitMapTagList( theRastPort->BitMap, &mesTags[0] );
-    CopyMemQuick(bufferpixels + 24    ,pDest,  0x26000);
+    CopyMemQuick(bufferpixels + 32    ,pDest,  0x26000);
     video_do_fps(theRastPort,0);        
     UnLockBitMap( handle );  
 }
 
     
-void
-blitter_soft_close()    
-{
+void blitter_soft_close(void) {
+ 
+}    
+void blitter_soft_prerender(void) {
  
 }
-void
-blitter_soft_fullscreen() {
- 
+
+void blitter_soft_fullscreen(void) {
+
 }
                   

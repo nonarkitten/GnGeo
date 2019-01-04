@@ -13,17 +13,17 @@
 #include "emu.h"
 #include "list.h"
 
-typedef struct RGB2YUV
-{
-  Uint16 y;
-  Uint8  u;
-  Uint8  v;
-  Uint32 yuy2;
-}RGB2YUV;
+// typedef struct RGB2YUV
+// {
+//   Uint16 y;
+//   Uint8  u;
+//   Uint8  v;
+//   Uint32 yuy2;
+// }RGB2YUV;
 
-extern RGB2YUV rgb2yuv[65536];
-extern UBYTE *bufferpixels;
-void init_rgb2yuv_table(void);
+//extern RGB2YUV rgb2yuv[65536];
+extern BYTE* bufferpixels;
+//void init_rgb2yuv_table(void);
  
 //SDL_Surface *screen;
 //SDL_Surface *buffer, *sprbuf, *fps_buf, *scan, *fontbuf;

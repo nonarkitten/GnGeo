@@ -21,9 +21,9 @@ DEFINES  := \
 INCLUDE  := \
 	-IADE\:include.arti -IADE\:os-include -I.
 
-LIBS      = -lm
+LIBS      = -lm -lmusashi
 
-LIBPATH  := \
+LIBPATH  := -L./lib \
 	-L"C:/Development/AmiDevCpp/usr/local/amiga/m68k-amigaos/lib" \
 	-L"C:/Development/AmiDevCpp/usr/local/amiga/m68k-amigaos/lib/libb/libnix"
 

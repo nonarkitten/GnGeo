@@ -21,6 +21,7 @@
 #endif
 
 #include "emu.h"
+#include "conf.h"
 #include "video.h"
 #include "memory.h"
 #include "pd4990a.h"
@@ -33,7 +34,7 @@
 Uint32 bankaddress = 0;
 extern int current_line;
 
-
+neo_mem memory;
 
 void neogeo_sound_irq(int irq) {
 	//printf("neogeo_sound_irq %d\n",irq);
@@ -49,7 +50,7 @@ void neogeo_sound_irq(int irq) {
 static __inline__ Uint16 read_neo_control(void) {
 	unsigned int scan;
 
-	if (!conf.raster) {
+//	if (!conf.raster) {
 
 #ifdef PROCESSOR_ARM
 #ifdef USE_CYCLONE
@@ -71,16 +72,16 @@ static __inline__ Uint16 read_neo_control(void) {
 		//	if (scan >=0x200) scan=scan-0x108;
 		scan += 0xF8;
 
-		return (scan << 7) | (conf.pal << 3) | (neogeo_frame_counter & 0x0007); /* frame counter */
+		return (scan << 7) | (arg[OPTION_PAL] << 3) | (neogeo_frame_counter & 0x0007); /* frame counter */
 
-	} else {
-		scan = current_line /*+ 22*/; /* current scanline */
-		//scan+=0x110;
-		//if (scan >=0x200) scan=scan-0x108;
-		scan += 0xF8;
-
-		return (scan << 7) | (conf.pal << 3) | (neogeo_frame_counter & 0x0007); /* frame counter */
-	}
+// 	} else {
+// 		scan = current_line /*+ 22*/; /* current scanline */
+// 		//scan+=0x110;
+// 		//if (scan >=0x200) scan=scan-0x108;
+// 		scan += 0xF8;
+// 
+// 		return (scan << 7) | (arg[OPTION_PAL] << 3) | (neogeo_frame_counter & 0x0007); /* frame counter */
+// 	}
 }
 
 __inline__ void write_neo_control(Uint16 data) {
@@ -328,12 +329,14 @@ Uint8 mem68k_fetch_ctl1_byte(Uint32 addr) {
 	addr &= 0xFFFF;
 	if (addr == 0x00)
 		return memory.intern_p1;
-	if (addr == 0x01)
-		return (conf.test_switch ? 0xFE : 0xFF);
-
-	if (addr == 0x81) {
-		return (conf.test_switch ? 0x00 : 0x80);
-	}
+ 	if (addr == 0x01)
+ 		return 0xFF;
+// 		return (conf.test_switch ? 0xFE : 0xFF);
+// 
+ 	if (addr == 0x81) 
+ 		return 0x80;
+// 		return (conf.test_switch ? 0x00 : 0x80);
+// 	}
 
 	return 0;
 }
@@ -393,7 +396,7 @@ Uint8 mem68k_fetch_coin_byte(Uint32 addr) {
 	}
 	if (addr == 0x0) {
 		int res = 0;
-		if (conf.sound) {
+		if (arg[OPTION_SAMPLERATE]) {
 			//printf("fetch coin byte, rescoe= %x\n",result_code);
 #ifdef ENABLE_940T
 
@@ -504,54 +507,49 @@ LONG_STORE(mem68k_store_sram)
 ;
 
 /**** PALETTE ****/
-/*static __inline__ */Uint16 convert_pal(Uint16 npal) {
-	int r = 0, g = 0, b = 0;
+/*static __inline__ */
+#include <cybergraphx/cybergraphics.h>
+#include <inline/cybergraphics.h>
+
+extern int AC68080;
+Uint16 convert_pal(Uint16 npal) {
+	int r = 0, g = 0, b = 0, c = 0;
 	r = ((npal >> 7) & 0x1e) | ((npal >> 14) & 0x01);
 	g = ((npal >> 3) & 0x1e) | ((npal >> 13) & 0x01);
 	b = ((npal << 1) & 0x1e) | ((npal >> 12) & 0x01);
 
-	return (r << 11) + (g << 6) + b;
+	c = (r << 11) + (g << 6) + b;
+	return AC68080 ? c : SwapSHORT(c);
 }
 
 void update_all_pal(void) {
 	int i;
-	Uint32 *pc_pal1 = (Uint32*) memory.vid.pal_host[0];
-	Uint32 *pc_pal2 = (Uint32*) memory.vid.pal_host[1];
+	uint16_t *pc_pal1 = (uint16_t*) memory.vid.pal_host[0];
+	uint16_t *pc_pal2 = (uint16_t*) memory.vid.pal_host[1];
 	for (i = 0; i < 0x1000; i++) {
 		//pc_pal1[i] = convert_pal(READ_WORD_ROM(&memory.pal1[i<<1]));
 		//pc_pal2[i] = convert_pal(READ_WORD_ROM(&memory.pal2[i<<1]));
-		pc_pal1[i] = convert_pal(READ_WORD(&memory.vid.pal_neo[0][i<<1]));
-		pc_pal2[i] = convert_pal(READ_WORD(&memory.vid.pal_neo[1][i<<1]));
+		pc_pal1[i] = convert_pal(READ_WORD(&memory.vid.pal_neo[0][i]));
+		pc_pal2[i] = convert_pal(READ_WORD(&memory.vid.pal_neo[1][i]));
 	}
 }
 
 void mem68k_store_pal_byte(Uint32 addr, Uint8 data) {
-	/* TODO: verify this */
-	addr &= 0xffff;
-	if (addr <= 0x1fff) {
-		Uint16 a = READ_WORD(&current_pal[addr & 0xfffe]);
-		if (addr & 0x1)
-			a = data | (a & 0xff00);
-		else
-			a = (a & 0xff) | (data << 8);
-		WRITE_WORD(&current_pal[addr & 0xfffe], a);
-		if ((addr >> 1) & 0xF)
-			current_pc_pal[(addr) >> 1] = convert_pal(a);
-		else
-			current_pc_pal[(addr) >> 1] = 0xF81F;
-	}
+	uint32_t index = (addr & 0x1ffe) >> 1;
+	uint16_t a = READ_WORD(&current_pal[index]);
+	
+	if (addr & 0x1) a = data | (a & 0xff00);
+	else a = (a & 0xff) | (data << 8);
+		
+	WRITE_WORD(&current_pal[index], a);
+	current_pc_pal[index] = (index & 0xF) ? convert_pal(a) :  0xF81F;
 }
 
 void mem68k_store_pal_word(Uint32 addr, Uint16 data) {
-	//printf("Store pal word @ %08x %08x %04x\n",cpu_68k_getpc(),addr,data);
-	addr &= 0xffff;
-	if (addr <= 0x1fff) {
-		WRITE_WORD(&current_pal[addr], data);
-		if ((addr >> 1) & 0xF)
-			current_pc_pal[(addr) >> 1] = convert_pal(data);
-		else
-			current_pc_pal[(addr) >> 1] = 0xF81F;
-	}
+	uint32_t index = (addr & 0x1ffe) >> 1;
+
+	WRITE_WORD(&current_pal[index], data);
+	current_pc_pal[index] = (index & 0xF) ? convert_pal(data) :  0xF81F;
 }
 
 LONG_STORE(mem68k_store_pal)
@@ -629,29 +627,10 @@ void mem68k_store_z80_byte(Uint32 addr, Uint8 data) {
 	if (addr == 0x320000) {
 		sound_code = data & 0xff;
 		pending_command = 1;
-		//printf("B Pending command. Sound_code=%02x\n",sound_code);
-		if (conf.sound) {
-#ifdef ENABLE_940T
-			//printf("%d\n",shared_ctl->pending_command);
-			shared_ctl->sound_code = sound_code;
-			shared_ctl->pending_command = pending_command;
-			//shared_ctl->pending_command=pending_command++;
-			shared_ctl->nmi_pending = 1;
 
-			if (conf.accurate940) {
-				while (CHECK_BUSY(JOB940_RUN_Z80)
-						&& shared_ctl->pending_command)
-					;
-				if (shared_ctl->nmi_pending) {
-					gp2x_add_job940(JOB940_RUN_Z80_NMI);
-					while (CHECK_BUSY(JOB940_RUN_Z80_NMI))
-						;
-				}
-			}
-#else
+		if (arg[OPTION_SAMPLERATE]) {
 			cpu_z80_nmi();
 			cpu_z80_run(300);
-#endif
 		}
 	}
 }
@@ -660,25 +639,10 @@ void mem68k_store_z80_word(Uint32 addr, Uint16 data) {
 	if (addr == 0x320000) {
 		sound_code = data >> 8;
 		pending_command = 1;
-		//printf("W Pending command. Sound_code=%02x\n",sound_code);
-		if (conf.sound) {
-#ifdef ENABLE_940T
-			shared_ctl->sound_code = sound_code;
-			shared_ctl->pending_command = pending_command;
-			shared_ctl->nmi_pending = 1;
-			if (conf.accurate940) {
-				while (CHECK_BUSY(JOB940_RUN_Z80))
-					;
-				if (shared_ctl->nmi_pending) {
-					gp2x_add_job940(JOB940_RUN_Z80_NMI);
-					while (CHECK_BUSY(JOB940_RUN_Z80_NMI))
-						;
-				}
-			}
-#else
+
+		if (arg[OPTION_SAMPLERATE]) {
 			cpu_z80_nmi();
 			cpu_z80_run(300);
-#endif
 		}
 	}
 }
@@ -723,13 +687,13 @@ void mem68k_store_setting_byte(Uint32 addr, Uint8 data) {
 	}
 	if (addr == 0x000f) { /* set palette 2 */
 		current_pal = memory.vid.pal_neo[1];
-		current_pc_pal = (Uint32 *) memory.vid.pal_host[1];
+		current_pc_pal = (uint16_t *) memory.vid.pal_host[1];
 		memory.vid.currentpal=1;
 		return;
 	}
 	if (addr == 0x001f) { /* set palette 1 */
 		current_pal = memory.vid.pal_neo[0];
-		current_pc_pal = (Uint32 *) memory.vid.pal_host[0];
+		current_pc_pal = (uint16_t *) memory.vid.pal_host[0];
 		memory.vid.currentpal = 0;
 		return;
 	}
@@ -771,12 +735,12 @@ void mem68k_store_setting_word(Uint32 addr, Uint16 data) {
 	}
 	if (addr == 0x3a000e) {
 		current_pal = memory.vid.pal_neo[1];
-		current_pc_pal = (Uint32 *) memory.vid.pal_host[1];
+		current_pc_pal = (uint16_t *) memory.vid.pal_host[1];
 		return;
 	}
 	if (addr == 0x3a001e) {
 		current_pal = memory.vid.pal_neo[0];
-		current_pc_pal = (Uint32 *) memory.vid.pal_host[0];
+		current_pc_pal = (uint16_t *) memory.vid.pal_host[0];
 		return;
 	}
 }

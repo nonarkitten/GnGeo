@@ -36,11 +36,10 @@
 #include "memory.h"
 #include "video.h"
 #include "emu.h"
+#include "conf.h"
 #include "fileio.h"
 #include "neocrypt.h"
 #include "screen.h"
-#include "conf.h"
-//#include "pbar.h"
 #include "sound.h"
 #include "transpack.h"
 #include "menu.h"
@@ -64,40 +63,40 @@
 void sdl_set_title(char *name);
 
 void chomp(char *str) {
-    int i = 0;
-    if (str) {
-        while (str[i] != 0) {
-            printf(" %d ", str[i]);
-            i++;
-        }
-        printf(" \n");
-        if (str[i - 1] == 0x0A || str[i - 1] == 0x0D) str[i - 1] = 0;
-        if (str[i - 2] == 0x0A || str[i - 2] == 0x0D) str[i - 2] = 0;
+	int i = 0;
+	if (str) {
+		while (str[i] != 0) {
+			printf(" %d ", str[i]);
+			i++;
+		}
+		printf(" \n");
+		if (str[i - 1] == 0x0A || str[i - 1] == 0x0D) str[i - 1] = 0;
+		if (str[i - 2] == 0x0A || str[i - 2] == 0x0D) str[i - 2] = 0;
 
-    }
+	}
 }
 
 
 char *file_basename(char *filename) {
-    char *t;
-    t = strrchr(filename, '/');
-    if (t) return t + 1;
-    return filename;
+	char *t;
+	t = strrchr(filename, '/');
+	if (t) return t + 1;
+	return filename;
 }
 
 /* check if dir_name exist. Create it if not */
 int check_dir(char *dir_name) {
-    DIR *d;
+	DIR *d;
 
-    if (!(d = opendir(dir_name)) && (errno == ENOENT)) {
+	if (!(d = opendir(dir_name)) && (errno == ENOENT)) {
 #ifdef WIN32
-        mkdir(dir_name);
+		mkdir(dir_name);
 #else
-        mkdir(dir_name, 0755);
+		mkdir(dir_name, 0755);
 #endif
-        return false;
-    }
-    return true;
+		return false;
+	}
+	return true;
 }
 
 /* return a char* to $HOME/.gngeo/ 
@@ -106,151 +105,151 @@ int check_dir(char *dir_name) {
 #ifdef EMBEDDED_FS
 
 char *get_gngeo_dir(void) {
-    static char *filename = ROOTPATH"";
-    return filename;
+	static char *filename = ROOTPATH"";
+	return filename;
 }
 #else
 
 char *get_gngeo_dir(void) {
-    static char *filename = NULL;
+	static char *filename = NULL;
 #if defined (__AMIGA__)
-    int len = strlen("data/") + 1;
+	int len = strlen("data/") + 1;
 #else
-    int len = strlen(getenv("HOME")) + strlen("/.gngeo/") + 1;
+	int len = strlen(getenv("HOME")) + strlen("/.gngeo/") + 1;
 #endif
-    if (!filename) {
-        filename = (char*)malloc(len * sizeof (char));
-        CHECK_ALLOC(filename);
+	if (!filename) {
+		filename = (char*)malloc(len * sizeof (char));
+		CHECK_ALLOC(filename);
 #if defined (__AMIGA__)
-        sprintf(filename, "data/");
+		sprintf(filename, "data/");
 #else
-        sprintf(filename, "%s/.gngeo/", getenv("HOME"));
+		sprintf(filename, "%s/.gngeo/", getenv("HOME"));
 #endif
-    }
-    check_dir(filename);
-    //printf("get_gngeo_dir %s\n",filename);
-    return filename;
+	}
+	check_dir(filename);
+	//printf("get_gngeo_dir %s\n",filename);
+	return filename;
 }
 #endif
 
 void open_nvram(char *name) {
-    char *filename;
-    size_t totread = 0;
+	char *filename;
+	size_t totread = 0;
 #ifdef EMBEDDED_FS
-    const char *gngeo_dir = ROOTPATH"save/";
+	const char *gngeo_dir = ROOTPATH"save/";
 #elif defined(__AMIGA__)
-    const char *gngeo_dir = "save/";
+	const char *gngeo_dir = "save/";
 #else
-    const char *gngeo_dir = get_gngeo_dir();
+	const char *gngeo_dir = get_gngeo_dir();
 #endif
-    FILE *f;
-    int len = strlen(name) + strlen(gngeo_dir) + 4; /* ".nv\0" => 4 */
+	FILE *f;
+	int len = strlen(name) + strlen(gngeo_dir) + 4; /* ".nv\0" => 4 */
 
-    filename = (char *) alloca(len);
-    sprintf(filename, "%s%s.nv", gngeo_dir, name);
+	filename = (char *) alloca(len);
+	sprintf(filename, "%s%s.nv", gngeo_dir, name);
 
-    if ((f = fopen(filename, "rb")) == 0)
-        return;
-    totread = fread(memory.sram, 1, 0x10000, f);
-    fclose(f);
+	if ((f = fopen(filename, "rb")) == 0)
+		return;
+	totread = fread(memory.sram, 1, 0x10000, f);
+	fclose(f);
 
 }
 
 /* TODO: multiple memcard */
 void open_memcard(char *name) {
-    char *filename;
-    size_t totread = 0;
+	char *filename;
+	size_t totread = 0;
 #ifdef EMBEDDED_FS
-    const char *gngeo_dir = ROOTPATH"save/";
+	const char *gngeo_dir = ROOTPATH"save/";
 #elif defined(__AMIGA__)
-    const char *gngeo_dir = "save/";
+	const char *gngeo_dir = "save/";
 #else
-    const char *gngeo_dir = get_gngeo_dir();
+	const char *gngeo_dir = get_gngeo_dir();
 #endif
-    FILE *f;
-    int len = strlen("memcard") + strlen(gngeo_dir) + 1; /* ".nv\0" => 4 */
+	FILE *f;
+	int len = strlen("memcard") + strlen(gngeo_dir) + 1; /* ".nv\0" => 4 */
 
-    filename = (char *) alloca(len);
-    sprintf(filename, "%s%s", gngeo_dir, "memcard");
+	filename = (char *) alloca(len);
+	sprintf(filename, "%s%s", gngeo_dir, "memcard");
 
-    if ((f = fopen(filename, "rb")) == 0)
-        return;
-    totread = fread(memory.memcard, 1, 0x800, f);
-    fclose(f);
+	if ((f = fopen(filename, "rb")) == 0)
+		return;
+	totread = fread(memory.memcard, 1, 0x800, f);
+	fclose(f);
 }
 
 void save_nvram(char *name) {
-    char *filename;
+	char *filename;
 #ifdef EMBEDDED_FS
-    const char *gngeo_dir = ROOTPATH"save/";
+	const char *gngeo_dir = ROOTPATH"save/";
 #elif defined(__AMIGA__)
-    const char *gngeo_dir = strdup("save/");
+	const char *gngeo_dir = strdup("save/");
 #else
-    const char *gngeo_dir = get_gngeo_dir();
+	const char *gngeo_dir = get_gngeo_dir();
 #endif
-    FILE *f;
-    int len = strlen(name) + strlen(gngeo_dir) + 4; /* ".nv\0" => 4 */
+	FILE *f;
+	int len = strlen(name) + strlen(gngeo_dir) + 4; /* ".nv\0" => 4 */
 
-    //strlen(name) + strlen(getenv("HOME")) + strlen("/.gngeo/") + 4;
-    int i;
-    //    printf("Save nvram %s\n",name);
-    for (i = 0xffff; i >= 0; i--) {
-        if (memory.sram[i] != 0)
-            break;
-    }
+	//strlen(name) + strlen(getenv("HOME")) + strlen("/.gngeo/") + 4;
+	int i;
+	//    printf("Save nvram %s\n",name);
+	for (i = 0xffff; i >= 0; i--) {
+		if (memory.sram[i] != 0)
+			break;
+	}
 
-    filename = (char *) alloca(len);
+	filename = (char *) alloca(len);
 
-    sprintf(filename, "%s%s.nv", gngeo_dir, name);
+	sprintf(filename, "%s%s.nv", gngeo_dir, name);
 
-    if ((f = fopen(filename, "wb")) != NULL) {
-        fwrite(memory.sram, 1, 0x10000, f);
-        fclose(f);
-    }
+	if ((f = fopen(filename, "wb")) != NULL) {
+		fwrite(memory.sram, 1, 0x10000, f);
+		fclose(f);
+	}
 }
 
 void save_memcard(char *name) {
-    char *filename;
+	char *filename;
 #ifdef EMBEDDED_FS
-    const char *gngeo_dir = ROOTPATH"save/";
+	const char *gngeo_dir = ROOTPATH"save/";
 #elif defined(__AMIGA__)
-    const char *gngeo_dir = strdup("save/");
+	const char *gngeo_dir = strdup("save/");
 #else
-    const char *gngeo_dir = get_gngeo_dir();
+	const char *gngeo_dir = get_gngeo_dir();
 #endif
-    FILE *f;
-    int len = strlen("memcard") + strlen(gngeo_dir) + 1; /* ".nv\0" => 4 */
+	FILE *f;
+	int len = strlen("memcard") + strlen(gngeo_dir) + 1; /* ".nv\0" => 4 */
 
-    filename = (char *) alloca(len);
-    sprintf(filename, "%s%s", gngeo_dir, "memcard");
+	filename = (char *) alloca(len);
+	sprintf(filename, "%s%s", gngeo_dir, "memcard");
 
-    if ((f = fopen(filename, "wb")) != NULL) {
-        fwrite(memory.memcard, 1, 0x800, f);
-        fclose(f);
-    }
+	if ((f = fopen(filename, "wb")) != NULL) {
+		fwrite(memory.memcard, 1, 0x800, f);
+		fclose(f);
+	}
 }
 
 int close_game(void) {
-    if (conf.game == NULL) return false;
-    save_nvram(conf.game);
-    save_memcard(conf.game);
+	//if (arg[OPTION_FILE] == NULL) return false;
+	save_nvram(arg[OPTION_FILE]);
+	save_memcard(arg[OPTION_FILE]);
 
-    dr_free_roms(&memory.rom);
-    trans_pack_free();
+	dr_free_roms(&memory.rom);
+	trans_pack_free();
 
-    return true;
+	return true;
 }
 
 int load_game_config(char *rom_name) {
 	char *gpath;
 	char *drconf;
 #ifdef EMBEDDED_FS
-    gpath=ROOTPATH"conf/";
+	gpath=ROOTPATH"conf/";
 #else
-    gpath=get_gngeo_dir();
+	gpath=get_gngeo_dir();
 #endif
-	cf_reset_to_default();
-	cf_open_file(NULL); /* Reset possible previous setting */
+//	cf_reset_to_default();
+//	cf_open_file(NULL); /* Reset possible previous setting */
 	if (rom_name) {
 		if (strstr(rom_name,".gno")!=NULL) {
 			char *name=dr_gno_romname(rom_name);
@@ -266,57 +265,50 @@ int load_game_config(char *rom_name) {
 			drconf=(char*)alloca(strlen(gpath)+strlen(rom_name)+strlen(".cf")+1);
 			sprintf(drconf,"%s%s.cf",gpath,rom_name);
 		}
-		cf_open_file(drconf);
+//		cf_open_file(drconf);
 	}
 	return true;
 }
 
 int init_game(char *rom_name) {
-printf("AAA Blitter %s effect %s\n",CF_STR(cf_get_item_by_name("blitter")),CF_STR(cf_get_item_by_name("effect")));
+	//printf("AAA Blitter %s effect %s\n",CF_STR(cf_get_item_by_name("blitter")),CF_STR(cf_get_item_by_name("effect")));
 
 	load_game_config(rom_name);
 	/* reinit screen if necessary */
 	//screen_change_blitter_and_effect(NULL,NULL);
 	reset_frame_skip();
 	screen_reinit();
-	printf("BBB Blitter %s effect %s\n",CF_STR(cf_get_item_by_name("blitter")),CF_STR(cf_get_item_by_name("effect")));
-    /* open transpack if need */
-    trans_pack_open(CF_STR(cf_get_item_by_name("transpack")));
+	//printf("BBB Blitter %s effect %s\n",CF_STR(cf_get_item_by_name("blitter")),CF_STR(cf_get_item_by_name("effect")));
+	/* open transpack if need */
+	//trans_pack_open(CF_STR(cf_get_item_by_name("transpack")));
 
-    if (strstr(rom_name, ".gno") != NULL) {
-        dr_open_gno(rom_name);
+	if (strstr(rom_name, ".gno") != NULL) {
+		dr_open_gno(rom_name);
 
-    } else {
+	} else {
 
-        //open_rom(rom_name);
-	if (dr_load_game(rom_name) == false) {
-#if defined(GP2X)
-            gn_popup_error(" Error! :", "Couldn't load %s",
-                    file_basename(rom_name));
-#else
-            printf("Can't load %s\n", rom_name);
-#endif
-            return false;
-        }
+		//open_rom(rom_name);
+		if (dr_load_game(rom_name) == false) {
+			//printf("Can't load %s\n", rom_name);
+			return false;
+		}
+	}
+	open_nvram(arg[OPTION_FILE]);
+	open_memcard(arg[OPTION_FILE]);
 
-    }
+	//sdl_set_title(arg[OPTION_FILE]);
 
-    open_nvram(conf.game);
-    open_memcard(conf.game);
-#ifndef GP2X
-    sdl_set_title(conf.game);
-#endif
-    init_neo();
-    setup_misc_patch(conf.game);
+	init_neo();
+	setup_misc_patch(arg[OPTION_FILE]);
 
-    fix_usage = memory.fix_board_usage;
-    current_pal = memory.vid.pal_neo[0];
-    current_fix = memory.rom.bios_sfix.p;
-    current_pc_pal = (Uint32 *) memory.vid.pal_host[0];
+	fix_usage = memory.fix_board_usage;
+	current_pal = memory.vid.pal_neo[0];
+	current_fix = memory.rom.bios_sfix.p;
+	current_pc_pal = (uint16_t *) memory.vid.pal_host[0];
 
 	memory.vid.currentpal=0;
 	memory.vid.currentfix=0;
 
 
-    return true;
+	return true;
 }

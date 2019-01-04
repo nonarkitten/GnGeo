@@ -81,8 +81,7 @@ Uint32 get_ticks(void)
 }    
 #endif
 
-void reset_frame_skip(void)
-{
+void reset_frame_skip(void) {
 #if defined(HAVE_GETTIMEOFDAY) && !defined(WII)
     init_tv.tv_usec = 0;
     init_tv.tv_sec = 0;
@@ -91,91 +90,51 @@ void reset_frame_skip(void)
 #endif
     skip_next_frame = 0;
     init_frame_skip = 1;
-    if (conf.pal)
+    if (arg[OPTION_PAL])
 	CPU_FPS=50;
     F = (uclock_t) ((double) TICKS_PER_SEC / CPU_FPS);
 }
 
 
-
-int frame_skip(int init)
-{
+int frame_skip(int init) {
+	static int init_bench = 1;
     static int f2skip;
     static uclock_t sec = 0;
     static uclock_t rfd;
     static uclock_t target;
-    static int nbFrame = 0;
-    static unsigned int nbFrame_moy = 0;
-    static int nbFrame_min = 1000;
-    static int nbFrame_max = 0;
     static int skpFrm = 0;
-    static int count = 0;
-    static int moy=60;
-
+    static int count_bench;
+	
     if (init_frame_skip) {
 		init_frame_skip = 0;
 		target = get_ticks();
-		bench = (CF_BOOL(cf_get_item_by_name("bench")) ? 1/*get_ticks()*/ : 0);
-
-		nbFrame = 0;
-		//f2skip=0;
-		//skpFrm=0;
 		sec = 0;
 		return 0;
     }
+    
+    if(count_bench && (--count_bench == 0)) exit(0);
 
     target += F;
     if (f2skip > 0 ) {
-	f2skip--;
-	skpFrm++;
-	return 1;
-    } else
-	skpFrm = 0;
-//	printf("%d %d\n",conf.autoframeskip,conf.show_fps);
+		f2skip--;
+		skpFrm++;
+		return 1;
+    } else {
+		skpFrm = 0;
+	}
 
     rfd = get_ticks();
 
-    if (conf.autoframeskip) {
-	if (rfd < target && f2skip == 0)
-	    while (get_ticks() < target) {
-#ifndef WIN32
-		if (conf.sleep_idle) {
-		    usleep(5);
+    if (arg[OPTION_AUTOFRAMESKIP]) {
+		f2skip = (rfd - target) / (double) F;
+		if (f2skip > MAX_FRAMESKIP) {
+			f2skip = MAX_FRAMESKIP;
+			reset_frame_skip();
 		}
-#endif
-	} else {
-	    f2skip = (rfd - target) / (double) F;
-	    if (f2skip > MAX_FRAMESKIP) {
-		f2skip = MAX_FRAMESKIP;
-		reset_frame_skip();
-	    }
-	    // printf("Skip %d frame(s) %lu %lu\n",f2skip,target,rfd);
-	}
+	} else if(arg[OPTION_FRAMESKIP]) {
+    	f2skip = arg[OPTION_FRAMESKIP];
     }
 
-    nbFrame++;
-    nbFrame_moy++;
- 
-    if (conf.show_fps) {
-	    if (get_ticks() - sec >= TICKS_PER_SEC) {
-		    //printf("%d\n",nbFrame);
-		    if (bench) {
-
-			    if (nbFrame_min>nbFrame) nbFrame_min=nbFrame;
-			    if (nbFrame_max<nbFrame) nbFrame_max=nbFrame;
-			    count++;
-			    moy=nbFrame_moy/(float)count;
-
-			    if (count==30) count=0;
-			    sprintf(fps_str, "%d %d %d %d\n", nbFrame-1,nbFrame_min-1,nbFrame_max-1,moy-1);
-		    } else {
-			    sprintf(fps_str, "%2d", nbFrame-1);
-		    }
-	    
-		    nbFrame = 0;
-		    sec = get_ticks();
-	    }
-    }
     return 0;
 }
 
@@ -209,7 +168,7 @@ static void closetimer(void){
 
 static struct timeval startTime;
 
-void startup(){
+void startup(){ 
 	GetSysTime(&startTime);
 }
 
@@ -222,8 +181,7 @@ ULONG getMilliseconds(){
 	return (endTime.tv_secs * 1000 + endTime.tv_micro / 1000);
 }
 
-int  I_GetTime (void)
-{
+int  I_GetTime (void) {
     ULONG ticks;
 
     ticks = getMilliseconds();
@@ -235,12 +193,8 @@ int  I_GetTime (void)
 
     return (ticks * TICKS_PER_SEC) / 1000;
 } 
-//
-// Same as I_GetTime, but returns time in milliseconds
-//
 
-int I_GetTimeMS(void)
-{
+int I_GetTimeMS(void) {
     ULONG ticks;
 
     ticks = getMilliseconds();
@@ -251,29 +205,20 @@ int I_GetTimeMS(void)
     return (ticks - basetime) * 1000;
 }
 
-// Sleep for a specified number of ms
-
-
-void I_ExitTimer()
-{
+void I_ExitTimer() {
     closetimer();
 }
 
-void I_Sleep(int ms)
-{
+void I_Sleep(int ms) {
     usleep(ms);
 }
 
-void I_WaitVBL(int count)
-{
+void I_WaitVBL(int count) {
     I_Sleep((count * 1000) / 70);
 }
 
-
-void I_InitTimer(void)
-{
+void I_InitTimer(void) {
     // initialize timer
-
    opentimer(UNIT_VBLANK);
    startup();
 }
