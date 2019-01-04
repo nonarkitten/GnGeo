@@ -24,234 +24,316 @@
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <dos/dostags.h>
-#include <hardware/cia.h>
-#include <proto/exec.h>
-#include <proto/dos.h>
-#include <proto/ahi.h>
-#include <proto/graphics.h>
- 
+//#include "SDL.h"
+#include "sound.h"
 #include "emu.h"
 #include "memory.h"
 #include "profiler.h"
+//#include "gnutil.h"
 #include "ym2610/ym2610.h"
-#ifdef GP2X
-#include "ym2610-940/940shared.h"
-#endif
 
-#ifdef USE_OSS
-#include <sys/soundcard.h>
-#include <sys/ioctl.h>
-#include <fcntl.h>
-#include <pthread.h>
-
-#endif
-
-#define USE_AHI_V4 TRUE
-
-#define CHANNELS   2
-#define MAXSAMPLES 16
-
-#define INT_FREQ   50
-
-#define MIXER_MAX_CHANNELS 16
-//#define CPU_FPS 60
-#define BUFFER_LEN 16384
-//#define BUFFER_LEN 
-extern int throttle;
-static int audio_sample_rate;
-Uint16 play_buffer[BUFFER_LEN];
-
-#define NB_SAMPLES 128 /* better resolution */ 
-Uint8 * stream = NULL;
+#include <dos/dostags.h>
+#include <exec/types.h>
+#include <exec/memory.h>
+#include <exec/tasks.h>
+#include <graphics/gfxbase.h>
+#include <libraries/dos.h>
+#include <devices/audio.h>
+#include <proto/exec.h>
+#include <proto/dos.h>
+#include <stdarg.h>
  
- 
+#include <clib/exec_protos.h>
+#include <clib/alib_protos.h>
+#include <clib/dos_protos.h>
 
-static void sub_invoc(void);	// Sound sub-process
-void sub_func(void);
-struct Process *sound_process;
-int quit_sig, pause_sig,
-	resume_sig, ahi_sig;		// Sub-process signals
-struct Task *main_task;			// Main task
-int main_sig;					// Main task signals
-static ULONG sound_func(void);	// AHI callback
-struct MsgPort *ahi_port;		// Port and IORequest for AHI
-struct AHIRequest *ahi_io;
-struct AHIAudioCtrl *ahi_ctrl;	// AHI control structure
-struct AHISampleInfo sample;	// SampleInfos for double buffering
-struct Hook sf_hook;			// Hook for callback function
-int play_buf;					// Number of buffer currently playing
-bool ready;                     // Is the audio ready?
-	
-// Library bases
-struct Library *AHIBase;
+#include <clib/timer_protos.h>
+#include <clib/exec_protos.h>
 
-// CIA-A base
-extern struct CIA ciaa; 
 
-int init_audio(void)
-{
-	// Find our (main) task
-	main_task = FindTask(NULL);
+//                    ___ __        _____________ ________   
+//  _____   __ __  __| _/|__| ____ |   \______   \\_____  \  
+//  \__  \ |  |  \/ __ | |  |/  _ \|   ||       _/ /  / \  \ 
+//   / __ \|  |  / /_/ | |  (  (_) )   ||    |   \/   \_/_  \
+//  (____  /____/\____ | |__|\____/|___||____|_  /\_____\ \_/
+//       \/           \/                       \/        \__)
 
-	// Create signal for communication
-	main_sig = AllocSignal(-1);
+#include <devices/audio.h>
+#include <hardware/intbits.h>
+#include <hardware/dmabits.h>
+#include <hardware/custom.h>
+#include <hardware/cia.h>
+#include <exec/exec.h>
+#include <proto/exec.h>
 
-	// Create sub-process and wait until it is ready
-	if ((sound_process = CreateNewProcTags(
-		NP_Entry, (ULONG)&sub_invoc,
-		NP_Name, (ULONG)"NeoSoundProcess",
-		NP_Priority, 1, 
-		TAG_DONE)) != NULL)
-		Wait(1 << main_sig); 
-}
+//#include "std/debug.h"
+//#include "std/memory.h"
+//#include "std/types.h"
+//#include "system/hardware.h"
+#define INTF_LEVEL3 (INTF_VERTB | INTF_BLIT | INTF_COPER)
+#define INTF_LEVEL4 (INTF_AUD0 | INTF_AUD1 | INTF_AUD2 | INTF_AUD3)
 
-void close_audio(void) {
+volatile struct Custom* const custom = (APTR)0xdff000;
+volatile struct CIA* const ciaa = (APTR)0xbfe001;
+volatile struct CIA* const ciab = (APTR)0xbfd000;
 
-	// Tell sub-process to quit and wait for completion
-	if (sound_process != NULL) {
-		Signal(&(sound_process->pr_Task), 1 << quit_sig);
-		Wait(1 << main_sig);
+typedef enum { CMP_LT = -1, CMP_EQ = 0, CMP_GT = 1 } CmpT;
+typedef void* PtrT;
+
+typedef enum { CHAN_0, CHAN_1, CHAN_2, CHAN_3 } ChanT;
+typedef void (*AudioIntHandlerT)(ChanT num, PtrT userData);
+
+typedef struct MsgPort MsgPortT;
+typedef struct IOAudio IOAudioT;
+typedef struct IORequest IORequestT;
+typedef struct Interrupt InterruptT;
+
+typedef struct AudioInt {
+	InterruptT server;
+	InterruptT *oldServer;
+	void (*handler)(void);
+	PtrT userData;
+} AudioIntT;
+
+/* structures used by audio.device */
+typedef struct Audio {
+	MsgPortT *msgPort;
+	IORequestT *ioReq;
+	AudioIntT audioInt[4];
+} AudioT;
+
+static AudioT TheAudio;
+static int AudioInitialized = 0;
+static int CpuClock = 0;
+static paused = 1;
+
+__saveds __interrupt static int AudioServer(ChanT num asm("a1"));
+
+static int InitAudio() {
+	struct GfxBase *GfxBase;
+	AudioT *audio = &TheAudio;
+
+	if(AudioInitialized) return 1;
+
+	if(NULL != (GfxBase = (struct GfxBase *)OpenLibrary("graphics.library",0L))) {
+		CpuClock = (GfxBase->DisplayFlags & PAL) ? 3546895L : 3579545L;
+		CloseLibrary( (struct Library *) GfxBase);
+	} else {
+		return 0;
 	}
 
-	// Free signal
-	FreeSignal(main_sig); 
+	memset(audio, 0, sizeof(TheAudio));
 
-}
+	if ((audio->msgPort = CreateMsgPort())) {
+		audio->ioReq = (IORequestT *)AllocVec(sizeof(IOAudioT), MEMF_PUBLIC | MEMF_CLEAR);
+		//(IORequestT *)NewRecord(IOAudioT);
 
+		{
+			IOAudioT *ioReq = (IOAudioT *)audio->ioReq;
+			uint8_t channels[] = { 15 };
 
-void sub_invoc(void)
-{
-	// Get pointer to the DigitalRenderer object and call sub_func()
-    sub_func();
-}
+			ioReq->ioa_Request.io_Message.mn_ReplyPort = audio->msgPort;
+			ioReq->ioa_Request.io_Message.mn_Node.ln_Pri = ADALLOC_MAXPREC;
+			ioReq->ioa_Request.io_Command = ADCMD_ALLOCATE;
+			ioReq->ioa_Request.io_Flags = ADIOF_NOWAIT;
+			ioReq->ioa_AllocKey = 0;
+			ioReq->ioa_Data = channels;
+			ioReq->ioa_Length = sizeof(channels);
+		}
 
-void pause_audio(int on) {
- 
-}
+		if (OpenDevice(AUDIONAME, 0L, audio->ioReq, 0L) == 0) {
+			int i;
 
-ULONG sound_func(void)
-{
-	register struct AHIAudioCtrl *ahi_ctrl asm ("a2");	 
-    YM2610Update_stream(NB_SAMPLES);	
-	AHI_SetSound(0, play_buf, 0, 0, ahi_ctrl, 0);
-	Signal(&(sound_process->pr_Task), 1 << (ahi_sig));
+			for (i = 0; i < 4; i++) {
+				InterruptT *audioInt = &audio->audioInt[i].server;
+
+				audioInt->is_Node.ln_Type = NT_INTERRUPT;
+				audioInt->is_Node.ln_Pri = 127;
+				audioInt->is_Node.ln_Name = "AudioServer";
+				audioInt->is_Data = (APTR)i;
+				audioInt->is_Code = (APTR)AudioServer;
+
+				audio->audioInt[i].oldServer = SetIntVector(INTB_AUD0 + i, audioInt);
+			}
+
+			AudioInitialized = 1;
+			return 1;
+		}
+
+		FreeVec(audio->ioReq);
+		DeleteMsgPort(audio->msgPort);
+	}
+
 	return 0;
 }
- 
-void sub_func(void)
-{
-	ahi_port = NULL;
-	ahi_io = NULL;
-	ahi_ctrl = NULL;
-	sample.ahisi_Address = NULL;
-	ready = FALSE;
+static void KillAudio() {
+  AudioT *audio = &TheAudio;
+  int i;
 
-	// Create signals for communication
-	quit_sig = AllocSignal(-1);
-	pause_sig = AllocSignal(-1);
-	resume_sig = AllocSignal(-1);
-	ahi_sig = AllocSignal(-1);
+	if(AudioInitialized) {
+		for (i = 0; i < 4; i++)
+			SetIntVector(INTB_AUD0 + i, audio->audioInt[i].oldServer);
 
-	// Open AHI
-	if ((ahi_port = CreateMsgPort()) == NULL)
-		goto wait_for_quit;
-	if ((ahi_io = (struct AHIRequest *)CreateIORequest(ahi_port, sizeof(struct AHIRequest))) == NULL)
-		goto wait_for_quit;
-	ahi_io->ahir_Version = 2;
-	if (OpenDevice(AHINAME, AHI_NO_UNIT, (struct IORequest *)ahi_io, NULL))
-		goto wait_for_quit;
-	AHIBase = (struct Library *)ahi_io->ahir_Std.io_Device;
+		CloseDevice(audio->ioReq);
+		FreeVec(audio->ioReq);
+		DeleteMsgPort(audio->msgPort);
+	}
+}
+static int AudioFilter(int on) {
+	int old = !(ciaa->ciapra & CIAF_LED);
 
-	// Initialize callback hook
-	sf_hook.h_Entry = sound_func;
+	if(on) ciaa->ciapra &= ~CIAF_LED;
+	else ciaa->ciapra |= CIAF_LED;
 
-	// Open audio control structure
-	if ((ahi_ctrl = AHI_AllocAudio(
-		AHIA_AudioID, 0x0002000b,
-		AHIA_MixFreq, conf.sample_rate,
-		AHIA_Channels, 1,
-		AHIA_Sounds, 1,
-		AHIA_SoundFunc, (ULONG)&sf_hook,
-		TAG_DONE)) == NULL)
-		goto wait_for_quit;
+	return old;
+}
+static void AudioSetVolume(ChanT num, uint8_t level) {
+  custom->aud[num].ac_vol = (uint16_t)level;
+}
+static void AudioSetPeriod(ChanT num, uint16_t period) {
+  custom->aud[num].ac_per = period;
+}
+static void AudioSetSampleRate(ChanT num, uint32_t rate) {
+  custom->aud[num].ac_per = (uint16_t)(CpuClock / rate);
+}
+static void AudioAttachSamples(ChanT num, uint16_t *data, uint32_t length) {
+  custom->aud[num].ac_ptr = data;
+  custom->aud[num].ac_len = (uint16_t)(length >> 1);
+}
+static uint16_t *AllocAudioData(size_t length) {
+  return AllocVec((length + 1) % ~1, MEMF_CHIP | MEMF_CLEAR);
+}
+static void FreeAudioData(uint16_t *data) {
+  FreeVec(data);
+}
 
+//                                       _________________   ____ __________  ________   
+//     ____   ____    ____   ____  ____ /   _____/\_____  \ |    |   \      \ \_____  \  
+//    / ___\ /    \  / ___\_/ __ \/  _ \\_____  \  /  (_)  \|    |   /   |   \ |  |_)  \ 
+//   / /_/  )   |  \/ /_/  )  ___(  (_) )        \/         \    |  /    |    \|        \
+//   \___  /|___|  /\___  / \___  >____/_______  /\_______  /______/\____|__  /_______  /
+//  /_____/      \//_____/      \/             \/         \/                \/        \/ 
 
-    // 32 bits (4 bytes) are required per sample for storage (16bit stereo).
-    ULONG sampleBufferSize = (NB_SAMPLES * AHI_SampleFrameSize(AHIST_M16S));
-  
-	// Prepare SampleInfos and load sounds (two sounds for double buffering)
-	sample.ahisi_Type = AHIST_M16S;
-	sample.ahisi_Length = sampleBufferSize;
-	sample.ahisi_Address = AllocVec(sampleBufferSize, MEMF_PUBLIC | MEMF_CLEAR);
- 
-	if (sample.ahisi_Address == NULL)
-		goto wait_for_quit;
-	AHI_LoadSound(0, AHIST_DYNAMICSAMPLE, &sample, ahi_ctrl);
- 
-	// Set parameters
-	play_buf = 0;
-	AHI_SetVol(0, 0x10000, 0x8000, ahi_ctrl, AHISF_IMM);
-	AHI_SetFreq(0, conf.sample_rate << 1, ahi_ctrl, AHISF_IMM);
-	AHI_SetSound(0, play_buf, 0, 0, ahi_ctrl, AHISF_IMM);
+#define BUFFER_LEN 256
+#define PLAYBACK_RATE 27778
 
-	// Start audio output
-	AHI_ControlAudio(ahi_ctrl, AHIC_Play, TRUE, TAG_DONE);
+uint8_t *lHBuffer, *rHBuffer;
+uint8_t *lLBuffer, *rLBuffer;
+uint8_t *_lHBuffer, *_rHBuffer;
+uint8_t *_lLBuffer, *_rLBuffer;
 
-	// We are now ready for commands
-	ready = TRUE;
-	Signal(main_task, 1 << main_sig);
+__saveds __interrupt static int AudioServer(ChanT num asm("a1")) {
+	extern void YM2610Update_Amiga(void);
+	void *temp;
+	
+	if(!paused) {
+		// kick off next chunk	
+		AudioAttachSamples(0, rHBuffer, BUFFER_LEN);
+		AudioAttachSamples(1, lLBuffer, BUFFER_LEN);	
+		AudioAttachSamples(2, lHBuffer, BUFFER_LEN);
+		AudioAttachSamples(3, rLBuffer, BUFFER_LEN);
 
-	// Accept and execute commands
-	for (;;) {
-		ULONG sigs = Wait((1 << quit_sig) | (1 << pause_sig) | (1 << resume_sig) | (1 << ahi_sig));
+		YM2610Update_Amiga();
+		
+		// swap buffers
+		temp = rHBuffer; rHBuffer = _rHBuffer; _rHBuffer = temp;
+		temp = rLBuffer; rLBuffer = _rLBuffer; _rLBuffer = temp;
+		temp = lHBuffer; lHBuffer = _lHBuffer; _lHBuffer = temp;
+		temp = lLBuffer; lLBuffer = _lLBuffer; _lLBuffer = temp;
 
-		// Quit sub-process
-		if (sigs & (1 << quit_sig))
-			goto quit;
+	}
+	custom->intreq = 1 << INTB_AUD0;
+	return 0;
+}
 
-		// Pause sound output
-		if (sigs & (1 << pause_sig))
-			AHI_ControlAudio(ahi_ctrl, AHIC_Play, FALSE, TAG_DONE);
+void pause_audio(int pause) {
+	if(paused && !pause) {
+		YM2610Update_Amiga();
+		AudioAttachSamples(0, rHBuffer, BUFFER_LEN);
+		AudioAttachSamples(1, lLBuffer, BUFFER_LEN);	
+		AudioAttachSamples(2, lHBuffer, BUFFER_LEN);
+		AudioAttachSamples(3, rLBuffer, BUFFER_LEN);
+		// Enabled DMA all at once
+		custom->dmacon = DMAF_SETCLR 
+			| (1 << DMAB_AUD0)
+			| (1 << DMAB_AUD1)
+			| (1 << DMAB_AUD2)
+			| (1 << DMAB_AUD3)
+			;
+		// Enable interrupt handler only on channel 0
+		custom->intena = INTF_SETCLR | (1 << INTB_AUD0);
+		
+	} else if(pause && !paused) {
+		// Disable channel 0 interrupt handler
+		custom->intena = 1 << INTB_AUD0;
+		// Disable DMA on all channels immediately
+		custom->dmacon = 0
+			| (1 << DMAB_AUD0)
+			| (1 << DMAB_AUD1)
+			| (1 << DMAB_AUD2)
+			| (1 << DMAB_AUD3)
+			;
+	}
+	paused = pause;
+}
 
-		// Resume sound output
-		if (sigs & (1 << resume_sig))
-			AHI_ControlAudio(ahi_ctrl, AHIC_Play, TRUE, TAG_DONE);
-
-		// Calculate next buffer
-		if (sigs & (1 << ahi_sig))
-		{
-			memcpy(sample.ahisi_Address, (Uint8 *)play_buffer, NB_SAMPLES << 2);
-        }
+struct MsgPort *TimerMP;      // Message port pointer
+struct Timerequest *TimerIO;  // I/O structure pointer
+#include "conf.h"
+static int initd = 0;
+int init_audio(void) { 
+	int samplerate = arg[OPTION_SAMPLERATE];
+	if(initd) return 1; else initd = 1;
+	
+	printf("Initializing sound to %dHz\r\n", samplerate);
+	
+	if(!InitAudio()) {
+		printf("Failed to initialize audio!");
+		return 0;
 	}
 
-wait_for_quit:
-	// Initialization failed, wait for quit signal
-	Wait(1 << quit_sig);
+	// RLLR
+	lHBuffer = AllocAudioData(BUFFER_LEN);
+	rHBuffer = AllocAudioData(BUFFER_LEN);
+	lLBuffer = AllocAudioData(BUFFER_LEN);
+	rLBuffer = AllocAudioData(BUFFER_LEN);
+	_lHBuffer = AllocAudioData(BUFFER_LEN);
+	_rHBuffer = AllocAudioData(BUFFER_LEN);
+	_lLBuffer = AllocAudioData(BUFFER_LEN);
+	_rLBuffer = AllocAudioData(BUFFER_LEN);
+	
+	AudioSetVolume(0, 64); 
+	AudioSetSampleRate(0, 27776);
+	AudioSetVolume(1, 1 ); 
+	AudioSetSampleRate(1, 27776);
+	AudioSetVolume(2, 64); 
+	AudioSetSampleRate(2, 27776);
+	AudioSetVolume(3, 1 ); 
+	AudioSetSampleRate(3, 27776);
+	
+	return 1;
+}
 
-quit:
-	// Free everything
-	if (ahi_ctrl != NULL) {
-		AHI_ControlAudio(ahi_ctrl, AHIC_Play, FALSE, TAG_DONE);
-		AHI_FreeAudio(ahi_ctrl);
-		CloseDevice((struct IORequest *)ahi_io);
-	}
+void close_audio(void) { 
+	if(!initd) return; else initd = 0;
 
-	FreeVec(sample.ahisi_Address);
- 
-
-	if (ahi_io != NULL)
-		DeleteIORequest((struct IORequest *)ahi_io);
-
-	if (ahi_port != NULL)
-		DeleteMsgPort(ahi_port);
-
-	FreeSignal(quit_sig);
-	FreeSignal(pause_sig);
-	FreeSignal(resume_sig);
-	FreeSignal(ahi_sig);
-
-	// Quit (synchronized with main task)
 	Forbid();
-	Signal(main_task, 1 << main_sig);
+	pause_audio(1);
+	
+	KillAudio();
+	
+	// clear any pending interrupt
+	custom->intreq = 1 << INTB_AUD0;
+
+	FreeAudioData(lHBuffer); lHBuffer = 0;
+	FreeAudioData(rHBuffer); rHBuffer = 0;
+	FreeAudioData(lLBuffer); lLBuffer = 0;
+	FreeAudioData(rLBuffer); rLBuffer = 0;
+	FreeAudioData(_lHBuffer); _lHBuffer = 0;
+	FreeAudioData(_rHBuffer); _rHBuffer = 0;
+	FreeAudioData(_lLBuffer); _lLBuffer = 0;
+	FreeAudioData(_rLBuffer); _rLBuffer = 0;
+	Permit();
+	
+	printf("Deinitialized sound\r\n");	
 }

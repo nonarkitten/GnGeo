@@ -23,9 +23,8 @@
 #include <config.h>
 #endif
 
-
-
 #include <string.h>
+
 typedef unsigned char	Uint8;
 typedef signed char	Sint8;
 typedef unsigned short	Uint16;
@@ -33,6 +32,9 @@ typedef signed short	Sint16;
 typedef unsigned int	Uint32;
 typedef signed int	Sint32;
 #define Uintptr long
+
+extern int HostCpuClock;
+extern int HostPAL;
 
 typedef struct {
    Uint32 x;
@@ -56,51 +58,79 @@ typedef enum COUNTRY {
     CTY_MAX
 } COUNTRY;
 
-struct {
-    char *game;
-    Uint16 x_start;
-    Uint16 y_start;
-    Uint16 res_x;
-    Uint16 res_y;
-    Uint16 sample_rate;
-    Uint16 test_switch;
+static __inline__ short SwapSHORT(short val)
+{
+	__asm __volatile
+	(
+		"ror.w	#8,%0"
 
-    Uint8 sound;
-    Uint8 vsync;
-    Uint8 snd_st_reg_create;
-    Uint8 do_message;
-    Uint8 nb_joy;
-    Uint8 raster;
-    Uint8 debug;
-    Uint8 rom_type;
-    Uint8 special_bios;
-    Uint8 extra_xor;
-    Uint8 pal;
-    Uint8 accurate940;
-    SYSTEM system;
-    COUNTRY country;
+		: "=d" (val)
+		: "0" (val)
+		);
 
-    Uint8 autoframeskip;
-    Uint8 show_fps;
-    Uint8 sleep_idle;
-    Uint8 screen320;
+	return val;
+}
 
-    char message[128];
-    char fps[4];
+static __inline__ long SwapLONG(long val)
+{
+	__asm __volatile
+	(
+		"ror.w	#8,%0 \n\t"
+		"swap	%0 \n\t"
+		"ror.w	#8,%0"
 
-    int *p1_key;
-    int *p2_key;
+		: "=d" (val)
+		: "0" (val)
+		);
 
-   // SDL_Joystick **joy;
-    int *p1_joy;
-    int *p2_joy;
+	return val;
+}
 
-    int *p1_hotkey0, *p1_hotkey1, *p1_hotkey2, *p1_hotkey3;
-    int *p2_hotkey0, *p2_hotkey1, *p2_hotkey2, *p2_hotkey3;
-
-    int p1_hotkey[4];
-    int p2_hotkey[4];
-} conf;
+// struct {
+//     char *game;
+//     Uint16 x_start;
+//     Uint16 y_start;
+//     Uint16 res_x;
+//     Uint16 res_y;
+//     Uint16 sample_rate;
+//     Uint16 test_switch;
+// 
+//     Uint8 sound;
+//     Uint8 vsync;
+//     Uint8 snd_st_reg_create;
+//     Uint8 do_message;
+//     Uint8 nb_joy;
+//     Uint8 raster;
+//     Uint8 debug;
+//     Uint8 rom_type;
+//     Uint8 special_bios;
+//     Uint8 extra_xor;
+//     Uint8 pal;
+//     Uint8 accurate940;
+//     SYSTEM system;
+//     COUNTRY country;
+// 
+//     Uint8 autoframeskip;
+//     Uint8 show_fps;
+//     Uint8 sleep_idle;
+//     Uint8 screen320;
+// 
+//     char message[128];
+//     char fps[4];
+// 
+//     int *p1_key;
+//     int *p2_key;
+// 
+//    // SDL_Joystick **joy;
+//     int *p1_joy;
+//     int *p2_joy;
+// 
+//     int *p1_hotkey0, *p1_hotkey1, *p1_hotkey2, *p1_hotkey3;
+//     int *p2_hotkey0, *p2_hotkey1, *p2_hotkey2, *p2_hotkey3;
+// 
+//     int p1_hotkey[4];
+//     int p2_hotkey[4];
+// } conf;
 
 enum {
     HOTKEY_MASK_A = 0x1,

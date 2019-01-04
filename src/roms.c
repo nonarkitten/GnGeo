@@ -1229,7 +1229,7 @@ static int init_roms(GAME_ROMS *r) {
 	return 0;
 }
 
-bool dr_load_bios(GAME_ROMS *r) {
+int dr_load_bios(GAME_ROMS *r) {
 	FILE *f;
 	int i;
 	PKZIP *pz;
@@ -1520,7 +1520,7 @@ error1:
 	return false;
 }
 
-bool dr_load_game(char *name) {
+int dr_load_game(char *name) {
 	//GAME_ROMS rom;
 	char *rpath = CF_STR(cf_get_item_by_name("rompath"));
 	int rc;

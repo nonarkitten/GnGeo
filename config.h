@@ -1,12 +1,14 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-typedef unsigned long uint32_t;
-typedef unsigned short uint16_t;
-typedef unsigned char uint8_t;
-typedef unsigned char byte;
+//typedef unsigned long uint32_t;
+//typedef unsigned short uint16_t;
+//typedef unsigned char uint8_t;
+//typedef unsigned char byte;
 
 #define HAVE_ATEXIT 1
+
+#define ALIGNLONGS 1
 
 #define DIRECTRAM 1
 

@@ -479,6 +479,8 @@ int stbi_zlib_decode_noheader_stream(zbuf *a,char *obuffer, int olen) {
 	int readed=0;
 	int totread=0;
 	int l;
+	int todo;
+	
 	if(!a) 
 	{
         printf("no buffer\n");
@@ -490,7 +492,7 @@ int stbi_zlib_decode_noheader_stream(zbuf *a,char *obuffer, int olen) {
 
 	a->zout_start=obuffer;
 	a->zout=obuffer;
-	int todo=olen;
+	todo=olen;
 	do {
 		if (a->type==-1) { /* start */
 			a->final = zreceive(a,1);

@@ -494,13 +494,13 @@ static void neogeo_mkstate(gzFile *gzf,int mode) {
  
 }
 
-bool save_state(char *game,int slot) {
+int save_state(char *game,int slot) {
  
-	return true;
+	return 1;
 }
-bool load_state(char *game,int slot) {
+int load_state(char *game,int slot) {
  
-	return true;
+	return 1;
 }
 #endif
 

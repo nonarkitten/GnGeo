@@ -17,6 +17,7 @@
 
 #include <stdio.h>
 #include "2610intf.h"
+#include "../conf.h"
 #include "../emu.h"
 #include "../memory.h"
 #include "../timer.h"
@@ -85,7 +86,7 @@ void YM2610UpdateRequest(void)
 
 int YM2610_sh_start(void)
 {
-    int rate = conf.sample_rate;
+    int rate = arg[OPTION_SAMPLERATE];
     //char buf[YM2610_NUMBUF][40];
     void *pcmbufa, *pcmbufb;
     int pcmsizea, pcmsizeb;

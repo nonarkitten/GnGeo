@@ -336,11 +336,13 @@ uint8_t *gn_unzip_file_malloc(PKZIP *zf, char *filename, uint32_t file_crc,
 		unsigned int *outlen) {
 	ZFILE *z = gn_unzip_fopen(zf, filename, file_crc);
 	int readed;
-	if (!z)
-		return NULL;
-	uint8_t *data = malloc(z->uncsize);
-	if (!data)
-		return NULL;
+	uint8_t *data;
+	
+	if (!z) return NULL;
+	
+	data = malloc(z->uncsize);
+	if (!data) return NULL;
+	
 	if (z->cmeth == 8) {
 #if !defined(HAVE_LIBZ) || !defined (HAVE_MMAP)
 		readed = stbi_zlib_decode_noheader_stream(z->zb, data, z->uncsize);

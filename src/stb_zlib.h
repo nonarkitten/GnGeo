@@ -9,7 +9,7 @@ typedef unsigned short uint16;
 typedef   signed short  int16;
 typedef unsigned int   uint32;
 typedef   signed int    int32;
-typedef unsigned int   uint;
+//typedef unsigned int   uint;
 
 
 // fast-way is faster to check than jpeg huffman, but slow way is slower

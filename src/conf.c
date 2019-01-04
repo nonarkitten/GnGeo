@@ -1,906 +1,246 @@
-/*  gngeo a neogeo emulator
- *  Copyright (C) 2001 Peponas Mathieu
- * 
- *  This program is free software; you can redistribute it and/or modify  
- *  it under the terms of the GNU General Public License as published by   
- *  the Free Software Foundation; either version 2 of the License, or    
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU Library General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
- */
+#include <exec/types.h>
+#include <libraries/dos.h>
+#include <workbench/workbench.h>
+#include <workbench/startup.h>
 
+#include <exec/types.h>
+#include <exec/libraries.h>
+#include <libraries/asl.h>
+ 
+#include <proto/dos.h>
+#include <proto/exec.h>
+#include <proto/asl.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
+#include <clib/alib_protos.h>
+#include <clib/exec_protos.h>
+#include <clib/dos_protos.h>
+#include <clib/icon_protos.h>
 #include <stdlib.h>
-#include <ctype.h>
+#include <stdio.h>
 #include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <dirent.h>
-#include <stdbool.h>
 
-#ifdef HAVE_GETOPT_LONG
-#include <getopt.h>
-#else
-#include "getopt.h"
-#endif
-
-#include <zlib.h>
-#include "unzip.h"
 #include "conf.h"
-#include "fileio.h"
-//#include "driver.h"
 #include "emu.h"
-#include "fileio.h"
-#include "memory.h"
 
-#if defined (__AMIGA__)
-#ifdef DATA_DIRECTORY
-#undef DATA_DIRECTORY
-#define DATA_DIRECTORY "data/"
-#endif
-#endif
-#if defined (WII)
-#define ROOTPATH "sd:/apps/gngeo/"
-#elif defined (__AMIGA__)
-#define ROOTPATH "WinDH_C:CrossCompiler/gngeo/release/"
-#else
-#define ROOTPATH ""
-#endif
+// declare CLI options template string with these modifiers:
+const char * argTemplate = 
+	 "FILES/M,"				// ROM to load
+	 "FRAMESKIP/N,"		// Set the frame-skip from 0 to 9
+	 "AUTOFRAMESKIP/S," 	// Enables automatic frame-skip
+	 "BENCH/N," 			// Renders N frames and outputs stats
+	 "INTERLEAVED/S," 	// Uses scan line interleaving to improve performance
+	 "PAL/S," 			// Enables/Forces PAL mode on NTSC machines
+	 "NTSC/S," 			// Enables/Forces NTSC mode on PAL machines
+	 						// These should be mutually exclusive
+	 "SHOWFPS/S,"			// Show frame rate on screen
+	 "SAMPLERATE/N," 		// Sets audio sample rate
+							//	0 - Audio disabled
+							//	9260 - Low quality
+							//	18520 - Mid quality
+							//	27780 - High quality
+	 "ENABLEFM/S,"		// Enables FM audio (otherwise digital only)
+	 "LOADLASTSTATE/N,"	// Automatically load last saved state (if present)
+	 "REGION/N,"			// Country (region lock code)
+	 "SYSTEMTYPE/N,"		// Arcade, home or unibios
+	 "BITRATE/N,"			// Audio bits/sample, 8 or 16
+	 "ROMPATH,"			// Path to ROMS
+	 "BIOSPATH,"			// Path to BIOS
+	 "AGA/S,"				// Enable AGA mode
+	 "VSYNC/S"			// Enable VSYNC
+;
 
-/* 
+static char game_name[32] = {0};
+static char roms_path[32] = "roms";
+static char bios_path[32] = "bios";
 
-   Xbox360 conf: A=J0B0,B=J0B1,C=J0B2,D=J0B3,START=J0B6,COIN=J0B10,UP=J0a1,DOWN=J0a1,LEFT=J0A0,RIGHT=J0A0,MENU=J0B7
-   sixaxis conf: Need special calibration :(
-   GP2X conf:    
-   Pandora conf:
-   wii conf:
-   etc.
+int arg[OPTION_MAX] = { 0 };
 
+static setArgInt(char **toolarray, char *argName, int index, int def) {
+	char *s = (char*)FindToolType(toolarray,argName);
+	arg[index] = (s) ? atoi(s) : (def);
+}
 
- */
+static setArgStr(char **toolarray, char *argName, char *out) {
+	char *s = (char*)FindToolType(toolarray,argName);
+	if(s) strcpy( out, s );
+}
 
-static struct {
-	CONF_ITEM **conf;
-	int size, nb_item;
-} cf_hash[128];
+static setArgBool(char **toolarray, char *argName, int index) {
+	char *s = (char*)FindToolType(toolarray,argName);
+	if(s) arg[index] = MatchToolValue(s, "TRUE");
+}
 
+#define MYLEFTEDGE 0
+#define MYTOPEDGE  0
+#define MYWIDTH    320
+#define MYHEIGHT   400
+ 
+struct TagItem frtags[] = {
+    ASL_Hail,       (ULONG)"The RKM file requester",
+    ASL_Height,     MYHEIGHT,
+    ASL_Width,      MYWIDTH,
+    ASL_LeftEdge,   MYLEFTEDGE,
+    ASL_TopEdge,    MYTOPEDGE,
+	ASL_FuncFlags, 	FILF_PATGAD,
+    ASL_Pattern,    (ULONG)"#?.zip",
+    ASL_OKText,     (ULONG)"Okay",
+    ASL_CancelText, (ULONG)"Cancel",
+    ASL_File,       (ULONG)"",
+    ASL_Dir,        (ULONG)roms_path,
+    ASL_ExtFlags1,	FIL1F_NOFILES|FIL1F_MATCHDIRS,
+    TAG_DONE
+};
 
-#ifdef GP2X
-static int default_tvoffset[] = {0, 0};
-#endif
+BOOL FromWb;
 
-#if defined(GP2X) || defined(WIZ)
-static char * default_p1control = "UP=J0B0,DOWN=J0B4,LEFT=J0B2,RIGHT=J0B6,A=J0B14,"
-		"B=J0B13,C=J0B12,D=J0B15,COIN=J0B9,START=J0B8,HOTKEY1=J0B10,HOTKEY2=J0B11";
-static char * default_p2control = "";
-#elif defined(PANDORA)
-static char * default_p1control = "A=K281,B=K279,C=K278,D=K280,START=K308,COIN=K306,"
-		"UP=K273,DOWN=K274,LEFT=K276,RIGHT=K275,MENU=K32";
-static char * default_p2control = "";
-#elif defined (DINGUX)
-static char * default_p1control = "A=K308,B=K306,C=K304,D=K32,START=K13,COIN=K9,"
-		"UP=K273,DOWN=K274,LEFT=K276,RIGHT=K275,MENU=K113";
-static char * default_p2control = "";
-#elif defined (WII)
-static char *default_p1control = "A=J0B9,B=J0B10,C=J0B11,D=J0B12,START=J0B18,COIN=J0B17"
-	"UPDOWN=J0A1,LEFTRIGHT=J0A0,JOY=J0H0";
-static char *default_p2control = "....";
-#else
-	/* TODO: Make Querty default instead of azerty */
-static char * default_p1control = "A=K119,B=K120,C=K113,D=K115,START=K38,COIN=K34,"
-		"UP=K273,DOWN=K274,LEFT=K276,RIGHT=K275,MENU=K27";
-static char * default_p2control = "";
-#endif
+void ParseArguments(int argc, char *argv[]) {
+	struct DiskObject *dobj;
+	struct WBStartup *WBenchMsg;
+	struct Library *AslBase;
+	struct WBArg *wbarg;
+    LONG  wLen;
+    LONG olddir = -1;
+    SHORT i;
 
-static int default_p1hotkey0[] = {0, 0, 0, 0};
-static int default_p1hotkey1[] = {0, 0, 0, 0};
-static int default_p1hotkey2[] = {0, 0, 0, 0};
-static int default_p1hotkey3[] = {0, 0, 0, 0};
-static int default_p2hotkey0[] = {0, 0, 0, 0};
-static int default_p2hotkey1[] = {0, 0, 0, 0};
-static int default_p2hotkey2[] = {0, 0, 0, 0};
-static int default_p2hotkey3[] = {0, 0, 0, 0};
+	FromWb = (argc==0) ? TRUE : FALSE;
+	
+    //AslBase = OpenLibrary("asl.library", 50);
+    //IAsl = (struct AslIFace*)GetInterface(AslBase, "main", 1, NULL);
+	arg[OPTION_AUTOFRAMESKIP] = 0;
+	arg[OPTION_INTERLEAVED] = 0;
+	arg[OPTION_PAL] = 0;
+	arg[OPTION_NTSC] = 0;
+	arg[OPTION_SHOWFPS] = 1;
+	arg[OPTION_ENABLEFM] = 1;
+	arg[OPTION_LOADLASTSTATE] = 0;
+	arg[OPTION_VSYNC] = 0;
+	
+    if(!FromWb) {
+		// CLI start
+		struct RDArgs *rdargs;
+		const char *arg_name;		
+		
+		if(!(rdargs = ReadArgs(argTemplate,arg,NULL))) {
+			printf("Incorrect values received by ReadArgs\n");
+			exit(-1);
+		}
+			
+		if(arg_name = ((char**)arg[OPTION_FILE])[0]) strcpy(game_name, arg_name);
+		if(arg[OPTION_BIOSPATH]) strcpy(bios_path, (char*)arg[OPTION_BIOSPATH]);
+		if(arg[OPTION_ROMPATH]) strcpy(roms_path, (char*)arg[OPTION_ROMPATH]);
+				
+		/* ReadArgs puts pointers to LONG here, so fold them back */		
+		#define FIXUP(X,DEF) arg[X] = (arg[X]) ? (*(ULONG*)arg[X]) : (DEF)
+		FIXUP(OPTION_FRAMESKIP,0);
+		FIXUP(OPTION_BENCH,0);
+		FIXUP(OPTION_SAMPLERATE,18520);
+		FIXUP(OPTION_REGION,(int)CTY_USA);
+		FIXUP(OPTION_SYSTEM,(int)SYS_UNIBIOS);
+		FIXUP(OPTION_BITRATE,8);
+		#undef FIXUP
+		
+		FreeArgs(rdargs);
 
-void cf_cache_conf(void) {
-	char *country;
-	char *system;
-	/* cache some frequently used conf item */
-	//	printf("Update Conf Cache, sample rate=%d -> %d\n",conf.sample_rate,CF_VAL(cf_get_item_by_name("samplerate")));
-	conf.sound = CF_BOOL(cf_get_item_by_name("sound"));
-	conf.vsync = CF_BOOL(cf_get_item_by_name("vsync"));
-	conf.sample_rate = CF_VAL(cf_get_item_by_name("samplerate"));
-	conf.debug = CF_BOOL(cf_get_item_by_name("debug"));
-	conf.raster = CF_BOOL(cf_get_item_by_name("raster"));
-	conf.pal = CF_BOOL(cf_get_item_by_name("pal"));
-
-	conf.autoframeskip = CF_BOOL(cf_get_item_by_name("autoframeskip"));
-	conf.show_fps = CF_BOOL(cf_get_item_by_name("showfps"));
-	conf.sleep_idle = CF_BOOL(cf_get_item_by_name("sleepidle"));
-	conf.screen320 = CF_BOOL(cf_get_item_by_name("screen320"));
-#ifdef GP2X
-	conf.accurate940 = CF_BOOL(cf_get_item_by_name("940sync"));
-#endif
-	country = CF_STR(cf_get_item_by_name("country"));
-	system = CF_STR(cf_get_item_by_name("system"));
-	if (!strcmp(system, "unibios")) {
-		conf.system = SYS_UNIBIOS;
 	} else {
-		if (!strcmp(system, "home")) {
-			conf.system = SYS_HOME;
-		} else {
-			conf.system = SYS_ARCADE;
-		}
-	}
-	if (!strcmp(country, "japan")) {
-		conf.country = CTY_JAPAN;
-	} else if (!strcmp(country, "usa")) {
-		conf.country = CTY_USA;
-	} else if (!strcmp(country, "asia")) {
-		conf.country = CTY_ASIA;
-	} else {
-		conf.country = CTY_EUROPE;
-	}
-}
+        WBenchMsg = (struct WBStartup *)argv;
+        
+        /* We actually only care about the first argument -- us */
+        wbarg=WBenchMsg->sm_ArgList; 
 
-static void read_array(int *tab, char *val, int size) {
-	int i = 0;
-	char *v;
+		/* if there's a directory lock for this wbarg, CD there */
+		if((wbarg->wa_Lock)&&(*wbarg->wa_Name))
+			olddir = CurrentDir(wbarg->wa_Lock);
 
-	v = strtok(val, ",");
+		if((*wbarg->wa_Name) && (dobj=GetDiskObject(wbarg->wa_Name))) {
+			char **toolarray = (char **)dobj->do_ToolTypes;
+			char *string;
+			
+	 		setArgStr(toolarray,  "ROM", 			game_name);
+	 		setArgStr(toolarray,  "ROMPATH", 		roms_path);
+	 		setArgStr(toolarray,  "BIOSPATH", 		bios_path);
 
-	while (v != NULL && i < size) {
-		tab[i] = atoi(v);
-		v = strtok(NULL, ",");
-		i++;
-	}
-}
+	 		setArgInt(toolarray,  "FRAMESKIP", 		OPTION_FRAMESKIP, 1);
+	 		setArgInt(toolarray,  "BENCH", 			OPTION_BENCH, 0);
+	 		setArgInt(toolarray,  "SAMPLERATE", 	OPTION_SAMPLERATE, 18520);
+	 		setArgInt(toolarray,  "BITRATE", 	    OPTION_BITRATE, 8);
+	 		
+	 		setArgBool(toolarray, "AUTOFRAMESKIP", 	OPTION_AUTOFRAMESKIP);
+	 		setArgBool(toolarray, "INTERLEAVED", 	OPTION_INTERLEAVED);
+	 		setArgBool(toolarray, "PAL", 			OPTION_PAL);
+	 		setArgBool(toolarray, "NTSC", 			OPTION_NTSC);
+	 		setArgBool(toolarray, "SHOWFPS", 		OPTION_SHOWFPS);
+	 		setArgBool(toolarray, "ENABLEFM", 		OPTION_ENABLEFM);
+	 		setArgBool(toolarray, "LOADLASTSTATE", 	OPTION_LOADLASTSTATE);
+	 		setArgBool(toolarray, "VSYNC", 			OPTION_VSYNC);
+			
+			if(MatchToolValue(FindToolType(toolarray, "REGION"), "europe"))
+				arg[OPTION_REGION] = CTY_EUROPE;
+			else if(MatchToolValue(FindToolType(toolarray, "REGION"), "usa"))
+				arg[OPTION_REGION] = CTY_USA;
+			else if(MatchToolValue(FindToolType(toolarray, "REGION"), "asia"))
+				arg[OPTION_REGION] = CTY_ASIA;
+			else 
+				arg[OPTION_REGION] = CTY_JAPAN;
+			
+			if(MatchToolValue(FindToolType(toolarray, "SYSTEM"), "arcade"))
+				arg[OPTION_REGION] = SYS_ARCADE;
+			else if(MatchToolValue(FindToolType(toolarray, "SYSTEM"), "home"))
+				arg[OPTION_REGION] = SYS_HOME;
+			else 
+				arg[OPTION_REGION] = SYS_UNIBIOS;
+	 						 		
+			FreeDiskObject(dobj);
+	 	}
+	 		
+		if(olddir != -1)  CurrentDir(olddir); /* CD back where we were */
+		
+    }
 
-static char **read_str_array(char *val, int *size) {
-	char *v;
-	int nb_elem = 1;
-	int i = 0;
-	char **tab;
-	while (val[i] != 0) {
-		if (val[i] == ',') nb_elem++;
-		i++;
-	}
-	printf("%s :NB elem %d\n", val, nb_elem);
-	tab = malloc(nb_elem * sizeof (char*));
-	if (!tab) return NULL;
+	arg[OPTION_FILE] = (int)game_name;
+	arg[OPTION_BIOSPATH] = (int)bios_path;
+	arg[OPTION_ROMPATH] = (int)roms_path;
 
-	v = strtok(val, ",");
-	printf("V1=%s\n", v);
-	for (i = 0; i < nb_elem; i++) {
-		tab[i] = strdup(v);
-		v = strtok(NULL, ",");
-		printf("V%d=%s\n", i, v);
-	}
-	*size = nb_elem;
-	return tab;
-}
-static int val = 0x100;
-static CONF_ITEM * create_conf_item(const char *name, const char *help, char short_opt, int (*action)(struct CONF_ITEM *self)) {
-	int a;
-	
-	CONF_ITEM *t = (CONF_ITEM*) calloc(1, sizeof (CONF_ITEM));
-
-	a = tolower((int) name[0]);
-
-	t->name = strdup(name);
-	t->help = strdup(help);
-	t->modified = 0;
-	if (short_opt == 0) {
-		val++;
-		t->short_opt = val;
-	} else
-		t->short_opt = short_opt;
-
-	if (action) {
-		t->action = action;
-	}
-
-
-	if (cf_hash[a].size <= cf_hash[a].nb_item) {
-		cf_hash[a].size += 10;
-		cf_hash[a].conf = (CONF_ITEM**) realloc(cf_hash[a].conf, cf_hash[a].size * sizeof (CONF_ITEM*));
-	}
-
-	cf_hash[a].conf[cf_hash[a].nb_item] = t;
-	cf_hash[a].nb_item++;
-	return t;
-}
-
-/*
- * Create a boolean confirutation item
- * name: Name of conf item
- * help: Brief description of the item
- * short_opt: charatech use for short option
- * def: default value
- */
-void cf_create_bool_item(const char *name, const char *help, char short_opt, bool def) {
-	CONF_ITEM *t = create_conf_item(name, help, short_opt, NULL);
-	t->type = CFT_BOOLEAN;
-	t->data.dt_bool.boolean = def;
-	t->data.dt_bool.default_bool = def;
-}
-
-void cf_create_action_item(const char *name, const char *help, char short_opt, int (*action)(struct CONF_ITEM *self)) {
-	CONF_ITEM *t = create_conf_item(name, help, short_opt, action);
-	t->type = CFT_ACTION;
-}
-
-void cf_create_action_arg_item(const char *name, const char *help, const char *hlp_arg, char short_opt, int (*action)(struct CONF_ITEM *self)) {
-	CONF_ITEM *t = create_conf_item(name, help, short_opt, action);
-	t->type = CFT_ACTION_ARG;
-	t->help_arg = (char *) hlp_arg;
-}
-
-void cf_create_string_item(const char *name, const char *help, const char *hlp_arg, char short_opt, const char *def) {
-	CONF_ITEM *t = create_conf_item(name, help, short_opt, NULL);
-	t->type = CFT_STRING;
-	strcpy(t->data.dt_str.str, def);
-	t->data.dt_str.default_str = strdup(def);
-	t->help_arg = (char *) hlp_arg;
-}
-
-void cf_create_int_item(const char *name, const char *help, const char *hlp_arg, char short_opt, int def) {
-	CONF_ITEM *t = create_conf_item(name, help, short_opt, NULL);
-	t->type = CFT_INT;
-	t->data.dt_int.val = def;
-	t->data.dt_int.default_val = def;
-	t->help_arg = (char *) hlp_arg;
-}
-
-void cf_create_array_item(const char *name, const char *help, const char *hlp_arg, char short_opt, int size, int *def) {
-	CONF_ITEM *t = create_conf_item(name, help, short_opt, NULL);
-	t->type = CFT_ARRAY;
-	t->data.dt_array.size = size;
-	t->data.dt_array.array = (int*) calloc(1, size * sizeof (int));
-	memcpy(t->data.dt_array.array, def, size * sizeof (int));
-	t->data.dt_array.default_array = def;
-	t->help_arg = (char *) hlp_arg;
-}
-
-void cf_create_str_array_item(const char *name, const char *help, const char *hlp_arg, char short_opt, char *def) {
-	CONF_ITEM *t = create_conf_item(name, help, short_opt, NULL);
-	t->type = CFT_STR_ARRAY;
-	t->data.dt_str_array.size = 0; /* Calculated on the fly */
-	if (def != NULL)
-		t->data.dt_str_array.array = read_str_array(def, &t->data.dt_str_array.size);
-	else
-		t->data.dt_str_array.array = NULL;
-	t->data.dt_str_array.default_array = strdup(def);
-	t->help_arg = (char *) hlp_arg;
-}
-
-CONF_ITEM* cf_get_item_by_name(const char *name) {
-	int i;
-	int a = tolower((int) name[0]);
-
-	for (i = 0; i < cf_hash[a].nb_item; i++) {
-		if (strcasecmp(cf_hash[a].conf[i]->name, name) == 0)
-			return cf_hash[a].conf[i];
-	}
-	return NULL;
-}
-
-CONF_ITEM* cf_get_item_by_val(int val) {
-	int i, j;
-
-	for (i = 0; i < 128; i++) {
-		for (j = 0; j < cf_hash[i].nb_item; j++) {
-			if (cf_hash[i].conf[j]->short_opt == val)
-				return cf_hash[i].conf[j];
-		}
-	}
-	return NULL;
-}
-
-void cf_item_has_been_changed(CONF_ITEM * item) {
-	if (item)
-		item->modified = 1;
-}
-
-void cf_print_help(void) {
-	int i, j;
-	CONF_ITEM *cf;
-	printf("Usage: gngeo [OPTION]... ROMSET\n"
-			"Emulate the NeoGeo rom designed by ROMSET\n\n");
-
-	for (i = 0; i < 128; i++) {
-		for (j = 0; j < cf_hash[i].nb_item; j++) {
-			cf = cf_hash[i].conf[j];
-			if (cf->short_opt < 128 && cf->short_opt >= 32)
-				printf("  -%c, --", cf->short_opt);
-			else
-				printf("      --");
-			switch (cf->type) {
-				case CFT_ARRAY:
-				case CFT_STR_ARRAY:
-				case CFT_STRING:
-				case CFT_ACTION_ARG:
-				case CFT_INT:
-				{
-					char buf[22];
-					snprintf(buf, 21, "%s=%s", cf->name, cf->help_arg);
-					printf("%-20s %s\n", buf, cf->help);
-				}
-					break;
-				case CFT_BOOLEAN:
-				case CFT_ACTION:
-					printf("%-20s %s\n", cf->name, cf->help);
-					break;
-			}
-		}
-	}
-	printf("\nAll boolean options can be disabled with --no-OPTION\n"
-			"(Ex: --no-sound turn sound off)\n\n");
-}
-
-static int print_help(CONF_ITEM *self) {
-	cf_print_help();
-	return 0;
-}
-
-static int show_all_game(CONF_ITEM *self) {
-	printf("Not implemented yet\n");
-	/*
-		dr_load_driver_dir(CF_STR(cf_get_item_by_name("romrcdir")));
-	#if ! defined (GP2X) && ! defined (WIN32)
-		{
-	#if defined (__AMIGA__)
-			int len = strlen("romrc.d") + strlen("/PROGDIR/data/") + 1;
-			char *rc_dir = (char *) alloca(len*sizeof(char));
-			sprintf(rc_dir, "/PROGDIR/data/romrc.d");
-	#else
-			int len = strlen("romrc.d") + strlen(getenv("HOME")) + strlen("/.gngeo/") +	1;
-			char *rc_dir = (char *) alloca(len*sizeof(char));
-			sprintf(rc_dir, "%s/.gngeo/romrc.d", getenv("HOME"));
-	#endif
-			dr_load_driver_dir(rc_dir);
-		}
-	#endif
-
-		//dr_load_driver(CF_STR(cf_get_item_by_name("romrc")));
-		dr_list_all();//list_game();
-	 */
-	return 0;
-}
-
-static int show_version(CONF_ITEM *self) {
-	printf("Gngeo %s\n", VERSION);
-	printf("Copyright (C) 2001 Peponas Mathieu\n\n");
-
-	return 0;
-}
-
-void cf_init(void) {
-
-	cf_create_action_item("help", "Print this help and exit", 'h', print_help);
-	cf_create_action_item("listgame", "Show all the game available in the romrc", 'l', show_all_game);
-	cf_create_action_item("version", "Show version and exit", 'v', show_version);
-
-	cf_create_bool_item("forcepc", "Force the PC to a correct value at startup", 0, false);
-	cf_create_bool_item("dump", "Create a gno dump in the current dir and exit", 0, false);
-
-	cf_create_bool_item("interpolation", "Merge the last frame and the current", 'I', false);
-	cf_create_bool_item("raster", "Enable the raster interrupt", 'r', false);
-	cf_create_bool_item("sound", "Enable sound", 0, true);
-	cf_create_bool_item("showfps", "Show FPS at startup", 0, false);
-
-	cf_create_bool_item("sleepidle", "Sleep when idle", 0, false);
-	cf_create_bool_item("joystick", "Enable joystick support", 0, true);
-	cf_create_bool_item("debug", "Start with inline debuger", 'D', false);
-	cf_create_bool_item("hwsurface", "Use hardware surface for the screen", 'H', true);
-#ifdef PANDORA
-	cf_create_bool_item("vsync", "Synchronise the display with VBLANK", 0, true);
-	cf_create_bool_item("autoframeskip", "Enable auto frameskip", 0, false);
-	cf_create_bool_item("fullscreen", "Start gngeo in fullscreen", 'f', true);
-	cf_create_bool_item("wide", "Use all the Pandora Screen", 0, false);
-#else
-	cf_create_bool_item("vsync", "Synchronise the display with VBLANK", 0, false);
-	cf_create_bool_item("autoframeskip", "Enable auto frameskip", 0, true);
-	cf_create_bool_item("fullscreen", "Start gngeo in fullscreen", 'f', false);
-	
-#endif
-	cf_create_bool_item("pal", "Use PAL timing (buggy)", 'P', false);
-	cf_create_bool_item("screen320", "Use 320x224 output screen (instead 304x224)", 0, false);
-	cf_create_bool_item("bench", "Draw x frames, then quit and show average fps", 0, false);
-
-
-	cf_create_string_item("country", "Set the contry to japan, asia, usa or europe", "...", 0, "europe");
-	cf_create_string_item("system", "Set the system to home, arcade or unibios", "...", 0, "arcade");
-#ifdef EMBEDDED_FS
-	cf_create_string_item("rompath", "Tell gngeo where your roms are", "PATH", 'i', ROOTPATH"./roms");
-	cf_create_string_item("biospath", "Tell gngeo where your neogeo bios is", "PATH", 'B', ROOTPATH"./roms");
-	cf_create_string_item("datafile", "Tell gngeo where his ressource file is", "PATH", 'd', ROOTPATH"./gngeo_data.zip");
-#else
-	cf_create_string_item("rompath", "Tell gngeo where your roms are", "PATH", 'i', DATA_DIRECTORY);
-	cf_create_string_item("biospath", "Tell gngeo where your neogeo bios is", "PATH", 'B', DATA_DIRECTORY);
-	cf_create_string_item("datafile", "Tell gngeo where his ressource file is", "PATH", 'd', DATA_DIRECTORY"/gngeo_data.zip");
-#endif
-	//cf_create_string_item("romrcdir","Use STRING as romrc.d directory",0,DATA_DIRECTORY"/romrc.d");
-	cf_create_string_item("libglpath", "Path to your libGL.so", "PATH", 0, "/usr/lib/libGL.so");
-	cf_create_string_item("effect", "Use the specified effect (help for a list)", "Effect", 'e', "none");
-	cf_create_string_item("blitter", "Use the specified blitter (help for a list)", "Blitter", 'b', "soft");
-	cf_create_string_item("transpack", "Use the specified transparency pack", "Transpack", 't', "none");
-	cf_create_string_item("p1control", "Player1 control configutation", "...", 0, default_p1control);
-	cf_create_string_item("p2control", "Player2 control configutation", "...", 0, default_p2control);
-/*
-#if defined(GP2X) || defined(WIZ)
-	cf_create_string_item("p1control", "Player1 control configutation", "...", 0,
-			"UP=J0B0,DOWN=J0B4,LEFT=J0B2,RIGHT=J0B6,A=J0B14,B=J0B13,C=J0B12,D=J0B15,COIN=J0B9,START=J0B8,HOTKEY1=J0B10,HOTKEY2=J0B11");
-	cf_create_string_item("p2control", "Player2 control configutation", "...", 0, "");
-#elif defined(PANDORA)
-	cf_create_string_item("p1control", "Player1 control configutation", "...", 0,
-			"A=K281,B=K279,C=K278,D=K280,START=K308,COIN=K306,UP=K273,DOWN=K274,LEFT=K276,RIGHT=K275,MENU=K113");
-	cf_create_string_item("p2control", "Player2 control configutation", "...", 0, "");
-#elif defined (DINGUX)
-	cf_create_string_item("p1control", "Player1 control configutation", "...", 0,
-			"A=K308,B=K306,C=K304,D=K32,START=K13,COIN=K9,UP=K273,DOWN=K274,LEFT=K276,RIGHT=K275,MENU=K113");
-	cf_create_string_item("p2control", "Player2 control configutation", "...", 0, "");
-#else
-	
-	cf_create_string_item("p1control", "Player1 control configutation", "...", 0,
-			"A=K119,B=K120,C=K113,D=K115,START=K38,COIN=K34,UP=K273,DOWN=K274,LEFT=K276,RIGHT=K275,MENU=K27");
-	cf_create_string_item("p2control", "Player2 control configutation", "...", 0, "");
-#endif
-*/
-
-	cf_create_array_item("p1hotkey0", "Player1 Hotkey 0 configuration", "...", 0, 4, default_p1hotkey0);
-	cf_create_array_item("p1hotkey1", "Player1 Hotkey 1 configuration", "...", 0, 4, default_p1hotkey1);
-	cf_create_array_item("p1hotkey2", "Player1 Hotkey 2 configuration", "...", 0, 4, default_p1hotkey2);
-	cf_create_array_item("p1hotkey3", "Player1 Hotkey 3 configuration", "...", 0, 4, default_p1hotkey3);
-	cf_create_array_item("p2hotkey0", "Player2 Hotkey 0 configuration", "...", 0, 4, default_p2hotkey0);
-	cf_create_array_item("p2hotkey1", "Player2 Hotkey 1 configuration", "...", 0, 4, default_p2hotkey1);
-	cf_create_array_item("p2hotkey2", "Player2 Hotkey 2 configuration", "...", 0, 4, default_p2hotkey2);
-	cf_create_array_item("p2hotkey3", "Player2 Hotkey 3 configuration", "...", 0, 4, default_p2hotkey3);
-
-
-
-	cf_create_int_item("scale", "Scale the resolution by X", "X", 0, 1);
-	cf_create_int_item("samplerate", "Set the sample rate to RATE", "RATE", 0, 22050);
-	cf_create_int_item("68kclock", "Overclock the 68k by x% (-x% for underclk)", "x", 0, 0);
-	cf_create_int_item("z80clock", "Overclock the Z80 by x% (-x% for underclk)", "x", 0, 0);
-
-
-#ifdef GP2X
-	cf_create_bool_item("ramhack", "Enable CraigX's RAM timing hack", 0, false);
-	cf_create_bool_item("tvout", "Enable Tvout (NTSC)", 0, false);
-	cf_create_array_item("tv_offset", "Shift TV screen by x,y pixel", "x,y", 0, 2, default_tvoffset);
-	cf_create_bool_item("940sync", "Accurate synchronisation between the both core", 0, true);
-	cf_create_int_item("cpu_speed", "Overclock the GP2X cpu to x Mhz", "x", 0, 0);
-	cf_create_string_item("frontend", "Execute CMD when exit. Usefull to return to Selector or Rage2x", "CMD", 0, "/usr/gp2x/gp2xmenu");
-#endif
-
-}
-
-/* TODO: lame, do it better */
-bool discard_line(char *buf) {
-	if (buf[0] == '#')
-		return true;
-	if (buf[0] == '\n')
-		return true;
-	if (buf[0] == 0)
-		return true;
-
-	return false;
-}
-
-/* like standard fgets, but work with unix/dos line ending */
-char *my_fgets(char *s, int size, FILE *stream) {
-	int i = 0;
-	int ch;
-	while (i < size && !feof(stream)) {
-		ch = fgetc(stream); //printf("ch=%d\n",ch);
-		if (ch == 0x0D) continue;
-		if (ch == 0x0A) {
-			s[i] = 0;
-			return s;
-		}
-		s[i] = ch;
-		i++;
-	}
-	return s;
-}
-
-bool cf_save_file(char *filename, int flags) {
-	char *conf_file = filename;
-	char *conf_file_dst;
-	FILE *f;
-	FILE *f_dst;
-	int i = 0, j, a;
-	char buf[512];
-	char name[32];
-	char val[255];
-	CONF_ITEM *cf;
-
-	if (!conf_file) {
-#ifdef EMBEDDED_FS
-		int len = strlen("gngeorc") + strlen(ROOTPATH"conf/") + 1;
-		conf_file = (char *) alloca(len * sizeof (char));
-		sprintf(conf_file, ROOTPATH"conf/gngeorc");
-#elif __AMIGA__
-		int len = strlen("gngeorc") + strlen("/data/") + 1;
-		conf_file = (char *) alloca(len * sizeof (char));
-		sprintf(conf_file, "data/gngeorc");
-#else /* POSIX */
-		int len = strlen("gngeorc") + strlen(getenv("HOME")) + strlen("/.gngeo/") + 1;
-		conf_file = (char *) alloca(len * sizeof (char));
-		sprintf(conf_file, "%s/.gngeo/gngeorc", getenv("HOME"));
-#endif
-	}
-	conf_file_dst = alloca(strlen(conf_file) + 4);
-	sprintf(conf_file_dst, "%s.t", conf_file);
-
-	if ((f_dst = fopen(conf_file_dst, "w")) == 0) {
-		//printf("Unable to open %s\n",conf_file);
-		return false;
-	}
-
-	if ((f = fopen(conf_file, "rb"))) {
-
-		//printf("Loading current .cf\n");
-
-		while (!feof(f)) {
-			i = 0;
-			my_fgets(buf, 510, f);
-			if (discard_line(buf)) {
-				fprintf(f_dst, "%s\n", buf);
-				continue;
-			}
-
-			//sscanf(buf, "%s %s", name, val);
-			sscanf(buf, "%s ", name);
-			strncpy(val, buf + strlen(name) + 1, 254);
-
-			cf = cf_get_item_by_name(name);
-			if (cf) {
-				if (cf->modified) {
-					cf->modified = 0;
-					switch (cf->type) {
-						case CFT_INT:
-							fprintf(f_dst, "%s %d\n", cf->name, CF_VAL(cf));
-							break;
-						case CFT_BOOLEAN:
-							if (CF_BOOL(cf))
-								fprintf(f_dst, "%s true\n", cf->name);
-							else
-								fprintf(f_dst, "%s false\n", cf->name);
-							break;
-						case CFT_STRING:
-							fprintf(f_dst, "%s %s\n", cf->name, CF_STR(cf));
-							break;
-						case CFT_ARRAY:
-							fprintf(f_dst, "%s ", cf->name);
-							for (a = 0; a < CF_ARRAY_SIZE(cf) - 1; a++)
-								fprintf(f_dst, "%d,", CF_ARRAY(cf)[a]);
-							fprintf(f_dst, "%d\n", CF_ARRAY(cf)[a]);
-							break;
-						case CFT_ACTION:
-						case CFT_ACTION_ARG:
-							break;
-						case CFT_STR_ARRAY:
-							printf("TODO: Save CFT_STR_ARRAY\n");
-							break;
+	if((arg[OPTION_FILE] == NULL) || (game_name[0] == 0)) {
+		struct FileRequester *fr;
+		if (AslBase = OpenLibrary("asl.library", 0)) {
+			if (fr = (struct FileRequester *)AllocAslRequest(ASL_FileRequest, frtags)) {
+				if (AslRequest(fr, NULL)) {
+					char *gn = &fr->rf_Dir[1 + strlen(arg[OPTION_ROMPATH])];
+					int gnlen = strstr(gn, ".zip") - gn;
+					if(gnlen > 0 && gnlen < 31) {
+						memcpy(game_name, gn, gnlen);
+						game_name[gnlen] = 0;
+						printf("Game: %s\n", game_name);
 					}
-				} else
-					fprintf(f_dst, "%s\n", buf);
-			}
-		}
-		fclose(f);
-
-	}
-	/* Now save options that were not in the previous file */
-	for (i = 0; i < 128; i++) {
-		for (j = 0; j < cf_hash[i].nb_item; j++) {
-			cf = cf_hash[i].conf[j];
-			//printf("Option %s %d\n",cf->name,cf->modified);
-			if (cf->modified!=0) {
-				cf->modified=0;
-				switch (cf->type) {
-					case CFT_INT:
-						fprintf(f_dst, "%s %d\n", cf->name, CF_VAL(cf));
-						break;
-					case CFT_BOOLEAN:
-						if (CF_BOOL(cf))
-							fprintf(f_dst, "%s true\n", cf->name);
-						else
-							fprintf(f_dst, "%s false\n", cf->name);
-						break;
-					case CFT_STRING:
-						fprintf(f_dst, "%s %s\n", cf->name, CF_STR(cf));
-						break;
-					case CFT_ARRAY:
-						fprintf(f_dst, "%s ", cf->name);
-						for (a = 0; a < CF_ARRAY_SIZE(cf) - 1; a++)
-							fprintf(f_dst, "%d,", CF_ARRAY(cf)[a]);
-						fprintf(f_dst, "%d\n", CF_ARRAY(cf)[a]);
-						break;
-					case CFT_ACTION:
-					case CFT_ACTION_ARG:
-						/* action are not available in the conf file */
-						break;
-					case CFT_STR_ARRAY:
-						printf("TODO: Save CFT_STR_ARRAY\n");
-						break;
+					
 				}
+				FreeAslRequest(fr);
 			}
+			else exit(1); //printf("User Cancelled\n");
+			CloseLibrary(AslBase);
 		}
 	}
-	fclose(f_dst);
+        
+    	 if(arg[OPTION_FRAMESKIP] < 0) arg[OPTION_FRAMESKIP] = 0;
+    else if(arg[OPTION_FRAMESKIP] > 9) arg[OPTION_FRAMESKIP] = 9;
+    
+    // Both set or both unset, autodetect host system
+    if((arg[OPTION_NTSC]) == (arg[OPTION_PAL])) 
+    	arg[OPTION_PAL] = HostPAL, arg[OPTION_NTSC] = !HostPAL;
 
-	remove(conf_file);
-	rename(conf_file_dst, conf_file);
-
-	return true;
-}
-
-void cf_reset_to_default(void) {
-	int i,j;
-	CONF_ITEM *cf;
-	for (i = 0; i < 128; i++) {
-		for (j = 0; j < cf_hash[i].nb_item; j++) {
-			cf = cf_hash[i].conf[j];
-			if (!cf->modified && !(cf->flags & CF_SETBYCMD)) {
-				switch (cf->type) {
-					case CFT_INT:
-						CF_VAL(cf) = cf->data.dt_int.default_val;
-						break;
-					case CFT_BOOLEAN:
-						CF_BOOL(cf) = cf->data.dt_bool.default_bool;
-						break;
-					case CFT_STRING:
-						strncpy(CF_STR(cf), cf->data.dt_str.default_str, 254);
-						break;
-					case CFT_ARRAY:
-						memcpy(cf->data.dt_array.array, cf->data.dt_array.default_array,
-								CF_ARRAY_SIZE(cf) * sizeof (int));
-						//read_array(CF_ARRAY(cf), val, CF_ARRAY_SIZE(cf));
-						break;
-					default:
-						break;
-				}
-			}
-		}
-	}
-}
-
-bool cf_open_file(char *filename) {
-	/* if filename==NULL, we use the default one: $HOME/.gngeo/gngeorc */
-	char *conf_file = filename;
-	FILE *f;
-	int i = 0;
-	char buf[512];
-	char name[32];
-	char val[255];
-	CONF_ITEM *cf;
-
-	if (!conf_file) {
-#ifdef EMBEDDED_FS
-		int len = strlen("gngeorc") + strlen(ROOTPATH"conf/") + 1;
-		conf_file = (char *) alloca(len * sizeof (char));
-		sprintf(conf_file, ROOTPATH"conf/gngeorc");
-#elif __AMIGA__
-		int len = strlen("gngeorc") + strlen("data/") + 1;
-		conf_file = (char *) alloca(len * sizeof (char));
-		sprintf(conf_file, "data/gngeorc");		
-		 
-#else
-		int len = strlen("gngeorc") + strlen(getenv("HOME")) + strlen("/.gngeo/") + 1;
-		conf_file = (char *) alloca(len * sizeof (char));
-		sprintf(conf_file, "%s/.gngeo/gngeorc", getenv("HOME"));
-#endif
-	}
-	if ((f = fopen(conf_file, "rb")) == 0) {
-		//printf("Unable to open %s\n",conf_file);
-		return false;
-	}
-
-	while (!feof(f)) {
-		i = 0;
-		my_fgets(buf, 510, f);
-		if (discard_line(buf))
-			continue;
-	
-		/* TODO: Verify this on Win32 */
-		sscanf(buf, "%s %s", name, val);
-
-		//sscanf(buf, "%s ", name);
-		//strncpy(val,buf+strlen(name)+1,254);
-
-		//intf("%s|%s|\n",name,val);
-		cf = cf_get_item_by_name(name);
-		if (cf && !(cf->flags & CF_SETBYCMD) && (!cf->modified)) { 
-			switch (cf->type) {
-				case CFT_INT:
-					CF_VAL(cf) = atoi(val);
-					break;
-				case CFT_BOOLEAN:
-					CF_BOOL(cf) = (strcasecmp(val, "true") == 0 ? true : false);
-					break;
-				case CFT_STRING:
-					strncpy(CF_STR(cf), val, 254);
-					break;
-				case CFT_ARRAY:
-					read_array(CF_ARRAY(cf), val, CF_ARRAY_SIZE(cf));
-					break;
-				case CFT_ACTION:
-				case CFT_ACTION_ARG:
-					/* action are not available in the conf file */
-					break;
-				case CFT_STR_ARRAY:
-					CF_STR_ARRAY(cf) = read_str_array(val, &CF_STR_ARRAY_SIZE(cf));
-					break;
-			}
-		} else {
-			/*printf("Unknow option %s\n",name);*/
-			/* unknow option...*/
-		}
-	}
-
-	cf_cache_conf();
-	return true;
+	// Bitrate may be 8 or 16 bits only    
+    if((arg[OPTION_BITRATE] != 8)
+    && (arg[OPTION_BITRATE] != 16)) arg[OPTION_BITRATE] = 8;
+    
+    // Any non-standard sample rate will disable digital playback
+    if((arg[OPTION_SAMPLERATE] != 9260)
+    && (arg[OPTION_SAMPLERATE] != 18520)
+    && (arg[OPTION_SAMPLERATE] != 27780)) arg[OPTION_SAMPLERATE] = 0;
 }
 
 
-static struct option *longopt;
-//static struct option *fake_longopt;
-
-static void add_long_opt_item(char *name, int has_arg, int *flag, int val) {
-	static int opt_size = 0;
-	static int opt = 0;
-
-	if (opt >= opt_size) {
-		opt_size += 10;
-		longopt = realloc(longopt, (opt_size + 1) * sizeof (struct option));
-		//fake_longopt=realloc(fake_longopt,(opt_size+1)*sizeof(struct option));
-	}
-
-	longopt[opt].name = name;
-	longopt[opt].has_arg = has_arg;
-	longopt[opt].flag = flag;
-	longopt[opt].val = val;
-
-	/*
-		fake_longopt[opt].name=name;
-		fake_longopt[opt].has_arg=has_arg;
-		fake_longopt[opt].flag=NULL;
-		fake_longopt[opt].val=0;
-	 */
-	opt++;
-}
-
-int option_index = 0;
-static char shortopt[255];
-
-void cf_init_cmd_line(void) {
-	int i, j;
-	CONF_ITEM *cf;
-	char *sbuf;
-	int buflen;
-
-	memset(shortopt, 0, 255);
-
-	for (i = 0; i < 128; i++) {
-		for (j = 0; j < cf_hash[i].nb_item; j++) {
-			cf = cf_hash[i].conf[j];
-
-			if (cf->short_opt <= 128) {
-				char b[2];
-				sprintf(b, "%c", cf->short_opt);
-				strcat(shortopt, b);
-			}
-
-			switch (cf->type) {
-				case CFT_ARRAY:
-				case CFT_STR_ARRAY:
-				case CFT_STRING:
-				case CFT_INT:
-				case CFT_ACTION_ARG:
-					if (cf->short_opt <= 128) strcat(shortopt, ":");
-					add_long_opt_item(cf->name, 1, NULL, cf->short_opt);
-					break;
-				case CFT_BOOLEAN:
-					//add_long_opt_item(cf->name, 0, &CF_BOOL(cf), 1);
-					add_long_opt_item(cf->name, 0, NULL, cf->short_opt);
-					/* create the --no-option */
-					buflen = strlen("no-") + strlen(cf->name);
-					sbuf = malloc(buflen + 2);
-					snprintf(sbuf, buflen + 1, "no-%s", cf->name);
-					//add_long_opt_item(sbuf, 0, &CF_BOOL(cf), 0);
-					add_long_opt_item(sbuf, 0, NULL, cf->short_opt+0x1000);
-					break;
-				case CFT_ACTION:
-					add_long_opt_item(cf->name, 0, NULL, cf->short_opt);
-					break;
-			}
-		}/* for j*/
-	}/* for i*/
-
-	/* end the longopt array*/
-	add_long_opt_item(0, 0, 0, 0);
-
-}
-
-char *optarg = NULL;
-
-char* cf_parse_cmd_line(int argc, char *argv[]) {
-	int c;
-	CONF_ITEM *cf;
 
 
-	option_index = 0;
 
-	
-#ifdef __AMIGA__ 
-		cf_cache_conf();
-	 
 
-	return strdup(argv[1]);
-#endif
-
-    option_index = optind = 0;
-
-	while ((c = getopt_long(argc, argv, shortopt, longopt, &option_index)) != EOF) {
-		//if (c != 0) {
-			printf("c=%d\n",c);
-			cf = cf_get_item_by_val(c&0xFFF);
-			if (cf) {
-				cf->flags |= CF_SETBYCMD;
-				printf("flags %s set on cmd line\n", cf->name);
-				switch (cf->type) {
-
-					case CFT_INT:
-						CF_VAL(cf) = atoi(optarg);
-						break;
-					case CFT_BOOLEAN:
-					if (c & 0x1000)
-						CF_BOOL(cf) = 0;
-					else
-						CF_BOOL(cf) = 1;
-						break;
-					case CFT_STRING:
-						strcpy(CF_STR(cf), optarg);
-						//printf("conf %s %s\n",CF_STR(cf),optarg);
-						break;
-					case CFT_ARRAY:
-						read_array(CF_ARRAY(cf), optarg, CF_ARRAY_SIZE(cf));
-						break;
-					case CFT_ACTION_ARG:
-						strcpy(CF_STR(cf), optarg);
-						if (cf->action) {
-							exit(cf->action(cf));
-						}
-						break;
-					case CFT_ACTION:
-						if (cf->action) {
-							exit(cf->action(cf));
-						}
-						break;
-					case CFT_STR_ARRAY:
-						/* TODO */
-						break;
-				}
-			//}
-		}
-	}
-	cf_cache_conf();
-	if (optind >= argc)
-		return NULL;
-
-	return strdup(argv[optind]);
-}
 

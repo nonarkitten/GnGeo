@@ -25,12 +25,14 @@
 #include <time.h>
 
 #include "emu.h"
+#include "conf.h"
 #include "memory.h"
 #include "frame_skip.h"
 #include "pd4990a.h"
 #include "messages.h"
 #include "profiler.h"
 #include "debug.h"
+#include "emu.h"
 
 #include "timer.h"
 //#include "streams.h"
@@ -38,9 +40,7 @@
 #include "sound.h"
 #include "screen.h"
 #include "neocrypt.h"
-#include "conf.h"
-//#include "driver.h"
-//#include "gui_interf.h"
+
 #ifdef FULL_GL
 #include "videogl.h"
 #endif
@@ -53,6 +53,10 @@
 #include "menu.h"
 #include "event.h"
 
+#include <devices/timer.h>
+#include <proto/exec.h>
+
+
 int frame;
 int nb_interlace = 256;
 int current_line;
@@ -62,34 +66,7 @@ extern int irq2enable, irq2start, irq2repeat, irq2control, irq2taken;
 extern int lastirq2line;
 extern int irq2repeat_limit;
 extern Uint32 irq2pos_value;
-
-inline short SwapSHORT(short val)
-{
-	__asm __volatile
-	(
-		"ror.w	#8,%0"
-
-		: "=d" (val)
-		: "0" (val)
-		);
-
-	return val;
-}
-
-inline long SwapLONG(long val)
-{
-	__asm __volatile
-	(
-		"ror.w	#8,%0 \n\t"
-		"swap	%0 \n\t"
-		"ror.w	#8,%0"
-
-		: "=d" (val)
-		: "0" (val)
-		);
-
-	return val;
-}
+extern ULONG getMicroseconds();
 
 void setup_misc_patch(char *name) {
 
@@ -135,11 +112,7 @@ void neogeo_reset(void) {
 	sound_code = 0;
 	pending_command = 0;
 	result_code = 0;
-#ifdef ENABLE_940T
-	shared_ctl->sound_code = sound_code;
-	shared_ctl->pending_command = pending_command;
-	shared_ctl->result_code = result_code;
-#endif
+
 	if (memory.rom.cpu_m68k.size > 0x100000)
 		cpu_68k_bankswitch(0x100000);
 	else
@@ -149,30 +122,16 @@ void neogeo_reset(void) {
 }
 
 void init_sound(void) {
+	printf("cpu_z80_init()\n");
+	cpu_z80_init();
 
+	printf("YM2610_sh_start()\n");		
+	YM2610_sh_start();
 
-
-#ifdef ENABLE_940T
-		printf("Init all neo");
-		shared_data->sample_rate = conf.sample_rate;
-		shared_data->z80_cycle = (z80_overclk == 0 ? 73333 : 73333
-				+ (z80_overclk * 73333 / 100.0));
-		//gp2x_add_job940(JOB940_INITALL);
-		gp2x_add_job940(JOB940_INITALL);
-		wait_busy_940(JOB940_INITALL);
-		printf("The YM2610 have been initialized\n");
-#else
-        printf("cpu_z80_init()\n");
-		cpu_z80_init();
-		//streams_sh_start();
-        printf("YM2610_sh_start()\n");		
-		YM2610_sh_start();
-		
-			if (conf.sound) init_audio();
-#endif
-	if (conf.sound)	pause_audio(0);
-		conf.snd_st_reg_create = 1;
- 
+	if (arg[OPTION_SAMPLERATE]) {
+		init_audio();
+		pause_audio(0);
+	}
 }
 
 void init_neo(void) {
@@ -203,10 +162,19 @@ static void take_screenshot(void) {
 static int fc;
 static int last_line;
 static int skip_this_frame = 0;
+static int bench = 0;
+
+static ULONG startBenchTime;
+static ULONG timerTemp;
+static ULONG timerVideo;
+static ULONG timerSound;
+static ULONG timer68k;
+static ULONG timerZ80;
 
 static inline int neo_interrupt(void) {
     static int frames;
 
+	
 	pd4990a_addretrace();
 	// printf("neogeo_frame_counter_speed %d\n",neogeo_frame_counter_speed);
 	if (!(memory.vid.irq2control & 0x8)) {
@@ -221,80 +189,23 @@ static inline int neo_interrupt(void) {
 	skip_next_frame = frame_skip(0);
 
 	if (!skip_this_frame) {
-		PROFILER_START(PROF_VIDEO);
-
 		draw_screen();
-
-		PROFILER_STOP(PROF_VIDEO);
+		if(bench) {
+			if(--bench == 0) exit(0);
+		}
 	}
-    /*
-    frames++;
-    printf("FRAME %d\n",frames);
-    if (frames==262) {
-        FILE *f;
-        sleep(1);
-        f=fopen("/tmp/video.dmp","wb");
-        fwrite(&memory.vid.ram,0x20000,1,f);
-        fclose(f);
-    }
-    */
 	return 1;
 }
 
-static inline void update_screen(void) {
-
- 
-	if (memory.vid.irq2control & 0x40)
-		memory.vid.irq2start = (memory.vid.irq2pos + 3) / 0x180; /* ridhero gives 0x17d */
-	else
-		memory.vid.irq2start = 1000;
-
-	if (!skip_this_frame) {
-		if (last_line < 21) { /* there was no IRQ2 while the beam was in the
-							 * visible area -> no need for scanline rendering */
-			draw_screen();
-		} else {
-			draw_screen_scanline(last_line - 21, 262, 1);
-		}
-	}
-
-	last_line = 0;
-
-	pd4990a_addretrace();
-	if (fc >= neogeo_frame_counter_speed) {
-		fc = 0;
-		neogeo_frame_counter++;
-	}
-	fc++;
-
-	skip_this_frame = skip_next_frame;
-	skip_next_frame = frame_skip(0);
-}
-
-static inline int update_scanline(void) {
-	memory.vid.irq2taken = 0;
-
-	if (memory.vid.irq2control & 0x10) {
-
-		if (current_line == memory.vid.irq2start) {
-			if (memory.vid.irq2control & 0x80)
-				memory.vid.irq2start += (memory.vid.irq2pos + 3) / 0x180;
-			memory.vid.irq2taken = 1;
-		}
-	}
-
-	if (memory.vid.irq2taken) {
-		if (!skip_this_frame) {
-			if (last_line < 21)
-				last_line = 21;
-			if (current_line < 20)
-				current_line = 20;
-			draw_screen_scanline(last_line - 21, current_line - 20, 0);
-		}
-		last_line = current_line;
-	}
-	current_line++;
-	return memory.vid.irq2taken;
+void dumpStats(void) {
+	ULONG ms = (ULONG)((int)getMilliseconds() - (int)startBenchTime);
+	printf("%d frames completed in %d ms; %d fps\n", 
+		arg[OPTION_BENCH], ms, ((arg[OPTION_BENCH] * 1000 + (ms / 2)) / ms));
+		
+	printf("Video %d ms, %d%%\n", timerVideo, (timerVideo * 100) / ms);
+	printf("Sound %d ms, %d%%\n", timerSound, (timerSound * 100) / ms);
+	printf("CPU 68K %d ms, %d%%\n", timer68k, (timer68k * 100) / ms);
+	printf("CPU Z80 %d ms, %d%%\n", timerZ80, (timerZ80 * 100) / ms);
 }
 
 static Uint16 pending_save_state = 0, pending_load_state = 0;
@@ -302,205 +213,59 @@ static int slow_motion = 0;
 
 static inline void state_handling(int save,int load) {
 	if (save) {
-		//if (conf.sound) SDL_LockAudio();
-		save_state(conf.game, save - 1);
-		//if (conf.sound) SDL_UnlockAudio();
+		save_state(arg[OPTION_FILE], save - 1);
 		reset_frame_skip();
 	}
 	if (load) {
-		//if (conf.sound) SDL_LockAudio();
-		load_state(conf.game, load - 1);
-		//if (conf.sound) SDL_UnlockAudio();
+		load_state(arg[OPTION_FILE], load - 1);
 		reset_frame_skip();
 	}
 	pending_load_state = pending_save_state = 0;
 }
 
 void main_loop(void) {
-	int neo_emu_done = 0;
-	int m68k_overclk = CF_VAL(cf_get_item_by_name("68kclock"));
-	int z80_overclk = CF_VAL(cf_get_item_by_name("z80clock"));
-	//int nb_frames = 0;
 	int a,i;
-#ifdef GP2X
  
-	int snd_volume = 60;
-	char volbuf[21];
+	const Uint32 cpu_68k_timeslice = 200000;
+	const Uint32 cpu_z80_timeslice = 73333;
+	
+	const Uint32 cpu_68k_timeslice_scanline = (cpu_68k_timeslice + 132) / 264;
+	const Uint32 cpu_z80_timeslice_interlace = (cpu_z80_timeslice + (nb_interlace >> 1)) / nb_interlace;
 
-	FILE *sndbuf;
-	unsigned int sample_len = conf.sample_rate / 60.0;
-	static unsigned int gp2x_timer;
-	static unsigned int gp2x_timer_prev;
-#endif
- 
-	Uint32 cpu_68k_timeslice = (m68k_overclk == 0 ? 200000 : 200000
-			+ (m68k_overclk * 200000 / 100.0));
-	Uint32 cpu_68k_timeslice_scanline = cpu_68k_timeslice / 264.0;
-	Uint32 cpu_z80_timeslice = (z80_overclk == 0 ? 73333 : 73333 + (z80_overclk
-			* 73333 / 100.0));
 	Uint32 tm_cycle = 0;
-
-	Uint32 cpu_z80_timeslice_interlace = cpu_z80_timeslice
-			/ (float) nb_interlace;
-
-#ifdef GP2X
-	gp2x_sound_volume_set(snd_volume, snd_volume);
-#endif
-
+	
 	reset_frame_skip();
 	my_timer();
+	
+	printf("Starting main loop\n");
+	if((bench = arg[OPTION_BENCH])) {
+		startBenchTime = getMilliseconds();
+		atexit(dumpStats);
+	}
 
 	//pause_audio(0);
-	while (!neo_emu_done) {
-        
-		if (conf.test_switch == 1)
-			conf.test_switch = 0;
-
-		if (handle_event()) {
-			int interp = interpolation;
-//			SDL_BlitSurface(buffer, &buf_rect, state_img, &screen_rect);
-			interpolation = 0;
-			if (conf.sound) pause_audio(1);
-		//	if (run_menu() == 2) {
-		//		neo_emu_done = 1;/*printf("Unlock audio\n");SDL_UnlockAudio()*/
-		//		return;
-		//	} // A bit ugly...
-			if (conf.sound) pause_audio(0);
-			//neo_emu_done = 1;
-			interpolation = interp;
-			reset_frame_skip();
-			reset_event();
-		}
-
-
-#ifndef ENABLE_940T
-		if (conf.sound) {
-			PROFILER_START(PROF_Z80);
-
+	while (true) {
+		handle_event();
+		
+		if(arg[OPTION_BENCH]) timerTemp = getMilliseconds();
+		if (arg[OPTION_SAMPLERATE]) {
 			for (i = 0; i < nb_interlace; i++) {
 				cpu_z80_run(cpu_z80_timeslice_interlace);
 				my_timer();
 			}
-
-			//cpu_z80_run(cpu_z80_timeslice);
-			PROFILER_STOP(PROF_Z80);
-		} /*
-		 else
-		 my_timer();*/
-#endif
-#ifdef ENABLE_940T
-		if (conf.sound) {
-			PROFILER_START(PROF_Z80);
-			wait_busy_940(JOB940_RUN_Z80);
-#if 0
-			if (gp2x_timer) {
-				gp2x_timer_prev=gp2x_timer;
-				gp2x_timer=gp2x_memregl[0x0A00>>2];
-				shared_ctl->sample_todo=(unsigned int)(((gp2x_timer-gp2x_timer_prev)*conf.sample_rate)/7372800.0);
-			} else {
-				gp2x_timer=gp2x_memregl[0x0A00>>2];
-				shared_ctl->sample_todo=sample_len;
-			}
-#endif
-			gp2x_add_job940(JOB940_RUN_Z80);
-			PROFILER_STOP(PROF_Z80);
 		}
+		if(arg[OPTION_BENCH]) timerZ80 += (ULONG)((int)getMilliseconds() - (int)timerTemp);
+		
+		if(arg[OPTION_BENCH]) timerTemp = getMilliseconds();
+		tm_cycle = cpu_68k_run(cpu_68k_timeslice - tm_cycle);
+		if(arg[OPTION_BENCH]) timer68k += (ULONG)((int)getMilliseconds() - (int)timerTemp);
+		
+		if(arg[OPTION_BENCH]) timerTemp = getMilliseconds();
+		if ((a = neo_interrupt())) cpu_68k_interrupt(a);
+		if(arg[OPTION_BENCH]) timerVideo += (ULONG)((int)getMilliseconds() - (int)timerTemp);
 
-#endif
-
-		if (!conf.debug) {
-			if (conf.raster) {
-				current_line = 0;
-				for (i = 0; i < 264; i++) {
-					tm_cycle = cpu_68k_run(cpu_68k_timeslice_scanline
-							- tm_cycle);
-					if (update_scanline())
-						cpu_68k_interrupt(2);
-				}
-				tm_cycle = cpu_68k_run(cpu_68k_timeslice_scanline - tm_cycle);
-				//state_handling(pending_save_state, pending_load_state); 
-				update_screen();				        
-				memory.watchdog++;
-				if (memory.watchdog > 7) {
-                    printf("WATCHDOG RESET\n");
-					cpu_68k_reset();
-                }
-				cpu_68k_interrupt(1);
-			} else {
-				PROFILER_START(PROF_68K);
-				tm_cycle = cpu_68k_run(cpu_68k_timeslice - tm_cycle);
-				PROFILER_STOP(PROF_68K);
-				a = neo_interrupt();
-
-				/* state handling (we save/load before interrupt) */
-				//state_handling(pending_save_state, pending_load_state);
-
-				memory.watchdog++;
-
-				if (memory.watchdog > 7) { /* Watchdog reset after ~0.13 == ~7.8 frames */
-                    printf("WATCHDOG RESET %d\n",memory.watchdog);
-					cpu_68k_reset();
-                }
-
-				if (a) {
-					cpu_68k_interrupt(a);
-				}
-			}
-		} else {
-			/* we are in debug mode -> we are just here for event handling */
-			neo_emu_done = 1;
-		}
-
-#ifdef ENABLE_PROFILER
-		profiler_show_stat();
-#endif
-		PROFILER_START(PROF_ALL);
-	}
-	pause_audio(1);
-#ifdef ENABLE_940T
-	wait_busy_940(JOB940_RUN_Z80);
-	wait_busy_940(JOB940_RUN_Z80_NMI);
-	shared_ctl->z80_run = 0;
-#endif
-
-}
-
-void cpu_68k_dpg_step(void) {
-	static Uint32 nb_cycle;
-	static Uint32 line_cycle;
-	Uint32 cpu_68k_timeslice = 200000;
-	Uint32 cpu_68k_timeslice_scanline = 200000 / (float) 262;
-	Uint32 cycle;
-	if (nb_cycle == 0) {
-		main_loop(); /* update event etc. */
-	}
-	cycle = cpu_68k_run_step();
-	add_bt(cpu_68k_getpc());
-	line_cycle += cycle;
-	nb_cycle += cycle;
-	if (nb_cycle >= cpu_68k_timeslice) {
-		nb_cycle = line_cycle = 0;
-		if (conf.raster) {
-			update_screen();
-		} else {
-			neo_interrupt();
-		}
-		//state_handling(pending_save_state, pending_load_state);
-		cpu_68k_interrupt(1);
-	} else {
-		if (line_cycle >= cpu_68k_timeslice_scanline) {
-			line_cycle = 0;
-			if (conf.raster) {
-				if (update_scanline())
-					cpu_68k_interrupt(2);
-			}
-		}
 	}
 }
 
-void debug_loop(void) {
-	int a;
-	do {
-	  a = cpu_68k_debuger(cpu_68k_dpg_step, /*dump_hardware_reg*/NULL);
-	} while (a != -1);
-}
+
+

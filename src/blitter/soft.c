@@ -48,9 +48,9 @@ static Rect screen_rect;
 static int vsync;
 
  
-UBYTE       *bufferpixels = NULL;
-byte        *videoBuffer = NULL;
-static BOOL initialized = false;
+uint8_t       *bufferpixels = NULL;
+uint8_t        *videoBuffer = NULL;
+static int initialized = 0;
 static UWORD emptypointer[] = {
   0x0000, 0x0000,    /* reserved, must be NULL */
   0x0000, 0x0000,     /* 1 row of image data */
@@ -76,7 +76,7 @@ struct Library *CyberGfxBase=0;
 
 void initAmigaGraphics(void)
 {
-
+struct Rectangle rect;
 
 
     if (firsttime)
@@ -107,7 +107,7 @@ void initAmigaGraphics(void)
           printf("Could not find a valid screen mode");
           exit(-1);
         }
-struct Rectangle rect;
+
     rect.MinX = 16;
     rect.MinY = 16;
     rect.MaxX = 304;
@@ -154,7 +154,7 @@ struct Rectangle rect;
     
         SetPointer (_hardwareWindow, emptypointer, 0, 0, 0, 0);
  
-        initialized = true;
+        initialized = 1;
         
         memset (bufferpixels,0,304*224*2);
 
@@ -167,6 +167,9 @@ struct Rectangle rect;
 int
 blitter_soft_init()
 {
+	Uint32 width;
+	Uint32 height;
+	
     screen_rect.x = 16;
     screen_rect.y = 16;
     screen_rect.w = 304;
@@ -177,8 +180,8 @@ blitter_soft_init()
     visible_area.w = 304;
     visible_area.h = 224;
 
-	Uint32 width = visible_area.w;
-	Uint32 height = visible_area.h;
+	width = visible_area.w;
+	height = visible_area.h;
 
 
 	if (vsync) {

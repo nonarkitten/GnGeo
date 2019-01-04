@@ -86,7 +86,7 @@ char *file_basename(char *filename) {
 }
 
 /* check if dir_name exist. Create it if not */
-bool check_dir(char *dir_name) {
+int check_dir(char *dir_name) {
     DIR *d;
 
     if (!(d = opendir(dir_name)) && (errno == ENOENT)) {
@@ -230,7 +230,7 @@ void save_memcard(char *name) {
     }
 }
 
-bool close_game(void) {
+int close_game(void) {
     if (conf.game == NULL) return false;
     save_nvram(conf.game);
     save_memcard(conf.game);
@@ -241,7 +241,7 @@ bool close_game(void) {
     return true;
 }
 
-bool load_game_config(char *rom_name) {
+int load_game_config(char *rom_name) {
 	char *gpath;
 	char *drconf;
 #ifdef EMBEDDED_FS
@@ -271,7 +271,7 @@ bool load_game_config(char *rom_name) {
 	return true;
 }
 
-bool init_game(char *rom_name) {
+int init_game(char *rom_name) {
 printf("AAA Blitter %s effect %s\n",CF_STR(cf_get_item_by_name("blitter")),CF_STR(cf_get_item_by_name("effect")));
 
 	load_game_config(rom_name);
