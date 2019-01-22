@@ -2,7 +2,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
- 
+
 #include <exec/exec.h>
 #include <dos/dos.h>
 #include <graphics/gfx.h>
@@ -20,17 +20,17 @@
 #include <proto/exec.h>
 #include <proto/dos.h>
 #include <proto/graphics.h>
- 
- 
+
 #include <cybergraphx/cybergraphics.h>
 #include <inline/cybergraphics.h>
 
- 
+
 #include "../emu.h"
+#include "../conf.h"
 #include "../screen.h"
 #include "../video.h"
 #include "../effect.h"
-#include "../conf.h"
+
 #ifdef GP2X
 #include "../gp2x.h"
 
@@ -44,132 +44,162 @@ static Rect screen_rect;
 #else
 static Rect screen_rect;
 #endif
- 
+
 static int vsync;
 
- 
-BYTE       *bufferpixels = NULL;
-uint8_t        *videoBuffer = NULL;
-static int initialized = 0;
+
+BYTE        *bufferpixels = NULL;
+BYTE        *videoBuffer = NULL;
+static BOOL initialized = FALSE;
 static UWORD emptypointer[] = {
-  0x0000, 0x0000,    /* reserved, must be NULL */
-  0x0000, 0x0000,     /* 1 row of image data */
-  0x0000, 0x0000    /* reserved, must be NULL */
+    0x0000, 0x0000,    /* reserved, must be NULL */
+    0x0000, 0x0000,     /* 1 row of image data */
+    0x0000, 0x0000    /* reserved, must be NULL */
 };
+
+struct Library *CyberGfxBase=0;
+
+/** Have we already done the init */
+static int firsttime=1;
+
+ULONG pixFormat;
 
 /** Hardware window */
 struct Window *_hardwareWindow;
 /** Hardware screen */
 struct Screen *_hardwareScreen;
- 
- 
-static int    firsttime=1;
+// Hardware double buffering.
+struct ScreenBuffer *_hardwareScreenBuffer[2];
 
-extern Uint32 *current_pc_pal;
-struct RastPort *theRastPort = NULL;
-struct RastPort *theTmpRastPort = NULL;
-struct BitMap *theBitMap = NULL;
-struct BitMap *theTmpBitMap = NULL;
-struct Window *theWindow = NULL;
+static BYTE _currentScreenBuffer;
+static struct MsgPort *_dispPort;
+static struct MsgPort *_safePort;
 
-struct Library *CyberGfxBase=0;
+static void *AllocAligned(ULONG size,ULONG chunk) {
+	void	*data;
 
-void initAmigaGraphics(void)
-{
-struct Rectangle rect;
+	if (data=AllocMem(size+chunk,MEMF_PUBLIC)) {
+		Forbid();
+		FreeMem(data,size+chunk);
+		data=AllocAbs(size,(APTR)((((ULONG)data)+chunk)&(~chunk)));
+		Permit();
+	}
+	return(data);
+}
+    
+static void initAmigaGraphics(void) {	
+    if (firsttime) {
+		ULONG modeId = INVALID_ID;
+		ULONG i, size;
 
-
-    if (firsttime)
-    {
-        
-  
-    uint i = 0;
-    ULONG modeId = INVALID_ID;
-
-    if(!CyberGfxBase) CyberGfxBase = (struct Library *) OpenLibrary((UBYTE *)"cybergraphics.library",41L);
-
-
-    _hardwareWindow = NULL;
- 
-    _hardwareScreen = NULL;
         firsttime = 0;
-        bufferpixels = (unsigned char *)malloc(352*256*2);
- 
 
+		if(!CyberGfxBase)
+			CyberGfxBase = (struct Library *) OpenLibrary((UBYTE *)"cybergraphics.library",41L);
+			
+		printf("Opened CyberGraphX library\n");
 
-       modeId = BestCModeIDTags(CYBRBIDTG_NominalWidth, 320,
-				      CYBRBIDTG_NominalHeight, 240,
-				      CYBRBIDTG_Depth,16,
-				      TAG_DONE );
+        modeId = BestCModeIDTags(
+			CYBRBIDTG_NominalWidth, 320,
+			CYBRBIDTG_NominalHeight, 240,
+			CYBRBIDTG_Depth,16,
+			TAG_DONE );
+			
+		printf("ModeID: %08X\n", modeId);
 
+		_hardwareScreen = OpenScreenTags(NULL,
+			SA_Depth, 16,
+			SA_DisplayID, modeId,
+			SA_Width, 320,
+			SA_Height, 240,
+			SA_Type, CUSTOMSCREEN,
+			SA_Overscan, OSCAN_TEXT,
+			SA_ShowTitle, FALSE,
+			SA_Draggable, FALSE,
+			SA_Exclusive, TRUE,
+			SA_AutoScroll, FALSE,
+			TAG_END);
 
-        if(modeId == INVALID_ID) {
-          printf("Could not find a valid screen mode");
-          exit(-1);
-        }
+		_hardwareScreenBuffer[0] = AllocScreenBuffer(_hardwareScreen, NULL, SB_SCREEN_BITMAP);
+		_hardwareScreenBuffer[1] = AllocScreenBuffer(_hardwareScreen, NULL, SB_SCREEN_BITMAP);
 
-    rect.MinX = 16;
-    rect.MinY = 16;
-    rect.MaxX = 304;
-    rect.MaxY = 224;
-    
-         _hardwareScreen = OpenScreenTags(NULL,
-                         SA_Depth, 16,
-                         SA_DisplayID, modeId,
-                         SA_Width, 320,
-                         SA_Height,240,
-                         SA_Type, CUSTOMSCREEN,
-                         SA_Overscan, OSCAN_TEXT,
-                         SA_Quiet,TRUE,
-                         SA_ShowTitle, FALSE,
-                         SA_Draggable, FALSE,
-                         SA_Exclusive, TRUE,
-                         SA_AutoScroll, FALSE,
-                          SA_DClip,       (ULONG)&rect,
-                         TAG_END);
- 
+		printf("Buffer alignments %p, %p\n", 
+			_hardwareScreenBuffer[0]->sb_BitMap->Planes[0], 
+			_hardwareScreenBuffer[1]->sb_BitMap->Planes[0]);
 
-        _hardwareWindow = OpenWindowTags(NULL,
-                      	    WA_Left, 16,
-                			WA_Top, 16,
-                			WA_Width, 320,
-                			WA_Height, 240,
-                			WA_Title, NULL,
-        					SA_AutoScroll, FALSE,
-                			WA_CustomScreen, (ULONG)_hardwareScreen,
-                			WA_Backdrop, TRUE,
-                			WA_Borderless, TRUE,
-                			WA_DragBar, FALSE,
-                			WA_Activate, TRUE,
-                			WA_SimpleRefresh, TRUE,
-                			WA_NoCareRefresh, TRUE, 
-                            WA_IDCMP,           IDCMP_RAWKEY|IDCMP_MOUSEBUTTONS|IDCMP_MOUSEMOVE,    
-                            WA_Flags,           WFLG_REPORTMOUSE|WFLG_RMBTRAP,                   		      		 
-                      	    TAG_END);
-
-        
-    
-        theRastPort=_hardwareWindow->RPort;
-        theBitMap=theRastPort->BitMap;
-    
-        SetPointer (_hardwareWindow, emptypointer, 0, 0, 0, 0);
- 
-        initialized = 1;
-        
-        memset (bufferpixels,0,304*224*2);
-
- 
- 
-
+// 		_dispPort = CreateMsgPort();
+// 		_safePort = CreateMsgPort();
+//     		
+// 		for (i = 0; i < 2; i++) {
+// 			_hardwareScreenBuffer[i]->sb_DBufInfo->dbi_DispMessage.mn_ReplyPort = _dispPort;
+// 			_hardwareScreenBuffer[i]->sb_DBufInfo->dbi_SafeMessage.mn_ReplyPort = _safePort;
+// 		}
+		//_safeToWrite = _safeToChange = true;
+		_currentScreenBuffer = 1;    		
+    		
+		_hardwareWindow = OpenWindowTags(NULL,
+			WA_Left, 0,
+			WA_Top, 0,
+			WA_Width, 320,
+			WA_Height, 240,
+			WA_Title, NULL,
+			SA_AutoScroll, FALSE,
+			WA_CustomScreen, (ULONG)_hardwareScreen,
+			WA_Backdrop, TRUE,
+			WA_Borderless, TRUE,
+			WA_DragBar, FALSE,
+			WA_Activate, TRUE,
+			WA_SimpleRefresh, TRUE,
+			WA_NoCareRefresh, TRUE, 
+			WA_IDCMP, IDCMP_RAWKEY|IDCMP_MOUSEBUTTONS|IDCMP_MOUSEMOVE,    
+			WA_Flags, WFLG_REPORTMOUSE|WFLG_RMBTRAP,                   		      		 
+			TAG_END);
+				
+		//bufferpixels = _hardwareScreenBuffer[_currentScreenBuffer]->sb_BitMap;
+		printf("Opened screen *Handle: %p\n", _hardwareScreen);		
     }
 }
 
-int
-blitter_soft_init()
-{
-	Uint32 width;
-	Uint32 height;
+static void killAmigaGraphics(void) {
+	if(_hardwareWindow) {
+		CloseWindow(_hardwareWindow);
+		_hardwareWindow = NULL;
+	}
+
+	if(_hardwareScreenBuffer[0]) {
+		WaitBlit();
+		FreeScreenBuffer(_hardwareScreen, _hardwareScreenBuffer[0]);
+	}
+
+	if(_hardwareScreenBuffer[1]) {
+		WaitBlit();
+		FreeScreenBuffer(_hardwareScreen, _hardwareScreenBuffer[1]);
+	}
+		
+    if (_safePort) {
+        DeleteMsgPort(_safePort);
+        _safePort = NULL;
+    }
+    
+    if (_dispPort) {
+        DeleteMsgPort(_dispPort);
+        _dispPort = NULL;
+    }
+    
+    if(_hardwareScreen) {
+    	CloseScreen(_hardwareScreen);
+		_hardwareScreen = NULL;
+	}
 	
+	if(CyberGfxBase) {
+		CloseLibrary(CyberGfxBase);
+		CyberGfxBase = NULL;
+	}
+}
+
+int blitter_soft_init() {
+    Uint32 width, height;
+    
     screen_rect.x = 16;
     screen_rect.y = 16;
     screen_rect.w = 304;
@@ -180,44 +210,41 @@ blitter_soft_init()
     visible_area.w = 304;
     visible_area.h = 224;
 
-	width = visible_area.w;
-	height = visible_area.h;
+    width = visible_area.w;
+    height = visible_area.h;
 
+    if (vsync) {
+        height=240;
+        screen_rect.y = 8;
 
-	if (vsync) {
-		height=240;
-		screen_rect.y = 8;
+    } else {
+        height=visible_area.h;
+        screen_rect.y = 0;
+        yscreenpadding=0;
+    }
 
-	} else {
-		height=visible_area.h;
-		screen_rect.y = 0;
-		yscreenpadding=0;
-	}
+    screen_rect.w=visible_area.w;
+    screen_rect.h=visible_area.h;
 
-	screen_rect.w=visible_area.w;
-	screen_rect.h=visible_area.h;
+    if (neffect!=0) scale =1;
+    if (scale == 1) {
+        width *=effect[neffect].x_ratio;
+        height*=effect[neffect].y_ratio;
+    } else {
+        if (scale > 3) scale=3;
+        width *=scale;
+        height *=scale;
+    }
 
+    initAmigaGraphics();
 
-	if (neffect!=0)	scale =1;
-	if (scale == 1) {
-	    width *=effect[neffect].x_ratio;
-	    height*=effect[neffect].y_ratio;
-	} else {
-	    if (scale > 3) scale=3;
-	    width *=scale;
-	    height *=scale;
-	}
-
-
-	initAmigaGraphics();
-	
-	return TRUE;
+    return TRUE;
 }
 
 ULONG eclocks_per_second; /* EClock frequency in Hz */
 extern char fps_str[32];
 
-static const UBYTE tiny_font[] = {
+UBYTE font[] = {
 	0x7E, // 0b01111110,
 	0x81, // 0b10000001,
 	0x81, // 0b10000001,
@@ -310,61 +337,69 @@ static void blitchar(UWORD *buffer, UBYTE *f, ULONG sx, ULONG sy) {
 
 /**********************************************************************/
 static void video_do_fps (BYTE *buffer, int yoffset) {
-	ULONG x, sx;
-	static ULONG fps = 600;
-	static struct EClockVal start_time = {0, 0};
-	struct EClockVal end_time;
-	//char msg[6];
+    ULONG x, sx;
+    static ULONG fps = 600;
+    static struct EClockVal start_time = {0, 0};
+    struct EClockVal end_time;
+    //char msg[6];
 
-	eclocks_per_second = ReadEClock (&end_time);
-	x = (int)end_time.ev_lo - (int)start_time.ev_lo;
-	
-	if (x != 0) {
-		//char *p = &msg[5];
-		UBYTE *f;
-		sx = 100;
-		
-		//*p-- = 0;
-		
-		x = (eclocks_per_second * 10 + (x >> 1)) / x;
-		fps -= fps / 16; fps += x / 16; // Kalman filter
-		x = fps;
-	
-				f = &tiny_font[(x % 10) * 6]; blitchar(buffer, f, sx, 0); x /= 10; sx -= 6;
-				f = &tiny_font[10 * 6]; 	  blitchar(buffer, f, sx, 0); 		   sx -= 6;
-				f = &tiny_font[(x % 10) * 6]; blitchar(buffer, f, sx, 0); x /= 10; sx -= 6;
-
-		if(x) { f = &tiny_font[(x % 10) * 6]; blitchar(buffer, f, sx, 0); x /= 10; sx -= 6; }
-		if(x) { f = &tiny_font[(x % 10) * 6]; blitchar(buffer, f, sx, 0); x /= 10; sx -= 6; }
-
-	}
-	start_time = end_time;
-}
-
- 
- 
-void blitter_soft_update() {    
-    ULONG  DestMod = 0;
-    ULONG * pDest  = NULL;
-    struct TagItem mesTags[] = {{LBMI_BASEADDRESS, (ULONG) &pDest},
-       {LBMI_BYTESPERROW, (ULONG) &DestMod},
-       {TAG_END}};
-
-    APTR  handle  = LockBitMapTagList( theRastPort->BitMap, &mesTags[0] );
-    CopyMemQuick(bufferpixels + 32    ,pDest,  0x26000);
-    video_do_fps(theRastPort,0);        
-    UnLockBitMap( handle );  
-}
-
+    eclocks_per_second = ReadEClock (&end_time);
+    x = (int)end_time.ev_lo - (int)start_time.ev_lo;
     
-void blitter_soft_close(void) {
- 
-}    
-void blitter_soft_prerender(void) {
- 
+    if (x != 0) {
+    	//char *p = &msg[5];
+    	UBYTE *f;
+    	sx = 100;
+    	
+    	//*p-- = 0;
+    	
+        x = (eclocks_per_second * 10 + (x >> 1)) / x;
+        fps -= fps / 16; fps += x / 16; // Kalman filter
+        x = fps;
+    
+				f = &font[(x % 10) * 6]; blitchar(buffer, f, sx, 0); x /= 10; sx -= 6;
+				f = &font[10 * 6]; 		 blitchar(buffer, f, sx, 0); 		  sx -= 6;
+				f = &font[(x % 10) * 6]; blitchar(buffer, f, sx, 0); x /= 10; sx -= 6;
+
+        if(x) { f = &font[(x % 10) * 6]; blitchar(buffer, f, sx, 0); x /= 10; sx -= 6; }
+        if(x) { f = &font[(x % 10) * 6]; blitchar(buffer, f, sx, 0); x /= 10; sx -= 6; }
+
+    }
+    start_time = end_time;
 }
 
-void blitter_soft_fullscreen(void) {
+static APTR lockHandle;	
+static ULONG bytesperrow;
 
+int blitter_soft_prerender() {
+	// lock bitmap and allow direct rendering
+	bufferpixels = NULL;
+	lockHandle = LockBitMapTags(
+		_hardwareScreenBuffer[_currentScreenBuffer]->sb_BitMap,
+		//_hardwareScreen->ViewPort.RasInfo->BitMap,
+		LBMI_BASEADDRESS, (ULONG)&bufferpixels,
+		TAG_END);
+		
+	return (lockHandle && bufferpixels);
 }
-                  
+
+void blitter_soft_update() {
+	video_do_fps(bufferpixels,0);
+	
+	UnLockBitMap( lockHandle );
+	lockHandle = NULL;
+
+	if(arg[OPTION_VSYNC]) WaitTOF();
+
+ 	ChangeScreenBuffer(_hardwareScreen, _hardwareScreenBuffer[_currentScreenBuffer]);
+ 	_currentScreenBuffer ^= 1;	
+}
+
+void blitter_soft_close() { 
+	Forbid();
+	killAmigaGraphics();
+	Permit();
+}
+
+void blitter_soft_fullscreen() { }
+

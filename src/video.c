@@ -266,14 +266,14 @@ static __inline__ void draw_fix_char(unsigned char *buf, int start, int end) {
 	int x, y, yy;
 	unsigned char col;
 	unsigned short *br;
-	unsigned short *paldata;
+	unsigned int *paldata;
 	unsigned int byte1, byte2;
 	int banked, garouoffsets[32];
 	Rect clip;
-	int ystart = 1, yend = 32;
-	uint16_t test = 0;
+	const int ystart = 1, yend = 32;
+	//uint16_t test = 0;
 
-	test += 1;
+	//test += 1;
 	//banked = (current_fix == memory.rom.game_sfix.p && memory.rom.game_sfix.size > 0x1000) ? 1 : 0;
 	banked = (current_fix == memory.rom.game_sfix.p && neogeo_fix_bank_type && memory.rom.game_sfix.size > 0x1000) ? 1 : 0;
 
@@ -295,14 +295,10 @@ static __inline__ void draw_fix_char(unsigned char *buf, int start, int end) {
 		}
 	}
 
-	for (x = 1; x < 39; x++) {
-		br = (unsigned short*)buf + ((ystart << 3)) * (PITCH >> 1) + (x << 3) + 16;
-		for (y = ystart; y < yend; y++) {
+	for (y = ystart; y < yend; y++) {
+		for (x = 1; x < 39; x++) {
 			byte1 = (READ_WORD(&memory.vid.ram[0xE000 + ((y + (x << 5)) << 1)]));
-			byte2 = byte1 >> 12;
-			byte1 = byte1 & 0xfff;
-
-			br[0] = test;
+			byte2 = byte1 >> 12; byte1 = byte1 & 0xfff;
 			
 			if (banked) {
 				/* Garou, MSlug 3 */
@@ -315,20 +311,22 @@ static __inline__ void draw_fix_char(unsigned char *buf, int start, int end) {
 
 			if ((byte1 >= (memory.rom.game_sfix.size >> 5)) || (fix_usage[byte1] == 0x00)) continue;
 
+			br = (unsigned short*)buf + ((y << 3)) * (PITCH >> 1) + (x << 3) + 16;
+
 			paldata = (uint16_t *) &current_pc_pal[16 * byte2];
 			gfxdata = (uint32_t *) &current_fix[byte1 << 5];
  
 			#define ROW(n) \
 				myword = gfxdata[n]; \
-				col = (myword >> 28)&0xf; if (col) br[7] = paldata[col]; \
-				col = (myword >> 24)&0xf; if (col) br[6] = paldata[col]; \
-				col = (myword >> 20)&0xf; if (col) br[5] = paldata[col]; \
-				col = (myword >> 16)&0xf; if (col) br[4] = paldata[col]; \
-				col = (myword >> 12)&0xf; if (col) br[3] = paldata[col]; \
-				col = (myword >>  8)&0xf; if (col) br[2] = paldata[col]; \
-				col = (myword >>  4)&0xf; if (col) br[1] = paldata[col]; \
-				col = (myword >>  0)&0xf; if (col) br[0] = paldata[col]; \
-				br += 320;
+				col = (myword >>  0)&0xf; if (col) *br = paldata[col]; br++; \
+				col = (myword >>  4)&0xf; if (col) *br = paldata[col]; br++; \
+				col = (myword >>  8)&0xf; if (col) *br = paldata[col]; br++; \
+				col = (myword >> 12)&0xf; if (col) *br = paldata[col]; br++; \
+				col = (myword >> 16)&0xf; if (col) *br = paldata[col]; br++; \
+				col = (myword >> 20)&0xf; if (col) *br = paldata[col]; br++; \
+				col = (myword >> 24)&0xf; if (col) *br = paldata[col]; br++; \
+				col = (myword >> 28)&0xf; if (col) *br = paldata[col]; br++; \
+				br += 320 - 8;
 	
 				ROW(0)
 				ROW(1)
@@ -344,6 +342,7 @@ static __inline__ void draw_fix_char(unsigned char *buf, int start, int end) {
 	}
 //	if (start != 0 && end != 0) SDL_SetClipRect(buffer, NULL);
 }
+
 extern struct RastPort *theRastPort;
 
 void clr_screen_m68k( unsigned long* ptr, unsigned short col) { 
@@ -414,7 +413,6 @@ void draw_screen(void) {
 		
 		clr_screen_m68k(bufferpixels, current_pc_pal[4095] );
 
-#if 0
 		/* Draw sprites */
 		for (count = 0; count < 0x300; count += 2) {
 			t3 = READ_WORD(&vidram[0x10000 + count]);
@@ -551,7 +549,7 @@ void draw_screen(void) {
 				sy += yskip;
 			} /* for y */
 		} /* for count */
-#endif
+
 		draw_fix_char(bufferpixels, 0, 0); 
 		
 		clr_border_m68k(bufferpixels, current_pc_pal[4095] );
