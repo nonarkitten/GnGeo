@@ -21,15 +21,15 @@ DEFINES  := \
 INCLUDE  := \
 	-IADE\:include.arti -IADE\:os-include -I.
 
-LIBS      = -lm -lmusashi
+LIBS      = -lm
 
 LIBPATH  := -L./lib \
 	-L"C:/Development/AmiDevCpp/usr/local/amiga/m68k-amigaos/lib" \
 	-L"C:/Development/AmiDevCpp/usr/local/amiga/m68k-amigaos/lib/libb/libnix"
 
 # -funit-at-a-time -frename-registers -fweb -fsingle-precision-constant
-FLAGS    := -noixemul -msoft-float -w -O3 -m68020 -fshort-double -fshort-enums \
-	-ffast-math -finline-functions -fomit-frame-pointer -fexpensive-optimizations \
+FLAGS    := -noixemul -msoft-float -w -Os -m68020 -fshort-double -fshort-enums \
+	-ffast-math -finline-functions -fomit-frame-pointer \
    
 CC       := m68k-amigaos-gcc $(FLAGS) $(INCLUDE) $(DEFINES) -Wall
 VASM     := vasm -Faout -quiet -x -m68020 -spaces -showopt
@@ -37,7 +37,7 @@ GAS      := as
 
 all: $(OBJECTS)
 	$(CC) -s $(OBJECTS) -o $(APPNAME) $(LIBPATH) $(LIBS)
-#	 shrinkler $(APPNAME) $(APPNAME)
+	#shrinkler $(APPNAME) $(APPNAME)
 
 %.o: ../src/%.c
 	$(CC) -c $< -o $@

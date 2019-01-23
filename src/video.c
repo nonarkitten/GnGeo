@@ -71,31 +71,6 @@ void draw_scanline_tile_i386_50(unsigned int tileno, int yoffs, int sx, int line
 #define PEN_USAGE(tileno) ((((Uint32*) memory.rom.spr_usage.p)[tileno>>4]>>((tileno&0xF)*2))&0x3)
 
 
-char *ldda_y_skip;
-char *dda_x_skip;
-char ddaxskip[16][16] = {
-	{ 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0},
-	{ 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0},
-	{ 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0},
-	{ 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0},
-	{ 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0},
-	{ 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0},
-	{ 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0},
-	{ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0},
-	{ 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0},
-	{ 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0},
-	{ 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1},
-	{ 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1},
-	{ 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1},
-	{ 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1},
-	{ 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-	{ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
-};
-Uint32 ddaxskip_i[16] = {
-	0x0080, 0x0880, 0x0888, 0x2888, 0x288a, 0x2a8a, 0x2aaa, 0xaaaa,
-	0xaaea, 0xbaea, 0xbaeb, 0xbbeb, 0xbbef, 0xfbef, 0xfbff, 0xffff
-};
-Uint32 dda_x_skip_i;
 static Uint8 dr, dg, db, sr, sg, sb;
 // static __inline__ Uint16 alpha_blend(Uint16 dest, Uint16 src, Uint8 a) {
 // 	
@@ -126,111 +101,12 @@ unsigned int neogeo_frame_counter_speed = 8;
 static Uint16 fix_addr[40][32];
 static Uint8 fix_shift[40];
 
-#if 0
-int init_sprite_cache(Uint32 size, Uint32 bsize) {
-	GFX_CACHE *gcache = &memory.vid.spr_cache;
-	int i;
-
-	if (gcache->data != NULL) { /* We allready have a cache, just reset it */
-		memset(gcache->ptr, 0, gcache->total_bank * sizeof (Uint8*));
-		for (i = 0; i < gcache->max_slot; i++)
-			gcache->usage[i] = -1;
-		return 0;
-	}
-
-	/* Create our video cache */
-	gcache->slot_size = bsize;
-	printf("gfx_size=%08x\n", memory.rom.tiles.size);
-	gcache->total_bank = memory.rom.tiles.size / gcache->slot_size;
-	gcache->ptr = malloc(gcache->total_bank * sizeof (Uint8*));
-	if (gcache->ptr == NULL)
-		return 1;
-	//gcache->z_pos=malloc(gcache->total_bank*sizeof(unz_file_pos ));
-	memset(gcache->ptr, 0, gcache->total_bank * sizeof (Uint8*));
-
-	gcache->size = size;
-	gcache->data = malloc(gcache->size);
-	if (gcache->data == NULL) {
-		free(gcache->ptr);
-		return 1;
-	}
-	printf("INIT CACHE %p\n", gcache->data);
-
-	//gcache->max_slot=((float)gcache->size/0x4000000)*TOTAL_GFX_BANK;
-	//gcache->max_slot=((float)gcache->size/memory.rom.tiles.size)*gcache->total_bank;
-	gcache->max_slot = size / gcache->slot_size;
-	//gcache->slot_size=0x4000000/TOTAL_GFX_BANK;
-	printf("Allocating %08x for gfx cache (%d %d slot)\n", gcache->size, gcache->max_slot, gcache->slot_size);
-	gcache->usage = malloc(gcache->max_slot * sizeof (Uint32));
-	for (i = 0; i < gcache->max_slot; i++)
-		gcache->usage[i] = -1;
-	//printf("inbuf size= %d\n",compressBound(bsize));
-//#ifdef WIZ
-	gcache->in_buf = malloc(bsize + 1024);
-//#else
-//	gcache->in_buf = malloc(compressBound(bsize));
-//#endif
-	return 0;
-}
-
-void free_sprite_cache(void) {
-	GFX_CACHE *gcache = &memory.vid.spr_cache;
-	if (gcache->data) {
-		free(gcache->data);
-		gcache->data = NULL;
-	}
-	if (gcache->ptr) {
-		free(gcache->ptr);
-		gcache->ptr = NULL;
-	}
-	if (gcache->usage) {
-		free(gcache->usage);
-		gcache->usage = NULL;
-	}
-	if (gcache->in_buf) {
-		free(gcache->in_buf);
-		gcache->in_buf = NULL;
-	}
-}
-
-Uint8 *get_cached_sprite_ptr(Uint32 tileno) {
-	GFX_CACHE *gcache = &memory.vid.spr_cache;
-	static int pos = 0;
-	static int init = 1;
-	int tile_sh = ~((gcache->slot_size >> 7) - 1);
-
-	int bank = ((tileno & tile_sh) / (gcache->slot_size >> 7));
-	int a;
-	int r;
-	Uint32 cmp_size;
-	uLongf dst_size;
-
-	if (gcache->ptr[bank]) {
-		/* The bank is present in the cache */
-		return gcache->ptr[bank];
-	}
-	/* We have to find a slot for this bank */
-	a = pos;
-	pos++;
-	if (pos >= gcache->max_slot) pos = 0;
-	//printf("Offset for bank is %d\n",gcache->offset[bank]);
-
-	fseek(gcache->gno, gcache->offset[bank], SEEK_SET);
-	r = fread(&cmp_size, sizeof (Uint32), 1, gcache->gno);
-	r = fread(gcache->in_buf, cmp_size, 1, gcache->gno);
-	dst_size = gcache->slot_size;
-	r = uncompress(gcache->data + a * gcache->slot_size, &dst_size, gcache->in_buf, cmp_size);
-
-	gcache->ptr[bank] = gcache->data + a * gcache->slot_size;
-
-	if (gcache->usage[a] != -1) {
-		gcache->ptr[gcache->usage[a]] = 0;
-	}
-	gcache->usage[a] = bank;
-	return gcache->ptr[bank];
-}
-#endif
-
+static uint16_t dda_x_skip_i;
+const uint16_t ddaxskip_i[16] = {
+	0x0080, 0x0880, 0x0888, 0x2888, 0x288a, 0x2a8a, 0x2aaa, 0xaaaa,
+	0xaaea, 0xbaea, 0xbaeb, 0xbbeb, 0xbbef, 0xfbef, 0xfbff, 0xffff
+};
+#define dda_x_skip(N) (dda_x_skip_i & (1 << N))
 static void fix_value_init(void) {
 	int x, y;
 	for (x = 0; x < 40; x++) {
@@ -270,7 +146,7 @@ static __inline__ void draw_fix_char(unsigned char *buf, int start, int end) {
 	unsigned int byte1, byte2;
 	int banked, garouoffsets[32];
 	Rect clip;
-	const int ystart = 1, yend = 32;
+	const int ystart = 2, yend = 28;
 	//uint16_t test = 0;
 
 	//test += 1;
@@ -310,33 +186,38 @@ static __inline__ void draw_fix_char(unsigned char *buf, int start, int end) {
 			}
 
 			if ((byte1 >= (memory.rom.game_sfix.size >> 5)) || (fix_usage[byte1] == 0x00)) continue;
-
+			
 			br = (unsigned short*)buf + ((y << 3)) * (PITCH >> 1) + (x << 3) + 16;
+// 			if(mc68080) 
+// 				draw_fix_char_ammx(byte1, byte2, br);
+// 			else        
+				draw_fix_char_m68k(byte1, byte2, br);
 
-			paldata = (uint16_t *) &current_pc_pal[16 * byte2];
-			gfxdata = (uint32_t *) &current_fix[byte1 << 5];
- 
-			#define ROW(n) \
-				myword = gfxdata[n]; \
-				col = (myword >>  0)&0xf; if (col) *br = paldata[col]; br++; \
-				col = (myword >>  4)&0xf; if (col) *br = paldata[col]; br++; \
-				col = (myword >>  8)&0xf; if (col) *br = paldata[col]; br++; \
-				col = (myword >> 12)&0xf; if (col) *br = paldata[col]; br++; \
-				col = (myword >> 16)&0xf; if (col) *br = paldata[col]; br++; \
-				col = (myword >> 20)&0xf; if (col) *br = paldata[col]; br++; \
-				col = (myword >> 24)&0xf; if (col) *br = paldata[col]; br++; \
-				col = (myword >> 28)&0xf; if (col) *br = paldata[col]; br++; \
-				br += 320 - 8;
-	
-				ROW(0)
-				ROW(1)
-				ROW(2)
-				ROW(3)
-				ROW(4)
-				ROW(5)
-				ROW(6)
-				ROW(7)
-			#undef ROW
+
+// 			paldata = (uint16_t *) &current_pc_pal[16 * byte2];
+// 			gfxdata = (uint32_t *) &current_fix[byte1 << 5];
+//  
+// 			#define ROW(n) \
+// 				myword = gfxdata[n]; \
+// 				col = (myword >>  0)&0xf; if (col) *br = paldata[col]; br++; \
+// 				col = (myword >>  4)&0xf; if (col) *br = paldata[col]; br++; \
+// 				col = (myword >>  8)&0xf; if (col) *br = paldata[col]; br++; \
+// 				col = (myword >> 12)&0xf; if (col) *br = paldata[col]; br++; \
+// 				col = (myword >> 16)&0xf; if (col) *br = paldata[col]; br++; \
+// 				col = (myword >> 20)&0xf; if (col) *br = paldata[col]; br++; \
+// 				col = (myword >> 24)&0xf; if (col) *br = paldata[col]; br++; \
+// 				col = (myword >> 28)&0xf; if (col) *br = paldata[col]; br++; \
+// 				br += 320 - 8;
+// 	
+// 				ROW(0)
+// 				ROW(1)
+// 				ROW(2)
+// 				ROW(3)
+// 				ROW(4)
+// 				ROW(5)
+// 				ROW(6)
+// 				ROW(7)
+// 			#undef ROW
 
 		}
 	}
@@ -471,10 +352,12 @@ void draw_screen(void) {
 
 			/* Process x zoom */
 			if (zx != 15) {
-				dda_x_skip = ddaxskip[zx];
+				dda_x_skip_i = ddaxskip_i[zx];
 				rzx = zx + 1;
 
-			} else rzx = 16;
+			} else {
+				rzx = 16;
+			}
 
 			if (sx >= 0x1F0) sx -= 0x200;
 			if (sx >= 320) continue;
