@@ -87,6 +87,7 @@ static void *AllocAligned(ULONG size,ULONG chunk) {
 	return(data);
 }
     
+static struct BitMap bm[2];
 static void initAmigaGraphics(void) {	
     if (firsttime) {
 		ULONG modeId = INVALID_ID;
@@ -110,23 +111,24 @@ static void initAmigaGraphics(void) {
 		_hardwareScreen = OpenScreenTags(NULL,
 			SA_Depth, 16,
 			SA_DisplayID, modeId,
-			SA_Width, 320,
-			SA_Height, 240,
+			SA_Width, 384,
+			SA_Height, 256,
 			SA_Type, CUSTOMSCREEN,
 			SA_Overscan, OSCAN_TEXT,
 			SA_ShowTitle, FALSE,
 			SA_Draggable, FALSE,
 			SA_Exclusive, TRUE,
-			SA_AutoScroll, FALSE,
+			SA_AutoScroll, TRUE,
 			TAG_END);
 
 		_hardwareScreenBuffer[0] = AllocScreenBuffer(_hardwareScreen, NULL, SB_SCREEN_BITMAP);
 		_hardwareScreenBuffer[1] = AllocScreenBuffer(_hardwareScreen, NULL, SB_SCREEN_BITMAP);
-
+		
 		printf("Buffer alignments %p, %p\n", 
 			_hardwareScreenBuffer[0]->sb_BitMap->Planes[0], 
 			_hardwareScreenBuffer[1]->sb_BitMap->Planes[0]);
 
+		
 // 		_dispPort = CreateMsgPort();
 // 		_safePort = CreateMsgPort();
 //     		
@@ -143,7 +145,7 @@ static void initAmigaGraphics(void) {
 			WA_Width, 320,
 			WA_Height, 240,
 			WA_Title, NULL,
-			SA_AutoScroll, FALSE,
+//			SA_AutoScroll, FALSE,
 			WA_CustomScreen, (ULONG)_hardwareScreen,
 			WA_Backdrop, TRUE,
 			WA_Borderless, TRUE,
@@ -155,6 +157,7 @@ static void initAmigaGraphics(void) {
 			WA_Flags, WFLG_REPORTMOUSE|WFLG_RMBTRAP,                   		      		 
 			TAG_END);
 				
+	    //ScrollLayer(0,_hardwareWindow->RPort->Layer,-32,0);
 		//bufferpixels = _hardwareScreenBuffer[_currentScreenBuffer]->sb_BitMap;
 		printf("Opened screen *Handle: %p\n", _hardwareScreen);		
     }
@@ -309,9 +312,9 @@ UBYTE font[] = {
 	0x00, // 0b00000000,
 	
 	0x0E, // 0b00001110,
-	0xA1, // 0b10010001,
-	0xA1, // 0b10010001,
-	0xA1, // 0b01010001,
+	0x91, // 0b10010001,
+	0x91, // 0b10010001,
+	0x51, // 0b01010001,
 	0x3E, // 0b00111110,
 	0x00, // 0b00000000,
 	
@@ -328,7 +331,7 @@ static void blitchar(UWORD *buffer, UBYTE *f, ULONG sx, ULONG sy) {
 	ULONG x, y, b;
 	for(x=0; x<6; x++) {
 		for(b=1, y=0; y<8; y++) {
-			if(*f & b) buffer[sx + x + (sy + y) * 320] = 0xFFFF;// : 0x0000;
+			if(*f & b) buffer[sx + x + (sy + y) * 384] = 0xFFFF;// : 0x0000;
 			b <<= 1; 
 		}
 		f++;

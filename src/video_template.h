@@ -3,7 +3,7 @@
    use PUTPIXEL(dest,src) to set the putpixel function/macro
 */
 
-#define PITCH 640
+#define PITCH 768
 
 static __inline__ void RENAME(draw)(unsigned int tileno,int sx,int sy,int zx,int zy,
 					 int color,int xflip,int yflip,unsigned char *bmp)

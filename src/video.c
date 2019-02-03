@@ -102,8 +102,8 @@ static Uint16 fix_addr[40][32];
 static Uint8 fix_shift[40];
 
 static uint16_t dda_x_skip_i;
-const uint16_t ddaxskip_i[16] = {
-	0x0080, 0x0880, 0x0888, 0x2888, 0x288a, 0x2a8a, 0x2aaa, 0xaaaa,
+const uint16_t ddaxskip_i[17] = {
+	0x0000, 0x0080, 0x0880, 0x0888, 0x2888, 0x288a, 0x2a8a, 0x2aaa, 0xaaaa,
 	0xaaea, 0xbaea, 0xbaeb, 0xbbeb, 0xbbef, 0xfbef, 0xfbff, 0xffff
 };
 #define dda_x_skip(N) (dda_x_skip_i & (1 << N))
@@ -146,7 +146,7 @@ static __inline__ void draw_fix_char(unsigned char *buf, int start, int end) {
 	unsigned int byte1, byte2;
 	int banked, garouoffsets[32];
 	Rect clip;
-	const int ystart = 2, yend = 28;
+	const int ystart = 2, yend = 32;
 	//uint16_t test = 0;
 
 	//test += 1;
@@ -187,97 +187,335 @@ static __inline__ void draw_fix_char(unsigned char *buf, int start, int end) {
 
 			if ((byte1 >= (memory.rom.game_sfix.size >> 5)) || (fix_usage[byte1] == 0x00)) continue;
 			
-			br = (unsigned short*)buf + ((y << 3)) * (PITCH >> 1) + (x << 3) + 16;
+			br = (unsigned short*)buf + ((y << 3)) * (PITCH >> 1) + (x << 3);// + 16;
 // 			if(mc68080) 
-// 				draw_fix_char_ammx(byte1, byte2, br);
+// 				draw_fix_char_m68k(byte1, byte2, br);
 // 			else        
 				draw_fix_char_m68k(byte1, byte2, br);
 
-
-// 			paldata = (uint16_t *) &current_pc_pal[16 * byte2];
-// 			gfxdata = (uint32_t *) &current_fix[byte1 << 5];
-//  
-// 			#define ROW(n) \
-// 				myword = gfxdata[n]; \
-// 				col = (myword >>  0)&0xf; if (col) *br = paldata[col]; br++; \
-// 				col = (myword >>  4)&0xf; if (col) *br = paldata[col]; br++; \
-// 				col = (myword >>  8)&0xf; if (col) *br = paldata[col]; br++; \
-// 				col = (myword >> 12)&0xf; if (col) *br = paldata[col]; br++; \
-// 				col = (myword >> 16)&0xf; if (col) *br = paldata[col]; br++; \
-// 				col = (myword >> 20)&0xf; if (col) *br = paldata[col]; br++; \
-// 				col = (myword >> 24)&0xf; if (col) *br = paldata[col]; br++; \
-// 				col = (myword >> 28)&0xf; if (col) *br = paldata[col]; br++; \
-// 				br += 320 - 8;
-// 	
-// 				ROW(0)
-// 				ROW(1)
-// 				ROW(2)
-// 				ROW(3)
-// 				ROW(4)
-// 				ROW(5)
-// 				ROW(6)
-// 				ROW(7)
-// 			#undef ROW
 
 		}
 	}
 //	if (start != 0 && end != 0) SDL_SetClipRect(buffer, NULL);
 }
 
-extern struct RastPort *theRastPort;
+typedef union {
+	struct {
+		uint32_t p0 : 4;
+		uint32_t p1 : 4;
+		uint32_t p2 : 4;
+		uint32_t p3 : 4;
+		uint32_t p4 : 4;
+		uint32_t p5 : 4;
+		uint32_t p6 : 4;
+		uint32_t p7 : 4;
+	} p;
+	uint32_t pixel;
+} packpix_t; 
 
-void clr_screen_m68k( unsigned long* ptr, unsigned short col) { 
-    int y; 
-    int x;
-    unsigned int col2; 
-    col2 = (col <<16) | col; 
-    ptr += 320 * 2 * 16 / 4;
-    for (y=240-16;y;y--){ 
-      ptr+=16;
-      for (x=320/4 - 8;x;x--){ 
-        *ptr++ = col2; 
-        *ptr++ = col2;
-      }
-    }
+static uint32_t scalex;
+extern struct RastPort *theRastPort;
+//(palbase, tilepos, gfxdata, rzx, yskip)
+static void draw_tile_m68k_norm (uint32_t*palbase,uint16_t*tilepos,uint32_t*gfxdata,int zy) {
+	packpix_t pixeldata;
+	uint16_t color, y, scaley = ddaxskip_i[zy];
+	for(y=0;y<16;y++) {
+		if(scaley & 0x8000) {
+			if((pixeldata.pixel = gfxdata[0])) {
+				if(pixeldata.p.p0)  tilepos[0] = (uint16_t)palbase[pixeldata.p.p0];
+				if(pixeldata.p.p1)  tilepos[1] = (uint16_t)palbase[pixeldata.p.p1];
+				if(pixeldata.p.p2)  tilepos[2] = (uint16_t)palbase[pixeldata.p.p2];
+				if(pixeldata.p.p3)  tilepos[3] = (uint16_t)palbase[pixeldata.p.p3];
+				if(pixeldata.p.p4)  tilepos[4] = (uint16_t)palbase[pixeldata.p.p4];
+				if(pixeldata.p.p5)  tilepos[5] = (uint16_t)palbase[pixeldata.p.p5];
+				if(pixeldata.p.p6)  tilepos[6] = (uint16_t)palbase[pixeldata.p.p6];
+				if(pixeldata.p.p7)  tilepos[7] = (uint16_t)palbase[pixeldata.p.p7];
+			}
+			if((pixeldata.pixel = gfxdata[1])) {
+				if(pixeldata.p.p0)  tilepos[8] = (uint16_t)palbase[pixeldata.p.p0];
+				if(pixeldata.p.p1)  tilepos[9] = (uint16_t)palbase[pixeldata.p.p1];
+				if(pixeldata.p.p2) tilepos[10] = (uint16_t)palbase[pixeldata.p.p2];
+				if(pixeldata.p.p3) tilepos[11] = (uint16_t)palbase[pixeldata.p.p3];
+				if(pixeldata.p.p4) tilepos[12] = (uint16_t)palbase[pixeldata.p.p4];
+				if(pixeldata.p.p5) tilepos[13] = (uint16_t)palbase[pixeldata.p.p5];
+				if(pixeldata.p.p6) tilepos[14] = (uint16_t)palbase[pixeldata.p.p6];
+				if(pixeldata.p.p7) tilepos[15] = (uint16_t)palbase[pixeldata.p.p7];
+			}
+			tilepos += PITCH / 2;
+		}
+		scaley <<= 1;
+		gfxdata += 2;
+	}
+}
+static void draw_tile_m68k_xflip_norm  (uint32_t*palbase,uint16_t*tilepos,uint32_t*gfxdata,int zy) { 
+	packpix_t pixeldata;
+	uint16_t color, y, scaley = ddaxskip_i[zy];
+	for(y=0;y<16;y++) {
+		if(scaley & 0x8000) {
+			if((pixeldata.pixel = gfxdata[1])) {
+				if(pixeldata.p.p0)  tilepos[7] = (uint16_t)palbase[pixeldata.p.p0];
+				if(pixeldata.p.p1)  tilepos[6] = (uint16_t)palbase[pixeldata.p.p1];
+				if(pixeldata.p.p2)  tilepos[5] = (uint16_t)palbase[pixeldata.p.p2];
+				if(pixeldata.p.p3)  tilepos[4] = (uint16_t)palbase[pixeldata.p.p3];
+				if(pixeldata.p.p4)  tilepos[3] = (uint16_t)palbase[pixeldata.p.p4];
+				if(pixeldata.p.p5)  tilepos[2] = (uint16_t)palbase[pixeldata.p.p5];
+				if(pixeldata.p.p6)  tilepos[1] = (uint16_t)palbase[pixeldata.p.p6];
+				if(pixeldata.p.p7)  tilepos[0] = (uint16_t)palbase[pixeldata.p.p7];
+			}
+			if((pixeldata.pixel = gfxdata[0])) {
+				if(pixeldata.p.p0) tilepos[15] = (uint16_t)palbase[pixeldata.p.p0];
+				if(pixeldata.p.p1) tilepos[14] = (uint16_t)palbase[pixeldata.p.p1];
+				if(pixeldata.p.p2) tilepos[13] = (uint16_t)palbase[pixeldata.p.p2];
+				if(pixeldata.p.p3) tilepos[12] = (uint16_t)palbase[pixeldata.p.p3];
+				if(pixeldata.p.p4) tilepos[11] = (uint16_t)palbase[pixeldata.p.p4];
+				if(pixeldata.p.p5) tilepos[10] = (uint16_t)palbase[pixeldata.p.p5];
+				if(pixeldata.p.p6)  tilepos[9] = (uint16_t)palbase[pixeldata.p.p6];
+				if(pixeldata.p.p7)  tilepos[8] = (uint16_t)palbase[pixeldata.p.p7];
+			}
+			tilepos += PITCH / 2;
+		}
+		scaley <<= 1;
+		gfxdata += 2;
+	}
+}
+static void draw_tile_m68k_yflip_norm  (uint32_t*palbase,uint16_t*tilepos,uint32_t*gfxdata,int zy) { 
+	packpix_t pixeldata;
+	uint16_t color, y, scaley = ddaxskip_i[zy];
+	for(y=0;y<16;y++) {
+		if(scaley & 0x8000) {
+			if((pixeldata.pixel = gfxdata[0])) {
+				if(pixeldata.p.p0)  tilepos[0] = (uint16_t)palbase[pixeldata.p.p0];
+				if(pixeldata.p.p1)  tilepos[1] = (uint16_t)palbase[pixeldata.p.p1];
+				if(pixeldata.p.p2)  tilepos[2] = (uint16_t)palbase[pixeldata.p.p2];
+				if(pixeldata.p.p3)  tilepos[3] = (uint16_t)palbase[pixeldata.p.p3];
+				if(pixeldata.p.p4)  tilepos[4] = (uint16_t)palbase[pixeldata.p.p4];
+				if(pixeldata.p.p5)  tilepos[5] = (uint16_t)palbase[pixeldata.p.p5];
+				if(pixeldata.p.p6)  tilepos[6] = (uint16_t)palbase[pixeldata.p.p6];
+				if(pixeldata.p.p7)  tilepos[7] = (uint16_t)palbase[pixeldata.p.p7];
+			}
+			if((pixeldata.pixel = gfxdata[1])) {
+				if(pixeldata.p.p0)  tilepos[8] = (uint16_t)palbase[pixeldata.p.p0];
+				if(pixeldata.p.p1)  tilepos[9] = (uint16_t)palbase[pixeldata.p.p1];
+				if(pixeldata.p.p2) tilepos[10] = (uint16_t)palbase[pixeldata.p.p2];
+				if(pixeldata.p.p3) tilepos[11] = (uint16_t)palbase[pixeldata.p.p3];
+				if(pixeldata.p.p4) tilepos[12] = (uint16_t)palbase[pixeldata.p.p4];
+				if(pixeldata.p.p5) tilepos[13] = (uint16_t)palbase[pixeldata.p.p5];
+				if(pixeldata.p.p6) tilepos[14] = (uint16_t)palbase[pixeldata.p.p6];
+				if(pixeldata.p.p7) tilepos[15] = (uint16_t)palbase[pixeldata.p.p7];
+			}
+			tilepos -= PITCH / 2;
+		}
+		scaley <<= 1;
+		gfxdata += 2;
+	}
+}
+static void draw_tile_m68k_xyflip_norm (uint32_t*palbase,uint16_t*tilepos,uint32_t*gfxdata,int zy) { 
+	packpix_t pixeldata;
+	uint16_t color, y, scaley = ddaxskip_i[zy];
+	for(y=0;y<16;y++) {
+		if(scaley & 0x8000) {
+			if((pixeldata.pixel = gfxdata[1])) {
+				if(pixeldata.p.p0)  tilepos[7] = (uint16_t)palbase[pixeldata.p.p0];
+				if(pixeldata.p.p1)  tilepos[6] = (uint16_t)palbase[pixeldata.p.p1];
+				if(pixeldata.p.p2)  tilepos[5] = (uint16_t)palbase[pixeldata.p.p2];
+				if(pixeldata.p.p3)  tilepos[4] = (uint16_t)palbase[pixeldata.p.p3];
+				if(pixeldata.p.p4)  tilepos[3] = (uint16_t)palbase[pixeldata.p.p4];
+				if(pixeldata.p.p5)  tilepos[2] = (uint16_t)palbase[pixeldata.p.p5];
+				if(pixeldata.p.p6)  tilepos[1] = (uint16_t)palbase[pixeldata.p.p6];
+				if(pixeldata.p.p7)  tilepos[0] = (uint16_t)palbase[pixeldata.p.p7];
+			}
+			if((pixeldata.pixel = gfxdata[0])) {
+				if(pixeldata.p.p0) tilepos[15] = (uint16_t)palbase[pixeldata.p.p0];
+				if(pixeldata.p.p1) tilepos[14] = (uint16_t)palbase[pixeldata.p.p1];
+				if(pixeldata.p.p2) tilepos[13] = (uint16_t)palbase[pixeldata.p.p2];
+				if(pixeldata.p.p3) tilepos[12] = (uint16_t)palbase[pixeldata.p.p3];
+				if(pixeldata.p.p4) tilepos[11] = (uint16_t)palbase[pixeldata.p.p4];
+				if(pixeldata.p.p5) tilepos[10] = (uint16_t)palbase[pixeldata.p.p5];
+				if(pixeldata.p.p6)  tilepos[9] = (uint16_t)palbase[pixeldata.p.p6];
+				if(pixeldata.p.p7)  tilepos[8] = (uint16_t)palbase[pixeldata.p.p7];
+			}
+			tilepos -= PITCH / 2;
+		}
+		scaley <<= 1;
+		gfxdata += 2;
+	}
 }
 
-void clr_border_m68k( unsigned long* ptr, unsigned short col) { 
-    int y; 
-    int x;
-    unsigned int col2; 
-    col2 = (col <<16) | col; 
-    
-    ptr+=16;
-	for(x=320/4 - 8;x;x--) {
-		*ptr++ = col2; 
-		*ptr++ = col2;
-	}
-    
-    for (y=15;y;y--) {
-    	for(x=320/4;x;x--) {
-			*ptr++ = col2; 
-			*ptr++ = col2;
+static void draw_tile_m68k_xzoom (uint32_t*palbase,uint16_t*tilepos,uint32_t*gfxdata,int zy) {
+	packpix_t pixeldata;
+	uint16_t color, y, scaley = ddaxskip_i[zy];
+	uint16_t* org_tilepos = tilepos;
+	for(y=0;y<16;y++) {
+		tilepos = org_tilepos;
+		if(scaley & 0x8000) {
+			pixeldata.pixel = gfxdata[0]; 
+			if(scalex & 0x8000) { if(pixeldata.p.p0) *tilepos = (uint16_t)palbase[pixeldata.p.p0]; tilepos++; }
+			if(scalex & 0x4000) { if(pixeldata.p.p1) *tilepos = (uint16_t)palbase[pixeldata.p.p1]; tilepos++; }
+			if(scalex & 0x2000) { if(pixeldata.p.p2) *tilepos = (uint16_t)palbase[pixeldata.p.p2]; tilepos++; }
+			if(scalex & 0x1000) { if(pixeldata.p.p3) *tilepos = (uint16_t)palbase[pixeldata.p.p3]; tilepos++; }
+			if(scalex & 0x0800) { if(pixeldata.p.p4) *tilepos = (uint16_t)palbase[pixeldata.p.p4]; tilepos++; }
+			if(scalex & 0x0400) { if(pixeldata.p.p5) *tilepos = (uint16_t)palbase[pixeldata.p.p5]; tilepos++; }
+			if(scalex & 0x0200) { if(pixeldata.p.p6) *tilepos = (uint16_t)palbase[pixeldata.p.p6]; tilepos++; }
+			if(scalex & 0x0100) { if(pixeldata.p.p7) *tilepos = (uint16_t)palbase[pixeldata.p.p7]; tilepos++; }
+ 
+			pixeldata.pixel = gfxdata[1]; 
+			if(scalex & 0x0080) { if(pixeldata.p.p0) *tilepos = (uint16_t)palbase[pixeldata.p.p0]; tilepos++; }
+			if(scalex & 0x0040) { if(pixeldata.p.p1) *tilepos = (uint16_t)palbase[pixeldata.p.p1]; tilepos++; }
+			if(scalex & 0x0020) { if(pixeldata.p.p2) *tilepos = (uint16_t)palbase[pixeldata.p.p2]; tilepos++; }
+			if(scalex & 0x0010) { if(pixeldata.p.p3) *tilepos = (uint16_t)palbase[pixeldata.p.p3]; tilepos++; }
+			if(scalex & 0x0008) { if(pixeldata.p.p4) *tilepos = (uint16_t)palbase[pixeldata.p.p4]; tilepos++; }
+			if(scalex & 0x0004) { if(pixeldata.p.p5) *tilepos = (uint16_t)palbase[pixeldata.p.p5]; tilepos++; }
+			if(scalex & 0x0002) { if(pixeldata.p.p6) *tilepos = (uint16_t)palbase[pixeldata.p.p6]; tilepos++; }
+			if(scalex & 0x0001) { if(pixeldata.p.p7) *tilepos = (uint16_t)palbase[pixeldata.p.p7]; tilepos++; }
+			
+			org_tilepos += PITCH / 2;
 		}
-	}		
-    for (y=240-16;y;y--){ 
-		*ptr++ = col2; 
-		*ptr++ = col2;
-		*ptr++ = col2; 
-		*ptr++ = col2;
-		*ptr++ = col2; 
-		*ptr++ = col2;
-		*ptr++ = col2; 
-		*ptr++ = col2;
-		*ptr++ = col2; 
-		*ptr++ = col2;
-		*ptr++ = col2; 
-		*ptr++ = col2;
-		*ptr++ = col2; 
-		*ptr++ = col2;
-		*ptr++ = col2; 
-		*ptr++ = col2;
-		ptr += 320/2 - 16;
-    }
+		scaley <<= 1;
+		gfxdata += 2;
+	}
+}
+static void draw_tile_m68k_xzoomX  (uint32_t*palbase,uint16_t*tilepos,uint32_t*gfxdata,int zy) { 
+	packpix_t pixeldata;
+	uint16_t color, y, scaley = ddaxskip_i[zy];
+	uint16_t* org_tilepos = tilepos;
+	for(y=0;y<16;y++) {
+		tilepos = org_tilepos;
+		if(scaley & 0x8000) {
+			pixeldata.pixel = gfxdata[1];
+			if(scalex & 0x0001) { if(pixeldata.p.p7) *tilepos = (uint16_t)palbase[pixeldata.p.p7]; tilepos++; }
+			if(scalex & 0x0002) { if(pixeldata.p.p6) *tilepos = (uint16_t)palbase[pixeldata.p.p6]; tilepos++; }
+			if(scalex & 0x0004) { if(pixeldata.p.p5) *tilepos = (uint16_t)palbase[pixeldata.p.p5]; tilepos++; }
+			if(scalex & 0x0008) { if(pixeldata.p.p4) *tilepos = (uint16_t)palbase[pixeldata.p.p4]; tilepos++; }
+			if(scalex & 0x0010) { if(pixeldata.p.p3) *tilepos = (uint16_t)palbase[pixeldata.p.p3]; tilepos++; }
+			if(scalex & 0x0020) { if(pixeldata.p.p2) *tilepos = (uint16_t)palbase[pixeldata.p.p2]; tilepos++; }
+			if(scalex & 0x0040) { if(pixeldata.p.p1) *tilepos = (uint16_t)palbase[pixeldata.p.p1]; tilepos++; }
+			if(scalex & 0x0080) { if(pixeldata.p.p0) *tilepos = (uint16_t)palbase[pixeldata.p.p0]; tilepos++; }
+
+			pixeldata.pixel = gfxdata[0];
+			if(scalex & 0x0100) { if(pixeldata.p.p7) *tilepos = (uint16_t)palbase[pixeldata.p.p7]; tilepos++; }
+			if(scalex & 0x0200) { if(pixeldata.p.p6) *tilepos = (uint16_t)palbase[pixeldata.p.p6]; tilepos++; }
+			if(scalex & 0x0400) { if(pixeldata.p.p5) *tilepos = (uint16_t)palbase[pixeldata.p.p5]; tilepos++; }
+			if(scalex & 0x0800) { if(pixeldata.p.p4) *tilepos = (uint16_t)palbase[pixeldata.p.p4]; tilepos++; }
+			if(scalex & 0x1000) { if(pixeldata.p.p3) *tilepos = (uint16_t)palbase[pixeldata.p.p3]; tilepos++; }
+			if(scalex & 0x2000) { if(pixeldata.p.p2) *tilepos = (uint16_t)palbase[pixeldata.p.p2]; tilepos++; }
+			if(scalex & 0x4000) { if(pixeldata.p.p1) *tilepos = (uint16_t)palbase[pixeldata.p.p1]; tilepos++; }
+			if(scalex & 0x8000) { if(pixeldata.p.p0) *tilepos = (uint16_t)palbase[pixeldata.p.p0]; tilepos++; }
+
+			org_tilepos += PITCH / 2;
+		}
+		scaley <<= 1;
+		gfxdata += 2;
+	}
+}
+static void draw_tile_m68k_xzoomY  (uint32_t*palbase,uint16_t*tilepos,uint32_t*gfxdata,int zy) { 
+	packpix_t pixeldata;
+	uint16_t color, y, scaley = ddaxskip_i[zy];
+	uint16_t* org_tilepos = tilepos;
+	for(y=0;y<16;y++) {
+		tilepos = org_tilepos;
+		if(scaley & 0x8000) {
+			pixeldata.pixel = gfxdata[0]; 
+			if(scalex & 0x8000) { if(pixeldata.p.p0) *tilepos = (uint16_t)palbase[pixeldata.p.p0]; tilepos++; }
+			if(scalex & 0x4000) { if(pixeldata.p.p1) *tilepos = (uint16_t)palbase[pixeldata.p.p1]; tilepos++; }
+			if(scalex & 0x2000) { if(pixeldata.p.p2) *tilepos = (uint16_t)palbase[pixeldata.p.p2]; tilepos++; }
+			if(scalex & 0x1000) { if(pixeldata.p.p3) *tilepos = (uint16_t)palbase[pixeldata.p.p3]; tilepos++; }
+			if(scalex & 0x0800) { if(pixeldata.p.p4) *tilepos = (uint16_t)palbase[pixeldata.p.p4]; tilepos++; }
+			if(scalex & 0x0400) { if(pixeldata.p.p5) *tilepos = (uint16_t)palbase[pixeldata.p.p5]; tilepos++; }
+			if(scalex & 0x0200) { if(pixeldata.p.p6) *tilepos = (uint16_t)palbase[pixeldata.p.p6]; tilepos++; }
+			if(scalex & 0x0100) { if(pixeldata.p.p7) *tilepos = (uint16_t)palbase[pixeldata.p.p7]; tilepos++; }
+
+			pixeldata.pixel = gfxdata[1];
+			if(scalex & 0x0080) { if(pixeldata.p.p0) *tilepos = (uint16_t)palbase[pixeldata.p.p0]; tilepos++; }
+			if(scalex & 0x0040) { if(pixeldata.p.p1) *tilepos = (uint16_t)palbase[pixeldata.p.p1]; tilepos++; }
+			if(scalex & 0x0020) { if(pixeldata.p.p2) *tilepos = (uint16_t)palbase[pixeldata.p.p2]; tilepos++; }
+			if(scalex & 0x0010) { if(pixeldata.p.p3) *tilepos = (uint16_t)palbase[pixeldata.p.p3]; tilepos++; }
+			if(scalex & 0x0008) { if(pixeldata.p.p4) *tilepos = (uint16_t)palbase[pixeldata.p.p4]; tilepos++; }
+			if(scalex & 0x0004) { if(pixeldata.p.p5) *tilepos = (uint16_t)palbase[pixeldata.p.p5]; tilepos++; }
+			if(scalex & 0x0002) { if(pixeldata.p.p6) *tilepos = (uint16_t)palbase[pixeldata.p.p6]; tilepos++; }
+			if(scalex & 0x0001) { if(pixeldata.p.p7) *tilepos = (uint16_t)palbase[pixeldata.p.p7]; tilepos++; }
+			
+			org_tilepos -= PITCH / 2;
+		}
+		scaley <<= 1;
+		gfxdata += 2;
+	}
+}
+static void draw_tile_m68k_xzoomXY (uint32_t*palbase,uint16_t*tilepos,uint32_t*gfxdata,int zy) { 
+	packpix_t pixeldata;
+	uint16_t color, y, scaley = ddaxskip_i[zy];
+	uint16_t* org_tilepos = tilepos;
+	for(y=0;y<16;y++) {
+		tilepos = org_tilepos;
+		if(scaley & 0x8000) {
+			pixeldata.pixel = gfxdata[1];
+			if(scalex & 0x0001) { if(pixeldata.p.p7) *tilepos = (uint16_t)palbase[pixeldata.p.p7]; tilepos++; }
+			if(scalex & 0x0002) { if(pixeldata.p.p6) *tilepos = (uint16_t)palbase[pixeldata.p.p6]; tilepos++; }
+			if(scalex & 0x0004) { if(pixeldata.p.p5) *tilepos = (uint16_t)palbase[pixeldata.p.p5]; tilepos++; }
+			if(scalex & 0x0008) { if(pixeldata.p.p4) *tilepos = (uint16_t)palbase[pixeldata.p.p4]; tilepos++; }
+			if(scalex & 0x0010) { if(pixeldata.p.p3) *tilepos = (uint16_t)palbase[pixeldata.p.p3]; tilepos++; }
+			if(scalex & 0x0020) { if(pixeldata.p.p2) *tilepos = (uint16_t)palbase[pixeldata.p.p2]; tilepos++; }
+			if(scalex & 0x0040) { if(pixeldata.p.p1) *tilepos = (uint16_t)palbase[pixeldata.p.p1]; tilepos++; }
+			if(scalex & 0x0080) { if(pixeldata.p.p0) *tilepos = (uint16_t)palbase[pixeldata.p.p0]; tilepos++; }
+
+			pixeldata.pixel = gfxdata[0];
+			if(scalex & 0x0100) { if(pixeldata.p.p7) *tilepos = (uint16_t)palbase[pixeldata.p.p7]; tilepos++; }
+			if(scalex & 0x0200) { if(pixeldata.p.p6) *tilepos = (uint16_t)palbase[pixeldata.p.p6]; tilepos++; }
+			if(scalex & 0x0400) { if(pixeldata.p.p5) *tilepos = (uint16_t)palbase[pixeldata.p.p5]; tilepos++; }
+			if(scalex & 0x0800) { if(pixeldata.p.p4) *tilepos = (uint16_t)palbase[pixeldata.p.p4]; tilepos++; }
+			if(scalex & 0x1000) { if(pixeldata.p.p3) *tilepos = (uint16_t)palbase[pixeldata.p.p3]; tilepos++; }
+			if(scalex & 0x2000) { if(pixeldata.p.p2) *tilepos = (uint16_t)palbase[pixeldata.p.p2]; tilepos++; }
+			if(scalex & 0x4000) { if(pixeldata.p.p1) *tilepos = (uint16_t)palbase[pixeldata.p.p1]; tilepos++; }
+			if(scalex & 0x8000) { if(pixeldata.p.p0) *tilepos = (uint16_t)palbase[pixeldata.p.p0]; tilepos++; }
+
+			org_tilepos -= PITCH / 2;
+		}
+		scaley <<= 1;
+		gfxdata += 2;
+	}
+}
+
+
+void draw_tile_m68k(unsigned int tileno,int sx,int sy,int zx,int zy, int color,int xflip,int yflip,unsigned char *bmp) {
+    uint32_t *palbase = (uint32_t*)&current_pc_pal[16*color];
+    uint32_t *gfxdata = (uint32_t*)&memory.rom.tiles.p[(tileno%memory.nb_of_tiles)<<7];
+	
+	const int pitch = PITCH / 2;
+	
+    /* y zoom table */
+    //if(zy==16) l_y_skip=full_y_skip;
+    //else l_y_skip=dda_y_skip;
+
+    if (zx==16) {
+        if (xflip) {
+            if (yflip)
+                draw_tile_m68k_xyflip_norm(palbase, (unsigned short*) bmp + ((zy - 1) + sy) * pitch + sx, gfxdata, zy);
+            else
+				draw_tile_m68k_xflip_norm(palbase, (unsigned short*) bmp + (sy) * pitch + sx, gfxdata, zy);
+		  
+        } else {
+            if (yflip)
+				draw_tile_m68k_yflip_norm(palbase, (unsigned short*) bmp + ((zy - 1) + sy) * pitch + sx, gfxdata, zy); 
+            else			
+				draw_tile_m68k_norm(palbase, (unsigned short*) bmp + (sy) * pitch + sx, gfxdata, zy);
+        }
+	} else {
+		//dda_x_skip_i = ddaxskip_i[zx];
+		scalex = ddaxskip_i[zx];
+		
+		if (!xflip) {
+			if (!yflip) {
+				draw_tile_m68k_xzoom(palbase, (unsigned short*) bmp + (sy) * pitch + sx, gfxdata, zy);
+			} else {
+				draw_tile_m68k_xzoomY(palbase, (unsigned short*) bmp + ((zy - 1) + sy) * pitch + sx, gfxdata, zy);
+			}
+		} else {
+			if (!yflip) {
+				draw_tile_m68k_xzoomX(palbase, (unsigned short*) bmp + (sy) * pitch + sx, gfxdata, zy);
+			} else {
+				draw_tile_m68k_xzoomXY(palbase, (unsigned short*) bmp + ((zy - 1) + sy) * pitch + sx, gfxdata, zy);
+			}
+		}
+	}
 }
 
 void draw_screen(void) {
@@ -290,7 +528,7 @@ void draw_screen(void) {
 	Uint8 penusage;
  
  	if(screen_prerender()) { 
-		bufferpixels -= 32; // HACK HACK HACK
+		//bufferpixels -= 32; // HACK HACK HACK
 		
 		clr_screen_m68k(bufferpixels, current_pc_pal[4095] );
 
@@ -404,28 +642,33 @@ void draw_screen(void) {
 
 				if (rzy != 255) {
 					yskip = 0;
-					dda_y_skip_i = 0;
-					dda_y_skip[0] = 0;
+					//dda_y_skip_i = 0;
+					//dda_y_skip[0] = 0;
 					for (i = 0; i < 16; i++) {
-						dda_y_skip[i + 1] = 0;
+						//dda_y_skip[i + 1] = 0;
 						dday -= (rzy + 1);
 						if (dday <= 0) {
 							dday += 256;
 							yskip++;
-							dda_y_skip[yskip]++;
-						} else dda_y_skip[yskip]++;
+							//dda_y_skip[yskip]++;
+						}// else dda_y_skip[yskip]++;
 					}
 				}
 
-				if (sx >= -16 && sx + 15 < 336 && sy >= 0 && sy + 15 < 256) {
+//				if (sx >= -16 && sx + 15 < 336 && sy >= 0 && sy + 15 < 256) {
+
+
+				if (sx >= -16 && sx <= 336 && sy >= 0 && sy <= 240) {
 // 					if (memory.vid.spr_cache.data) {
 // 						memory.rom.tiles.p = get_cached_sprite_ptr(tileno);
 // 						tileno = (tileno & ((memory.vid.spr_cache.slot_size >> 7) - 1));
 // 					}
 
-					if (PEN_USAGE(tileno) != TILE_INVISIBLE)
-						draw_tile(tileno, sx + 16, sy, rzx, yskip, tileatr >> 8,
+					if (PEN_USAGE(tileno) != TILE_INVISIBLE) {					
+						draw_tile_m68k(tileno, sx/* + 16 */, sy, rzx, yskip, tileatr >> 8,
 							tileatr & 0x01, tileatr & 0x02, bufferpixels);
+							
+					}
 						
 				}
 
