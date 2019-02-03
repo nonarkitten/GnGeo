@@ -167,7 +167,7 @@ static int bench = 0;
 static ULONG startBenchTime;
 static ULONG timerTemp;
 static ULONG timerVideo;
-static ULONG timerSound;
+ ULONG timerSound;
 static ULONG timer68k;
 static ULONG timerZ80;
 

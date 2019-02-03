@@ -48,6 +48,7 @@ static Rect screen_rect;
 static int vsync;
 
 
+
 BYTE        *bufferpixels = NULL;
 BYTE        *videoBuffer = NULL;
 static BOOL initialized = FALSE;
@@ -122,7 +123,7 @@ static void initAmigaGraphics(void) {
 			TAG_END);
 
 		_hardwareScreenBuffer[0] = AllocScreenBuffer(_hardwareScreen, NULL, SB_SCREEN_BITMAP);
-		_hardwareScreenBuffer[1] = AllocScreenBuffer(_hardwareScreen, NULL, SB_SCREEN_BITMAP);
+		_hardwareScreenBuffer[1] = AllocScreenBuffer(_hardwareScreen, NULL, 0);
 		
 		printf("Buffer alignments %p, %p\n", 
 			_hardwareScreenBuffer[0]->sb_BitMap->Planes[0], 
@@ -357,6 +358,7 @@ static void video_do_fps (BYTE *buffer, int yoffset) {
     	//*p-- = 0;
     	
         x = (eclocks_per_second * 10 + (x >> 1)) / x;
+        x *= (1 + arg[OPTION_FRAMESKIP]);
         fps -= fps / 16; fps += x / 16; // Kalman filter
         x = fps;
     
@@ -377,6 +379,7 @@ static ULONG bytesperrow;
 int blitter_soft_prerender() {
 	// lock bitmap and allow direct rendering
 	bufferpixels = NULL;
+	
 	lockHandle = LockBitMapTags(
 		_hardwareScreenBuffer[_currentScreenBuffer]->sb_BitMap,
 		//_hardwareScreen->ViewPort.RasInfo->BitMap,
@@ -392,10 +395,11 @@ void blitter_soft_update() {
 	UnLockBitMap( lockHandle );
 	lockHandle = NULL;
 
-	if(arg[OPTION_VSYNC]) WaitTOF();
-
- 	ChangeScreenBuffer(_hardwareScreen, _hardwareScreenBuffer[_currentScreenBuffer]);
- 	_currentScreenBuffer ^= 1;	
+ 	if(ChangeScreenBuffer(_hardwareScreen, _hardwareScreenBuffer[_currentScreenBuffer])) {
+	 	_currentScreenBuffer ^= 1;
+		if(arg[OPTION_VSYNC]) WaitTOF();
+	}
+	 	
 }
 
 void blitter_soft_close() { 

@@ -27,6 +27,7 @@
 //#include "SDL.h"
 #include "sound.h"
 #include "emu.h"
+#include "conf.h"
 #include "memory.h"
 #include "profiler.h"
 //#include "gnutil.h"
@@ -224,9 +225,13 @@ uint8_t *_lLBuffer, *_rLBuffer;
 
 __saveds __interrupt static int AudioServer(ChanT num asm("a1")) {
 	extern void YM2610Update_Amiga(void);
+	extern  ULONG timerSound;
+	ULONG timerTemp;
 	void *temp;
 	
 	if(!paused) {
+		if(arg[OPTION_BENCH]) timerTemp = getMilliseconds();
+		
 		// kick off next chunk	
 		AudioAttachSamples(0, rHBuffer, BUFFER_LEN);
 		AudioAttachSamples(1, lLBuffer, BUFFER_LEN);	
@@ -241,6 +246,7 @@ __saveds __interrupt static int AudioServer(ChanT num asm("a1")) {
 		temp = lHBuffer; lHBuffer = _lHBuffer; _lHBuffer = temp;
 		temp = lLBuffer; lLBuffer = _lLBuffer; _lLBuffer = temp;
 
+		if(arg[OPTION_BENCH]) timerSound += (ULONG)((int)getMilliseconds() - (int)timerTemp);
 	}
 	custom->intreq = 1 << INTB_AUD0;
 	return 0;
