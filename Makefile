@@ -37,7 +37,7 @@ GAS      := as
 
 all: $(OBJECTS)
 	$(CC) -s $(OBJECTS) -o $(APPNAME) $(LIBPATH) $(LIBS)
-	#shrinkler $(APPNAME) $(APPNAME)
+	shrinkler $(APPNAME) $(APPNAME)
 
 %.o: ../src/%.c
 	$(CC) -c $< -o $@

@@ -2400,25 +2400,55 @@ void cpu_op_1392b(t_ipc *ipc) /* MULS */ {
   PC+= 4;
 }
 
+static inline uint8_t abcd(uint8_t xx, uint8_t yy, int setflags) {
+	uint8_t ss = xx + yy + XFLAG;
+	// Normal carry computation for addition:
+	// (sm & dm) | (~rm & dm) | (sm & ~rm)
+	uint8_t bc = ((xx & yy) | (~ss & xx) | (~ss & yy)) & 0x88;
+	// Compute if we have a decimal carry in both nibbles.
+	// Note: 0x66 is type "int", so the entire computation is
+	// promoted to "int", which is why the "& 0x110" works.
+	uint8_t dc = (((ss + 0x66) ^ ss) & 0x110) >> 1;
+	uint8_t corf = (bc | dc) - ((bc | dc) >> 2);
+	uint8_t rr = ss + corf;
+	if(setflags) {
+		// Compute flags.
+		// Carry has two parts: normal carry for addition
+		// (computed above) OR'ed with normal carry for
+		// addition with corf:
+		// (sm & dm) | (~rm & dm) | (sm & ~rm)
+		// but simplified because sm = 0 and ~sm = 1 for corf:
+		XFLAG = CFLAG = (bc | (ss & ~rr)) >> 7;
+		// Normal overflow computation for addition with corf:
+		// (sm & dm & ~rm) | (~sm & ~dm & rm)
+		// but simplified because sm = 0 and ~sm = 1 for corf:
+		VFLAG = (~ss & rr) >> 7;
+		// Accumulate zero flag:
+		ZFLAG = ZFLAG & (rr == 0);
+		NFLAG = rr >> 7;
+	}
+	return rr;
+}
+
 void cpu_op_1393a(t_ipc *ipc) /* ABCD */ {
   /* mask f1f8, bits c100, mnemonic 35, priv 0, endblk 0, imm_notzero 0, used 5     set -1, size 1, stype 0, dtype 0, sbitpos 0, dbitpos 9, immvalue 0 */
   int srcreg = (ipc->opcode >> 0) & 7;
   uint8 srcdata = DATAREG(srcreg);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint8 dstdata = DATAREG(dstreg);
-  uint8 outdata;
+  uint8 outdata = abcd(srcdata, dstdata, 0);
 
-  uint8 outdata_low = (dstdata & 0xF) + (srcdata & 0xF) + XFLAG;
-  uint16 precalc = dstdata + srcdata + XFLAG;
-  uint16 outdata_tmp = precalc;
-
-  if (outdata_low > 0x09)
-    outdata_tmp+= 0x06;
-  if (outdata_tmp > 0x90) {
-    outdata_tmp+= 0x60;
-  } else {
-  }
-  outdata = outdata_tmp;
+//   uint8 outdata_low = (dstdata & 0xF) + (srcdata & 0xF) + XFLAG;
+//   uint16 precalc = dstdata + srcdata + XFLAG;
+//   uint16 outdata_tmp = precalc;
+// 
+//   if (outdata_low > 0x09)
+//     outdata_tmp+= 0x06;
+//   if (outdata_tmp > 0x90) {
+//     outdata_tmp+= 0x60;
+//   } else {
+//   }
+//   outdata = outdata_tmp;
   DATAREG(dstreg) = (DATAREG(dstreg) & ~0xff) | outdata;
   PC+= 2;
 }
@@ -2429,26 +2459,26 @@ void cpu_op_1393b(t_ipc *ipc) /* ABCD */ {
   uint8 srcdata = DATAREG(srcreg);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint8 dstdata = DATAREG(dstreg);
-  uint8 outdata;
+  uint8 outdata = abcd(srcdata, dstdata, 1);
 
-  uint8 outdata_low = (dstdata & 0xF) + (srcdata & 0xF) + XFLAG;
-  uint16 precalc = dstdata + srcdata + XFLAG;
-  uint16 outdata_tmp = precalc;
-
-  if (outdata_low > 0x09)
-    outdata_tmp+= 0x06;
-  if (outdata_tmp > 0x90) {
-    outdata_tmp+= 0x60;
-    CFLAG = 1;
-    XFLAG = 1;
-  } else {
-    CFLAG = 0;
-    XFLAG = 0;
-  }
-  outdata = outdata_tmp;
-  if (outdata) ZFLAG = 0;
-  NFLAG = ((sint8)outdata) < 0;
-  VFLAG = ((precalc & 1<<7) == 0) && (outdata & 1<<7);
+//   uint8 outdata_low = (dstdata & 0xF) + (srcdata & 0xF) + XFLAG;
+//   uint16 precalc = dstdata + srcdata + XFLAG;
+//   uint16 outdata_tmp = precalc;
+// 
+//   if (outdata_low > 0x09)
+//     outdata_tmp+= 0x06;
+//   if (outdata_tmp > 0x90) {
+//     outdata_tmp+= 0x60;
+//     CFLAG = 1;
+//     XFLAG = 1;
+//   } else {
+//     CFLAG = 0;
+//     XFLAG = 0;
+//   }
+//   outdata = outdata_tmp;
+//   if (outdata) ZFLAG = 0;
+//   NFLAG = ((sint8)outdata) < 0;
+//   VFLAG = ((precalc & 1<<7) == 0) && (outdata & 1<<7);
   DATAREG(dstreg) = (DATAREG(dstreg) & ~0xff) | outdata;
   PC+= 2;
 }
@@ -2461,19 +2491,19 @@ void cpu_op_1394a(t_ipc *ipc) /* ABCD */ {
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32 dstaddr = (ADDRREG(dstreg)-= (dstreg == 7 ? 2 : 1));
   uint8 dstdata = fetchbyte(dstaddr);
-  uint8 outdata;
+  uint8 outdata = abcd(srcdata, dstdata, 0);
 
-  uint8 outdata_low = (dstdata & 0xF) + (srcdata & 0xF) + XFLAG;
-  uint16 precalc = dstdata + srcdata + XFLAG;
-  uint16 outdata_tmp = precalc;
-
-  if (outdata_low > 0x09)
-    outdata_tmp+= 0x06;
-  if (outdata_tmp > 0x90) {
-    outdata_tmp+= 0x60;
-  } else {
-  }
-  outdata = outdata_tmp;
+//   uint8 outdata_low = (dstdata & 0xF) + (srcdata & 0xF) + XFLAG;
+//   uint16 precalc = dstdata + srcdata + XFLAG;
+//   uint16 outdata_tmp = precalc;
+// 
+//   if (outdata_low > 0x09)
+//     outdata_tmp+= 0x06;
+//   if (outdata_tmp > 0x90) {
+//     outdata_tmp+= 0x60;
+//   } else {
+//   }
+//   outdata = outdata_tmp;
   storebyte(dstaddr, outdata);
   PC+= 2;
 }
@@ -2486,26 +2516,26 @@ void cpu_op_1394b(t_ipc *ipc) /* ABCD */ {
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32 dstaddr = (ADDRREG(dstreg)-= (dstreg == 7 ? 2 : 1));
   uint8 dstdata = fetchbyte(dstaddr);
-  uint8 outdata;
+  uint8 outdata = abcd(srcdata, dstdata, 1);
 
-  uint8 outdata_low = (dstdata & 0xF) + (srcdata & 0xF) + XFLAG;
-  uint16 precalc = dstdata + srcdata + XFLAG;
-  uint16 outdata_tmp = precalc;
-
-  if (outdata_low > 0x09)
-    outdata_tmp+= 0x06;
-  if (outdata_tmp > 0x90) {
-    outdata_tmp+= 0x60;
-    CFLAG = 1;
-    XFLAG = 1;
-  } else {
-    CFLAG = 0;
-    XFLAG = 0;
-  }
-  outdata = outdata_tmp;
-  if (outdata) ZFLAG = 0;
-  NFLAG = ((sint8)outdata) < 0;
-  VFLAG = ((precalc & 1<<7) == 0) && (outdata & 1<<7);
+//   uint8 outdata_low = (dstdata & 0xF) + (srcdata & 0xF) + XFLAG;
+//   uint16 precalc = dstdata + srcdata + XFLAG;
+//   uint16 outdata_tmp = precalc;
+// 
+//   if (outdata_low > 0x09)
+//     outdata_tmp+= 0x06;
+//   if (outdata_tmp > 0x90) {
+//     outdata_tmp+= 0x60;
+//     CFLAG = 1;
+//     XFLAG = 1;
+//   } else {
+//     CFLAG = 0;
+//     XFLAG = 0;
+//   }
+//   outdata = outdata_tmp;
+//   if (outdata) ZFLAG = 0;
+//   NFLAG = ((sint8)outdata) < 0;
+//   VFLAG = ((precalc & 1<<7) == 0) && (outdata & 1<<7);
   storebyte(dstaddr, outdata);
   PC+= 2;
 }
