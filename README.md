@@ -22,7 +22,7 @@ To-do:
 - reimplement user-configurable key mapping
 - rewrite sprite rendering to use M68K and (optional) AMMX code; note that AMMX is specifically useful for helping with the CLUT mapping and scaling, but simply rewriting in assembly is a huge jump in performance
 - rewrite the audio engine with M68K and (optional) AMMX code
-- reimplement save states using LZ4W
+- reimplement save states using ~~LZ4W~~ raw blobs (LZ4W is too slow at compressing)
 
 Maybe To-do:
 - replace M68K with Musashi (presently does not work) and maybe eventually assembly code. It should be possible to contain the entire assembler state in the address registers and leave all the data registers as well as MOST of the flags to be used directly. For example, the instruction move.l d0,d1 would be emulated exactly as move.l d0,d1.
