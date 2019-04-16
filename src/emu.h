@@ -58,7 +58,7 @@ typedef enum COUNTRY {
     CTY_MAX
 } COUNTRY;
 
-static __inline__ short SwapSHORT(short val)
+static inline short SwapSHORT(short val)
 {
 	__asm __volatile
 	(

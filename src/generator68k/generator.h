@@ -5,7 +5,13 @@
 #ifndef _GENERATOR_H_
 #define _GENERATOR_H_
 
-#include "../emu.h"
+//#include "../emu.h"
+typedef unsigned char	Uint8;
+typedef signed char	Sint8;
+typedef unsigned short	Uint16;
+typedef signed short	Sint16;
+typedef unsigned int	Uint32;
+typedef signed int	Sint32;
 
 /* VERSION set by autoconf */
 /* PACKAGE set by autoconf */
