@@ -8,14 +8,11 @@
 
 #include "cpu68k-inline.h"
 
-void cpu_op_a000a(t_ipc *ipc) /* LINE10 */ {
-  /* mask f000, bits a000, mnemonic 74, priv 0, endblk -1, imm_notzero 0, used -1     set 0, size 0, stype 19, dtype 20, sbitpos 0, dbitpos 0, immvalue 0 */
+#include "longtab68k.h"
 
-  reg68k_internal_vector(V_LINE10, PC);
-}
-
-void cpu_op_a000b(t_ipc *ipc) /* LINE10 */ {
-  /* mask f000, bits a000, mnemonic 74, priv 0, endblk -1, imm_notzero 0, used -1     set 0, size 0, stype 19, dtype 20, sbitpos 0, dbitpos 0, immvalue 0 */
+void cpu_op_a000a(void) /* LINE10 */ {
+  /* mask f000, bits a000, mnemonic 74, priv 0, endblk -1, imm_notzero 0, used -1
+     set 0, size 0, stype 19, dtype 20, sbitpos 0, dbitpos 0, immvalue 0 */
 
   reg68k_internal_vector(V_LINE10, PC);
 }

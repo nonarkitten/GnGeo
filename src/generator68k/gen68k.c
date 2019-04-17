@@ -11,36 +11,35 @@
 
 /* forward references */
 
-static void generate(FILE *output, int topnibble);
+static int generate(FILE *output, int topnibble);
 static int generate_opcode(FILE *output, int topnibble, int opcode, int flags);
-
 static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags);
-static void generate_ea(char **buffer, t_iib *iib, t_type type, int update, int opcode);
-static void generate_eaval(char **buffer, t_iib *iib, t_type type);
-static void generate_eastore(char **buffer, t_iib *iib, t_type type);
-static void generate_outdata(char **buffer, t_iib *iib, const char *init);
-static void generate_cc(char **buffer, t_iib *iib);
-static void generate_stdflag_n(char **buffer, t_iib *iib);
-static void generate_stdflag_z(char **buffer, t_iib *iib);
-static void generate_clrflag_v(char **buffer, t_iib *iib);
-static void generate_clrflag_c(char **buffer, t_iib *iib);
-static void generate_clrflag_n(char **buffer, t_iib *iib);
-static void generate_setflag_z(char **buffer, t_iib *iib);
-static void generate_subflag_c(char **buffer, t_iib *iib);
-static void generate_subflag_cx(char **buffer, t_iib *iib);
-static void generate_subxflag_cx(char **buffer, t_iib *iib);
-static void generate_subflag_v(char **buffer, t_iib *iib);
-static void generate_cmpaflag_c(char **buffer, t_iib *iib);
-static void generate_cmpaflag_v(char **buffer, t_iib *iib);
-static void generate_addflag_cx(char **buffer, t_iib *iib);
-static void generate_addflag_v(char **buffer, t_iib *iib);
-static void generate_addxflag_cx(char **buffer, t_iib *iib);
-static void generate_stdxflag_z(char **buffer, t_iib *iib);
-static void generate_negflag_cx(char **buffer, t_iib *iib);
-static void generate_negflag_v(char **buffer, t_iib *iib);
-static void generate_negxflag_cx(char **buffer, t_iib *iib);
-static void generate_negxflag_v(char **buffer, t_iib *iib);
-static void generate_bits(char **buffer, t_iib *iib);
+static int generate_ea(char **buffer, t_iib *iib, t_type type, int update, int opcode);
+static int generate_eaval(char **buffer, t_iib *iib, t_type type, uint16 opcode);
+static int generate_eastore(char **buffer, t_iib *iib, t_type type);
+static int generate_outdata(char **buffer, t_iib *iib, const char *init);
+static int generate_cc(char **buffer, t_iib *iib);
+static int generate_stdflag_n(char **buffer, t_iib *iib);
+static int generate_stdflag_z(char **buffer, t_iib *iib);
+static int generate_clrflag_v(char **buffer, t_iib *iib);
+static int generate_clrflag_c(char **buffer, t_iib *iib);
+static int generate_clrflag_n(char **buffer, t_iib *iib);
+static int generate_setflag_z(char **buffer, t_iib *iib);
+static int generate_subflag_c(char **buffer, t_iib *iib);
+static int generate_subflag_cx(char **buffer, t_iib *iib);
+static int generate_subxflag_cx(char **buffer, t_iib *iib);
+static int generate_subflag_v(char **buffer, t_iib *iib);
+static int generate_cmpaflag_c(char **buffer, t_iib *iib);
+static int generate_cmpaflag_v(char **buffer, t_iib *iib);
+static int generate_addflag_cx(char **buffer, t_iib *iib);
+static int generate_addflag_v(char **buffer, t_iib *iib);
+static int generate_addxflag_cx(char **buffer, t_iib *iib);
+static int generate_stdxflag_z(char **buffer, t_iib *iib);
+static int generate_negflag_cx(char **buffer, t_iib *iib);
+static int generate_negflag_v(char **buffer, t_iib *iib);
+static int generate_negxflag_cx(char **buffer, t_iib *iib);
+static int generate_negxflag_v(char **buffer, t_iib *iib);
+static int generate_bits(char **buffer, t_iib *iib);
 
 /* defines */
 
@@ -51,6 +50,9 @@ static void generate_bits(char **buffer, t_iib *iib);
 
 static char *function_table[65536 * 2] = { 0 };
 static t_iib *line10, *line15;
+
+const char *src_dst_reg[2] = { "srcreg", "dstreg" };
+const char *src_dst_addr[2] = { "srcaddr", "dstaddr" };
 
 /* program entry routine */
 
@@ -87,6 +89,7 @@ int main(int argc, char *argv[]) {
 		/* output header */
 		fprintf(output, HEADER, i);
 		fprintf(output, "#include \"cpu68k-inline.h\"\n\n");
+		fprintf(output, "#include \"longtab68k.h\"\n\n");
 
 		generate(output, i);
 
@@ -98,16 +101,35 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (output = fopen("longtab68k.c", "w")) {
-		fprintf(output, "void (*cpu68k_funcindex[])(t_ipc *ipc) = {");
-		for (i = 0; i < 65536; i += 4) {
-			fprintf(output, "\n  ");
-			for (int x = 0; x < 4; x++) {
-				if (function_table[i + x] == NULL)
-					function_table[i + x] = "cpu_op_4afc";
-				fprintf(output, "%s, ", function_table[i + x]);
+		fprintf(output, "void (*cpu68k_funcindex[])(void) = {");
+		for (i = 0; i < 65536 * 2; i += 8) {
+			fprintf(output, "\n  /* %04X */ ", (i / 2));
+			for (int x = 0; x < 8; x++) {
+				const char *fn = function_table[i + x];
+				if (!fn) fn = "cpu_op_xxxxx";
+
+				fprintf(output, "%s, ", fn);
 			}
 		}
 		fprintf(output, "\n};\n\n");
+		fclose(output);
+	}
+
+	if (output = fopen("longtab68k.h", "w")) {
+		fprintf(output, "#ifndef __LONGTABLE68K_H_\n");
+		fprintf(output, "#define __LONGTABLE68K_H_\n");
+
+		static const char *last_fn = NULL;
+		//fprintf(output, "void (*cpu68k_funcindex[])(void) = {");
+		for (i = 0; i < 65536 * 2; i++) {
+			const char *fn = function_table[i];
+			if (fn && fn != last_fn) {
+				fprintf(output, "void %s(void);\n", fn);
+				last_fn = fn;
+			}
+		}
+		fprintf(output, "#endif // __LONGTABLE68K_H_\n");
+		fprintf(output, "\n");
 		fclose(output);
 	}
 
@@ -118,56 +140,94 @@ int main(int argc, char *argv[]) {
 	return (0);
 }
 
-void generate(FILE *output, int topnibble) {
+int generate(FILE *output, int topnibble) {
 	int i, flags, pcinc;
-	unsigned short opcode;
+	unsigned short opcode, nibbles;
 	char *name;
 	t_iib *iib;
 
-	if(topnibble == 0xA) {
-		for(opcode = 0xA000; opcode <= 0xAFFF; opcode++) {
-			function_table[opcode * 2 + 0] = "cpu_op_axxxa";
-			function_table[opcode * 2 + 1] = "cpu_op_axxxb";
+	if (topnibble == 0xA) {
+		for (nibbles = 0x000; nibbles <= 0xFFF; nibbles++) {
+			opcode = 0xA000 | nibbles;
+			function_table[opcode * 2 + 0] = "cpu_op_axxxx";
+			function_table[opcode * 2 + 1] = "cpu_op_axxxx";
 		}
-		generate_opcode(output, line10, 0xA000, 0);
-		generate_opcode(output, line10, 0xA000, 1);
+		if (!generate_opcode(output, line10, 0xA000, 0)) return 0;
 
-	} else if(topnibble == 0xF) {
-		for(opcode = 0xF000; opcode <= 0xFFFF; opcode++) {
-			function_table[opcode * 2 + 0] = "cpu_op_fxxxa";
-			function_table[opcode * 2 + 1] = "cpu_op_fxxxb";
+	} else if (topnibble == 0xF) {
+		for (nibbles = 0x000; nibbles <= 0xFFF; nibbles++) {
+			opcode = 0xF000 | nibbles;
+			function_table[opcode * 2 + 0] = "cpu_op_fxxxx";
+			function_table[opcode * 2 + 1] = "cpu_op_fxxxx";
 		}
-		generate_opcode(output, line15, 0xF000, 0);
-		generate_opcode(output, line15, 0xF000, 1);
+		if (!generate_opcode(output, line15, 0xF000, 0)) return 0;
+
+	} else if (topnibble == 0x6) {
+		for (nibbles = 0x000; nibbles <= 0xF00; nibbles += 0x100) {
+			opcode = (topnibble << 12) | nibbles;
+
+			for (i = 0; i < iibs_num; i++) {
+				if ((iibs[i].mask & opcode) == iibs[i].bits) break;
+			}
+			if (!generate_opcode(output, &iibs[i], opcode | 0, 0)) return 0;
+			if (!generate_opcode(output, &iibs[i], opcode | 1, 0)) return 0;
+
+			name = calloc(1, 32);
+			sprintf(name, "cpu_op_%04xa", opcode);
+			function_table[opcode * 2 + 0] = name;
+			function_table[opcode * 2 + 1] = name;
+
+			name = calloc(1, 32);
+			sprintf(name, "cpu_op_%04xa", opcode | 1);
+			for (int x = 1; x < 256; x++) {
+				function_table[(opcode + x) * 2 + 0] = name;
+				function_table[(opcode + x) * 2 + 1] = name;
+			}
+		}
+
+	} else if (topnibble == 0x7) {
+		for (nibbles = 0x000; nibbles <= 0xF00; nibbles += 0x200) {
+			opcode = (topnibble << 12) | nibbles;
+
+			for (i = 0; i < iibs_num; i++) {
+				if ((iibs[i].mask & opcode) == iibs[i].bits) break;
+			}
+			if (!generate_opcode(output, &iibs[i], opcode, 0)) return 0;
+			if (!generate_opcode(output, &iibs[i], opcode, 1)) return 0;
+
+			name = calloc(1, 32);
+			sprintf(name, "cpu_op_%04xa", opcode);
+			for (int x = 0; x < 256; x++) {
+				function_table[(opcode + x) * 2 + 0] = name;
+			}
+
+			name = calloc(1, 32);
+			sprintf(name, "cpu_op_%04xb", opcode);
+			for (int x = 0; x < 256; x++) {
+				function_table[(opcode + x) * 2 + 0] = name;
+			}
+		}
 
 	} else {
-		
-		for(opcode = 0x000; opcode <= 0xFFF; opcode++) {
-			int illegal = 0;
-			opcode |= topnibble << 12;
+		for (nibbles = 0x000; nibbles <= 0xFFF; nibbles++) {
+			opcode = (topnibble << 12) | nibbles;
 			for (i = 0; i < iibs_num; i++) {
-				if((iibs[i].mask & opcode) == iibs[i].bits) break;
+				if ((iibs[i].mask & opcode) == iibs[i].bits) break;
 			}
 
-			if(i == iibs_num) illegal = 1;
-			if(!illegal) illegal = generate_opcode(output, &iibs[i], opcode, 0);
-			if(!illegal) illegal = generate_opcode(output, &iibs[i], opcode, 1);
+			if (i == iibs_num) continue;
+			if (!generate_opcode(output, &iibs[i], opcode, 0)) continue;
+			if (iibs[i].flags.set && !generate_opcode(output, &iibs[i], opcode, 1)) continue;
 
-				// illegal operation
-			if(illegal) {
-				function_table[opcode * 2 + 0] = "cpu_op_4afca";
-				function_table[opcode * 2 + 1] = "cpu_op_4afcb";
+			name = calloc(1, 32);
+			sprintf(name, "cpu_op_%04xa", opcode);
+			function_table[opcode * 2 + 0] = name;
 
-			} else {
-				name = calloc(1, 32);
-				sprintf(name, "cpu_op_%04xa", opcode);
-				function_table[opcode * 2 + 0] = name;
-
+			if (iibs[i].flags.set) {
 				name = calloc(1, 32);
 				sprintf(name, "cpu_op_%04xb", opcode);
-				function_table[opcode * 2 + 0] = name;
 			}
-			opcode &= 0xFFF;
+			function_table[opcode * 2 + 1] = name;
 		}
 	}
 }
@@ -178,22 +238,21 @@ static int generate_opcode(FILE *output, t_iib *iib, int opcode, int flags) {
 
 	if(generate_opcode_buf(&buffer, iib, opcode, flags)) {
 		fputs(function_buffer, output);
-		return 0;
+		return 1;
 
 	} else {
-		return 1;
+		return 0;
 	}
-
 }
 
 static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags) {
 	int i, pcinc;
 
-	*buffer += sprintf(*buffer, "void cpu_op_%04x%c(t_ipc *ipc) /* %s */ {\n",
+	*buffer += sprintf(*buffer, "void cpu_op_%04x%c(void) /* %s */ {\n",
 			opcode, flags ? 'b' : 'a', mnemonic_table[iib->mnemonic].name);
 	*buffer += sprintf(*buffer, "  /* mask %04x, bits %04x, mnemonic %d, priv %d, ",
 			iib->mask, iib->bits, iib->mnemonic, iib->flags.priv);
-	*buffer += sprintf(*buffer, "endblk %d, imm_notzero %d, used %d",
+	*buffer += sprintf(*buffer, "endblk %d, imm_notzero %d, used %d\n",
 			iib->flags.endblk, iib->flags.imm_notzero, iib->flags.used);
 	*buffer += sprintf(*buffer, "     set %d, size %d, stype %d, dtype %d, sbitpos %d, ",
 			iib->flags.set, iib->size, iib->stype, iib->dtype, iib->sbitpos);
@@ -208,11 +267,11 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 	case i_AND:
 	case i_EOR:
 
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
-		generate_ea(buffer, iib, tp_dst, 1, opcode);
-		generate_eaval(buffer, iib, tp_dst);
-		generate_outdata(buffer, iib, "dstdata");
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
+		if(!generate_ea(buffer, iib, tp_dst, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_dst, opcode)) return 0;
+		if(!generate_outdata(buffer, iib, "dstdata")) return 0;
 		OUT("\n");
 		switch (iib->mnemonic) {
 		case i_OR:
@@ -228,25 +287,25 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 			OUT("ERROR\n");
 			break;
 		}
-		generate_eastore(buffer, iib, tp_dst);
+		if(!generate_eastore(buffer, iib, tp_dst)) return 0;
 		if (flags)
 			OUT("\n");
 		if (flags && iib->flags.set & IIB_FLAG_N)
-			generate_stdflag_n(buffer, iib);
+			if(!generate_stdflag_n(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_Z)
-			generate_stdflag_z(buffer, iib);
+			if(!generate_stdflag_z(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_V)
-			generate_clrflag_v(buffer, iib);
+			if(!generate_clrflag_v(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_C)
-			generate_clrflag_c(buffer, iib);
+			if(!generate_clrflag_c(buffer, iib)) return 0;
 		break;
 
 	case i_ORSR:
 	case i_ANDSR:
 	case i_EORSR:
 
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
 		OUT("  unsigned int sr = regs.sr.sr_struct.s;\n");
 		OUT("\n");
 		if (iib->size == sz_word) {
@@ -281,46 +340,46 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 
 	case i_SUB:
 
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
-		generate_ea(buffer, iib, tp_dst, 1, opcode);
-		generate_eaval(buffer, iib, tp_dst);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
+		if(!generate_ea(buffer, iib, tp_dst, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_dst, opcode)) return 0;
 		switch (iib->size) {
 		case sz_byte:
-			generate_outdata(buffer, iib, "(sint8)dstdata - (sint8)srcdata");
+			if(!generate_outdata(buffer, iib, "(sint8)dstdata - (sint8)srcdata")) return 0;
 			break;
 		case sz_word:
-			generate_outdata(buffer, iib, "(sint16)dstdata - (sint16)srcdata");
+			if(!generate_outdata(buffer, iib, "(sint16)dstdata - (sint16)srcdata")) return 0;
 			break;
 		case sz_long:
-			generate_outdata(buffer, iib, "(sint32)dstdata - (sint32)srcdata");
+			if(!generate_outdata(buffer, iib, "(sint32)dstdata - (sint32)srcdata")) return 0;
 			break;
 		default:
 			OUT("ERROR size\n");
 			break;
 		}
 		OUT("\n");
-		generate_eastore(buffer, iib, tp_dst);
+		if(!generate_eastore(buffer, iib, tp_dst)) return 0;
 		if (flags)
 			OUT("\n");
 		if (flags && iib->flags.set & IIB_FLAG_V)
-			generate_subflag_v(buffer, iib);
+			if(!generate_subflag_v(buffer, iib)) return 0;
 		if (flags && ((iib->flags.set & IIB_FLAG_C) ||
 			(iib->flags.set & IIB_FLAG_X)))
-			generate_subflag_cx(buffer, iib);
+			if(!generate_subflag_cx(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_N)
-			generate_stdflag_n(buffer, iib);
+			if(!generate_stdflag_n(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_Z)
-			generate_stdflag_z(buffer, iib);
+			if(!generate_stdflag_z(buffer, iib)) return 0;
 		break;
 
 	case i_SUBA:
 
 		if (iib->dtype != dt_Areg)
 			OUT("Error\n");
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
-		generate_ea(buffer, iib, tp_dst, 1, opcode);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
+		if(!generate_ea(buffer, iib, tp_dst, 1, opcode)) return 0;
 		OUT("  uint32 dstdata = ADDRREG(dstreg);\n");
 		switch (iib->size) {
 		case sz_byte:
@@ -342,10 +401,10 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 
 	case i_SUBX:
 
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
-		generate_ea(buffer, iib, tp_dst, 1, opcode);
-		generate_eaval(buffer, iib, tp_dst);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
+		if(!generate_ea(buffer, iib, tp_dst, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_dst, opcode)) return 0;
 		switch (iib->size) {
 		case sz_byte:
 			generate_outdata(buffer, iib, "(sint8)dstdata - (sint8)srcdata "
@@ -364,62 +423,62 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 			break;
 		}
 		OUT("\n");
-		generate_eastore(buffer, iib, tp_dst);
+		if(!generate_eastore(buffer, iib, tp_dst)) return 0;
 		if (flags)
 			OUT("\n");
 		if (flags && iib->flags.set & IIB_FLAG_V)
-			generate_subflag_v(buffer, iib);
+			if(!generate_subflag_v(buffer, iib)) return 0;
 		if (flags && ((iib->flags.set & IIB_FLAG_C) ||
 			(iib->flags.set & IIB_FLAG_X)))
-			generate_subxflag_cx(buffer, iib);
+			if(!generate_subxflag_cx(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_N)
-			generate_stdflag_n(buffer, iib);
+			if(!generate_stdflag_n(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_Z)
-			generate_stdxflag_z(buffer, iib);
+			if(!generate_stdxflag_z(buffer, iib)) return 0;
 		break;
 
 	case i_ADD:
 
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
-		generate_ea(buffer, iib, tp_dst, 1, opcode);
-		generate_eaval(buffer, iib, tp_dst);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
+		if(!generate_ea(buffer, iib, tp_dst, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_dst, opcode)) return 0;
 		switch (iib->size) {
 		case sz_byte:
-			generate_outdata(buffer, iib, "(sint8)dstdata + (sint8)srcdata");
+			if(!generate_outdata(buffer, iib, "(sint8)dstdata + (sint8)srcdata")) return 0;
 			break;
 		case sz_word:
-			generate_outdata(buffer, iib, "(sint16)dstdata + (sint16)srcdata");
+			if(!generate_outdata(buffer, iib, "(sint16)dstdata + (sint16)srcdata")) return 0;
 			break;
 		case sz_long:
-			generate_outdata(buffer, iib, "(sint32)dstdata + (sint32)srcdata");
+			if(!generate_outdata(buffer, iib, "(sint32)dstdata + (sint32)srcdata")) return 0;
 			break;
 		default:
 			OUT("ERROR size\n");
 			break;
 		}
 		OUT("\n");
-		generate_eastore(buffer, iib, tp_dst);
+		if(!generate_eastore(buffer, iib, tp_dst)) return 0;
 		if (flags)
 			OUT("\n");
 		if (flags && iib->flags.set & IIB_FLAG_V)
-			generate_addflag_v(buffer, iib);
+			if(!generate_addflag_v(buffer, iib)) return 0;
 		if (flags && ((iib->flags.set & IIB_FLAG_C) ||
 			(iib->flags.set & IIB_FLAG_X)))
-			generate_addflag_cx(buffer, iib);
+			if(!generate_addflag_cx(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_N)
-			generate_stdflag_n(buffer, iib);
+			if(!generate_stdflag_n(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_Z)
-			generate_stdflag_z(buffer, iib);
+			if(!generate_stdflag_z(buffer, iib)) return 0;
 		break;
 
 	case i_ADDA:
 
 		if (iib->dtype != dt_Areg)
 			OUT("Error\n");
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
-		generate_ea(buffer, iib, tp_dst, 1, opcode);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
+		if(!generate_ea(buffer, iib, tp_dst, 1, opcode)) return 0;
 		OUT("  uint32 dstdata = ADDRREG(dstreg);\n");
 		switch (iib->size) {
 		case sz_byte:
@@ -441,10 +500,10 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 
 	case i_ADDX:
 
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
-		generate_ea(buffer, iib, tp_dst, 1, opcode);
-		generate_eaval(buffer, iib, tp_dst);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
+		if(!generate_ea(buffer, iib, tp_dst, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_dst, opcode)) return 0;
 		switch (iib->size) {
 		case sz_byte:
 			generate_outdata(buffer, iib, "(sint8)dstdata + (sint8)srcdata "
@@ -463,26 +522,26 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 			break;
 		}
 		OUT("\n");
-		generate_eastore(buffer, iib, tp_dst);
+		if(!generate_eastore(buffer, iib, tp_dst)) return 0;
 		if (flags)
 			OUT("\n");
 		if (flags && iib->flags.set & IIB_FLAG_V)
-			generate_addflag_v(buffer, iib);
+			if(!generate_addflag_v(buffer, iib)) return 0;
 		if (flags && ((iib->flags.set & IIB_FLAG_C) ||
 			(iib->flags.set & IIB_FLAG_X)))
-			generate_addxflag_cx(buffer, iib);
+			if(!generate_addxflag_cx(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_N)
-			generate_stdflag_n(buffer, iib);
+			if(!generate_stdflag_n(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_Z)
-			generate_stdxflag_z(buffer, iib);
+			if(!generate_stdxflag_z(buffer, iib)) return 0;
 		break;
 
 	case i_MULU:
 
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
-		generate_ea(buffer, iib, tp_dst, 1, opcode);
-		generate_eaval(buffer, iib, tp_dst);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
+		if(!generate_ea(buffer, iib, tp_dst, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_dst, opcode)) return 0;
 		OUT("\n");
 		OUT("  uint32 outdata = (uint32)srcdata * (uint32)dstdata;\n");
 		if (iib->dtype != dt_Dreg)
@@ -493,19 +552,19 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 		if (flags && iib->flags.set & IIB_FLAG_N)
 			OUT("  NFLAG = ((sint32)outdata) < 0;\n");
 		if (flags && iib->flags.set & IIB_FLAG_Z)
-			generate_stdflag_z(buffer, iib);
+			if(!generate_stdflag_z(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_V)
-			generate_clrflag_v(buffer, iib);
+			if(!generate_clrflag_v(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_C)
-			generate_clrflag_c(buffer, iib);
+			if(!generate_clrflag_c(buffer, iib)) return 0;
 		break;
 
 	case i_MULS:
 
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
-		generate_ea(buffer, iib, tp_dst, 1, opcode);
-		generate_eaval(buffer, iib, tp_dst);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
+		if(!generate_ea(buffer, iib, tp_dst, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_dst, opcode)) return 0;
 		OUT("\n");
 		OUT("  uint32 outdata = (sint32)(sint16)srcdata * "
 			"(sint32)(sint16)dstdata;\n");
@@ -517,28 +576,28 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 		if (flags && iib->flags.set & IIB_FLAG_N)
 			OUT("  NFLAG = ((sint32)outdata) < 0;\n");
 		if (flags && iib->flags.set & IIB_FLAG_Z)
-			generate_stdflag_z(buffer, iib);
+			if(!generate_stdflag_z(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_V)
-			generate_clrflag_v(buffer, iib);
+			if(!generate_clrflag_v(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_C)
-			generate_clrflag_c(buffer, iib);
+			if(!generate_clrflag_c(buffer, iib)) return 0;
 		break;
 
 	case i_CMP:
 
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
-		generate_ea(buffer, iib, tp_dst, 1, opcode);
-		generate_eaval(buffer, iib, tp_dst);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
+		if(!generate_ea(buffer, iib, tp_dst, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_dst, opcode)) return 0;
 		switch (iib->size) {
 		case sz_byte:
-			generate_outdata(buffer, iib, "(sint8)dstdata - (sint8)srcdata");
+			if(!generate_outdata(buffer, iib, "(sint8)dstdata - (sint8)srcdata")) return 0;
 			break;
 		case sz_word:
-			generate_outdata(buffer, iib, "(sint16)dstdata - (sint16)srcdata");
+			if(!generate_outdata(buffer, iib, "(sint16)dstdata - (sint16)srcdata")) return 0;
 			break;
 		case sz_long:
-			generate_outdata(buffer, iib, "(sint32)dstdata - (sint32)srcdata");
+			if(!generate_outdata(buffer, iib, "(sint32)dstdata - (sint32)srcdata")) return 0;
 			break;
 		default:
 			OUT("ERROR size\n");
@@ -547,35 +606,35 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 		if (flags)
 			OUT("\n");
 		if (flags && iib->flags.set & IIB_FLAG_V)
-			generate_subflag_v(buffer, iib);
+			if(!generate_subflag_v(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_C)
-			generate_subflag_c(buffer, iib);
+			if(!generate_subflag_c(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_N)
-			generate_stdflag_n(buffer, iib);
+			if(!generate_stdflag_n(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_Z)
-			generate_stdflag_z(buffer, iib);
+			if(!generate_stdflag_z(buffer, iib)) return 0;
 		break;
 
 	case i_CMPA:
 
 		if (iib->dtype != dt_Areg || iib->size != sz_word)
 			OUT("Error\n");
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
 		iib->size = sz_long;
-		generate_ea(buffer, iib, tp_dst, 1, opcode);
-		generate_eaval(buffer, iib, tp_dst);
+		if(!generate_ea(buffer, iib, tp_dst, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_dst, opcode)) return 0;
 		OUT("  uint32 outdata = (sint32)dstdata - (sint32)(sint16)srcdata;\n");
 		if (flags)
 			OUT("\n");
 		if (flags && iib->flags.set & IIB_FLAG_V)
-			generate_cmpaflag_v(buffer, iib);
+			if(!generate_cmpaflag_v(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_C)
-			generate_cmpaflag_c(buffer, iib);
+			if(!generate_cmpaflag_c(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_N)
-			generate_stdflag_n(buffer, iib);
+			if(!generate_stdflag_n(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_Z)
-			generate_stdflag_z(buffer, iib);
+			if(!generate_stdflag_z(buffer, iib)) return 0;
 		iib->size = sz_word;
 		break;
 
@@ -584,10 +643,10 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 	case i_BCLR:
 	case i_BSET:
 
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
-		generate_ea(buffer, iib, tp_dst, 1, opcode);
-		generate_eaval(buffer, iib, tp_dst);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
+		if(!generate_ea(buffer, iib, tp_dst, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_dst, opcode)) return 0;
 		switch (iib->size) {
 		case sz_byte:
 			OUT("  uint32 bitpos = 1<<(srcdata & 7);");
@@ -604,16 +663,16 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 		case i_BTST:
 			break;
 		case i_BCHG:
-			generate_outdata(buffer, iib, "dstdata ^ bitpos");
-			generate_eastore(buffer, iib, tp_dst);
+			if(!generate_outdata(buffer, iib, "dstdata ^ bitpos")) return 0;
+			if(!generate_eastore(buffer, iib, tp_dst)) return 0;
 			break;
 		case i_BCLR:
-			generate_outdata(buffer, iib, "dstdata & ~bitpos");
-			generate_eastore(buffer, iib, tp_dst);
+			if(!generate_outdata(buffer, iib, "dstdata & ~bitpos")) return 0;
+			if(!generate_eastore(buffer, iib, tp_dst)) return 0;
 			break;
 		case i_BSET:
-			generate_outdata(buffer, iib, "dstdata | bitpos");
-			generate_eastore(buffer, iib, tp_dst);
+			if(!generate_outdata(buffer, iib, "dstdata | bitpos")) return 0;
+			if(!generate_eastore(buffer, iib, tp_dst)) return 0;
 			break;
 		default:
 			OUT("ERROR\n");
@@ -625,29 +684,29 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 
 	case i_MOVE:
 
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
-		generate_ea(buffer, iib, tp_dst, 1, opcode);
-		generate_outdata(buffer, iib, "srcdata");
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
+		if(!generate_ea(buffer, iib, tp_dst, 1, opcode)) return 0;
+		if(!generate_outdata(buffer, iib, "srcdata")) return 0;
 		OUT("\n");
-		generate_eastore(buffer, iib, tp_dst);
+		if(!generate_eastore(buffer, iib, tp_dst)) return 0;
 		if (flags)
 			OUT("\n");
 		if (flags && iib->flags.set & IIB_FLAG_V)
-			generate_clrflag_v(buffer, iib);
+			if(!generate_clrflag_v(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_C)
-			generate_clrflag_c(buffer, iib);
+			if(!generate_clrflag_c(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_N)
-			generate_stdflag_n(buffer, iib);
+			if(!generate_stdflag_n(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_Z)
-			generate_stdflag_z(buffer, iib);
+			if(!generate_stdflag_z(buffer, iib)) return 0;
 		break;
 
 	case i_MOVEA:
 
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
-		generate_ea(buffer, iib, tp_dst, 1, opcode);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
+		if(!generate_ea(buffer, iib, tp_dst, 1, opcode)) return 0;
 		if (iib->dtype != dt_Areg || iib->size != sz_word)
 			OUT("Error\n");
 		OUT("\n");
@@ -656,9 +715,9 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 
 	case i_MOVEPMR:
 
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_ea(buffer, iib, tp_dst, 1, opcode);
-		generate_eaval(buffer, iib, tp_dst);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_ea(buffer, iib, tp_dst, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_dst, opcode)) return 0;
 		switch (iib->size) {
 		case sz_word:
 			generate_outdata(buffer, iib, "(fetchbyte(srcaddr) << 8) + "
@@ -675,14 +734,14 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 			break;
 		}
 		OUT("\n");
-		generate_eastore(buffer, iib, tp_dst);
+		if(!generate_eastore(buffer, iib, tp_dst)) return 0;
 		break;
 
 	case i_MOVEPRM:
 
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
-		generate_ea(buffer, iib, tp_dst, 1, opcode);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
+		if(!generate_ea(buffer, iib, tp_dst, 1, opcode)) return 0;
 		OUT("\n");
 		switch (iib->size) {
 		case sz_word:
@@ -703,17 +762,17 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 
 	case i_MOVEFSR:
 
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_outdata(buffer, iib, NULL);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_outdata(buffer, iib, NULL)) return 0;
 		OUT("\n");
 		OUT("  outdata = SR;\n");
-		generate_eastore(buffer, iib, tp_src);
+		if(!generate_eastore(buffer, iib, tp_src)) return 0;
 		break;
 
 	case i_MOVETSR:
 
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
 		OUT("  unsigned int sr = regs.sr.sr_struct.s;\n");
 		OUT("\n");
 		switch (iib->size) {
@@ -739,9 +798,9 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 
 	case i_MOVEMRM:
 
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
-		generate_ea(buffer, iib, tp_dst, 0, opcode);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
+		if(!generate_ea(buffer, iib, tp_dst, 0, opcode)) return 0;
 		if (iib->dtype == dt_Adec) {
 			OUT("  uint8 datamask = (srcdata & 0xFF00) >> 8;\n");
 			OUT("  uint8 addrmask = srcdata & 0xFF;");
@@ -819,9 +878,9 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 
 	case i_MOVEMMR:
 
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
-		generate_ea(buffer, iib, tp_dst, 0, opcode);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
+		if(!generate_ea(buffer, iib, tp_dst, 0, opcode)) return 0;
 		OUT("  uint8 addrmask = (srcdata & 0xFF00) >> 8;\n");
 		OUT("  uint8 datamask = srcdata & 0xFF;");
 		OUT("\n");
@@ -866,8 +925,8 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 
 	case i_MOVETUSP:
 
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
 		OUT("\n");
 		OUT("  if (!SFLAG)\n");
 		*buffer += sprintf(*buffer, "    reg68k_internal_vector(V_PRIVILEGE, PC+%d);\n",
@@ -878,7 +937,7 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 
 	case i_MOVEFUSP:
 
-		generate_ea(buffer, iib, tp_src, 1, opcode);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
 		OUT("  uint32 outdata;\n");
 		OUT("\n");
 		OUT("  if (!SFLAG)\n");
@@ -886,118 +945,118 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 			(iib->wordlen) * 2);
 		OUT("\n");
 		OUT("  outdata = SP;\n");
-		generate_eastore(buffer, iib, tp_src);
+		if(!generate_eastore(buffer, iib, tp_src)) return 0;
 		break;
 
 	case i_NEG:
 
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
 		switch (iib->size) {
 		case sz_byte:
-			generate_outdata(buffer, iib, "0 - (sint8)srcdata");
+			if(!generate_outdata(buffer, iib, "0 - (sint8)srcdata")) return 0;
 			break;
 		case sz_word:
-			generate_outdata(buffer, iib, "0 - (sint16)srcdata");
+			if(!generate_outdata(buffer, iib, "0 - (sint16)srcdata")) return 0;
 			break;
 		case sz_long:
-			generate_outdata(buffer, iib, "0 - (sint32)srcdata");
+			if(!generate_outdata(buffer, iib, "0 - (sint32)srcdata")) return 0;
 			break;
 		default:
 			OUT("ERROR size\n");
 			break;
 		}
 		OUT("\n");
-		generate_eastore(buffer, iib, tp_src);
+		if(!generate_eastore(buffer, iib, tp_src)) return 0;
 		if (flags)
 			OUT("\n");
 		if (flags && iib->flags.set & IIB_FLAG_V)
-			generate_negflag_v(buffer, iib);
+			if(!generate_negflag_v(buffer, iib)) return 0;
 		if (flags && ((iib->flags.set & IIB_FLAG_C) ||
 			(iib->flags.set & IIB_FLAG_X)))
-			generate_negflag_cx(buffer, iib);
+			if(!generate_negflag_cx(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_N)
-			generate_stdflag_n(buffer, iib);
+			if(!generate_stdflag_n(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_Z)
-			generate_stdflag_z(buffer, iib);
+			if(!generate_stdflag_z(buffer, iib)) return 0;
 		break;
 
 	case i_NEGX:
 
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
 		switch (iib->size) {
 		case sz_byte:
-			generate_outdata(buffer, iib, "0 - (sint8)srcdata - XFLAG");
+			if(!generate_outdata(buffer, iib, "0 - (sint8)srcdata - XFLAG")) return 0;
 			break;
 		case sz_word:
-			generate_outdata(buffer, iib, "0 - (sint16)srcdata - XFLAG");
+			if(!generate_outdata(buffer, iib, "0 - (sint16)srcdata - XFLAG")) return 0;
 			break;
 		case sz_long:
-			generate_outdata(buffer, iib, "0 - (sint32)srcdata - XFLAG");
+			if(!generate_outdata(buffer, iib, "0 - (sint32)srcdata - XFLAG")) return 0;
 			break;
 		default:
 			OUT("ERROR size\n");
 			break;
 		}
 		OUT("\n");
-		generate_eastore(buffer, iib, tp_src);
+		if(!generate_eastore(buffer, iib, tp_src)) return 0;
 		if (flags)
 			OUT("\n");
 		if (flags && iib->flags.set & IIB_FLAG_V)
-			generate_negxflag_v(buffer, iib);
+			if(!generate_negxflag_v(buffer, iib)) return 0;
 		if (flags && ((iib->flags.set & IIB_FLAG_C) ||
 			(iib->flags.set & IIB_FLAG_X)))
-			generate_negxflag_cx(buffer, iib);
+			if(!generate_negxflag_cx(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_N)
-			generate_stdflag_n(buffer, iib);
+			if(!generate_stdflag_n(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_Z)
-			generate_stdxflag_z(buffer, iib);
+			if(!generate_stdxflag_z(buffer, iib)) return 0;
 		break;
 
 	case i_CLR:
 
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src); /* read before write */
-		generate_outdata(buffer, iib, "0");
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0; /* read before write */
+		if(!generate_outdata(buffer, iib, "0")) return 0;
 		OUT("\n");
-		generate_eastore(buffer, iib, tp_src);
+		if(!generate_eastore(buffer, iib, tp_src)) return 0;
 		if (flags)
 			OUT("\n");
 		if (flags && iib->flags.set & IIB_FLAG_V)
-			generate_clrflag_v(buffer, iib);
+			if(!generate_clrflag_v(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_C)
-			generate_clrflag_c(buffer, iib);
+			if(!generate_clrflag_c(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_N)
-			generate_clrflag_n(buffer, iib);
+			if(!generate_clrflag_n(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_Z)
-			generate_setflag_z(buffer, iib);
+			if(!generate_setflag_z(buffer, iib)) return 0;
 		break;
 
 	case i_NOT:
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src); /* read before write */
-		generate_outdata(buffer, iib, "~srcdata");
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0; /* read before write */
+		if(!generate_outdata(buffer, iib, "~srcdata")) return 0;
 		OUT("\n");
-		generate_eastore(buffer, iib, tp_src);
+		if(!generate_eastore(buffer, iib, tp_src)) return 0;
 		if (flags)
 			OUT("\n");
 		if (flags && iib->flags.set & IIB_FLAG_V)
-			generate_clrflag_v(buffer, iib);
+			if(!generate_clrflag_v(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_C)
-			generate_clrflag_c(buffer, iib);
+			if(!generate_clrflag_c(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_N)
-			generate_stdflag_n(buffer, iib);
+			if(!generate_stdflag_n(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_Z)
-			generate_stdflag_z(buffer, iib);
+			if(!generate_stdflag_z(buffer, iib)) return 0;
 		break;
 
 	case i_ABCD:
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
-		generate_ea(buffer, iib, tp_dst, 1, opcode);
-		generate_eaval(buffer, iib, tp_dst);
-		generate_outdata(buffer, iib, NULL);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
+		if(!generate_ea(buffer, iib, tp_dst, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_dst, opcode)) return 0;
+		if(!generate_outdata(buffer, iib, NULL)) return 0;
 		OUT("\n");
 		OUT("  uint8 outdata_low = (dstdata & 0xF) + (srcdata & 0xF) ");
 		OUT("+ XFLAG;\n");
@@ -1022,18 +1081,18 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 		if (flags && iib->flags.set & IIB_FLAG_Z)
 			OUT("  if (outdata) ZFLAG = 0;\n");
 		if (flags && iib->flags.set & IIB_FLAG_N)
-			generate_stdflag_n(buffer, iib);
+			if(!generate_stdflag_n(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_V)
 			OUT("  VFLAG = ((precalc & 1<<7) == 0) && (outdata & 1<<7);\n");
-		generate_eastore(buffer, iib, tp_dst);
+		if(!generate_eastore(buffer, iib, tp_dst)) return 0;
 		break;
 
 	case i_SBCD:
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
-		generate_ea(buffer, iib, tp_dst, 1, opcode);
-		generate_eaval(buffer, iib, tp_dst);
-		generate_outdata(buffer, iib, NULL);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
+		if(!generate_ea(buffer, iib, tp_dst, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_dst, opcode)) return 0;
+		if(!generate_outdata(buffer, iib, NULL)) return 0;
 		OUT("\n");
 		OUT("  sint8 outdata_low = (dstdata & 0xF) - (srcdata & 0xF) ");
 		OUT("- XFLAG;\n");
@@ -1058,16 +1117,16 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 		if (flags && iib->flags.set & IIB_FLAG_Z)
 			OUT("  if (outdata) ZFLAG = 0;\n");
 		if (flags && iib->flags.set & IIB_FLAG_N)
-			generate_stdflag_n(buffer, iib);
+			if(!generate_stdflag_n(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_V)
 			OUT("  VFLAG = (precalc & 1<<7) && ((outdata & 1<<7) == 0);\n");
-		generate_eastore(buffer, iib, tp_dst);
+		if(!generate_eastore(buffer, iib, tp_dst)) return 0;
 		break;
 
 	case i_NBCD:
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
-		generate_outdata(buffer, iib, NULL);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
+		if(!generate_outdata(buffer, iib, NULL)) return 0;
 		OUT("\n");
 		OUT("  sint8 outdata_low = - (srcdata & 0xF) - XFLAG;\n");
 		OUT("  sint16 precalc = - srcdata - XFLAG;\n");
@@ -1091,78 +1150,78 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 		if (flags && iib->flags.set & IIB_FLAG_Z)
 			OUT("  if (outdata) ZFLAG = 0;\n");
 		if (flags && iib->flags.set & IIB_FLAG_N)
-			generate_stdflag_n(buffer, iib);
+			if(!generate_stdflag_n(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_V)
 			OUT("  VFLAG = (precalc & 1<<7) && ((outdata & 1<<7) == 0);\n");
-		generate_eastore(buffer, iib, tp_src);
+		if(!generate_eastore(buffer, iib, tp_src)) return 0;
 		break;
 
 	case i_SWAP:
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
-		generate_outdata(buffer, iib, "(srcdata>>16) | (srcdata<<16)");
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
+		if(!generate_outdata(buffer, iib, "(srcdata>>16) | (srcdata<<16)")) return 0;
 		OUT("\n");
-		generate_eastore(buffer, iib, tp_src);
+		if(!generate_eastore(buffer, iib, tp_src)) return 0;
 		if (flags)
 			OUT("\n");
 		if (flags && iib->flags.set & IIB_FLAG_V)
-			generate_clrflag_v(buffer, iib);
+			if(!generate_clrflag_v(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_C)
-			generate_clrflag_c(buffer, iib);
+			if(!generate_clrflag_c(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_N)
-			generate_stdflag_n(buffer, iib);
+			if(!generate_stdflag_n(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_Z)
-			generate_stdflag_z(buffer, iib);
+			if(!generate_stdflag_z(buffer, iib)) return 0;
 		break;
 
 	case i_PEA:
-		generate_ea(buffer, iib, tp_src, 1, opcode);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
 		OUT("\n");
 		OUT("  ADDRREG(7)-= 4;\n");
 		OUT("  storelong(ADDRREG(7), srcaddr);\n");
 		break;
 
 	case i_LEA:
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_ea(buffer, iib, tp_dst, 1, opcode);
-		generate_outdata(buffer, iib, "srcaddr");
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_ea(buffer, iib, tp_dst, 1, opcode)) return 0;
+		if(!generate_outdata(buffer, iib, "srcaddr")) return 0;
 		OUT("\n");
-		generate_eastore(buffer, iib, tp_dst);
+		if(!generate_eastore(buffer, iib, tp_dst)) return 0;
 		break;
 
 	case i_EXT:
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
 		OUT("\n");
 		switch (iib->size) {
 		case sz_word:
-			generate_outdata(buffer, iib, "(sint16)(sint8)(srcdata)");
+			if(!generate_outdata(buffer, iib, "(sint16)(sint8)(srcdata)")) return 0;
 			break;
 		case sz_long:
-			generate_outdata(buffer, iib, "(sint32)(sint16)(srcdata)");
+			if(!generate_outdata(buffer, iib, "(sint32)(sint16)(srcdata)")) return 0;
 			break;
 		default:
 			*buffer += sprintf(*buffer, "ERROR size\n");
 			break;
 		}
-		generate_eastore(buffer, iib, tp_src);
+		if(!generate_eastore(buffer, iib, tp_src)) return 0;
 		if (flags)
 			OUT("\n");
 		if (flags && iib->flags.set & IIB_FLAG_V)
-			generate_clrflag_v(buffer, iib);
+			if(!generate_clrflag_v(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_C)
-			generate_clrflag_c(buffer, iib);
+			if(!generate_clrflag_c(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_N)
-			generate_stdflag_n(buffer, iib);
+			if(!generate_stdflag_n(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_Z)
-			generate_stdflag_z(buffer, iib);
+			if(!generate_stdflag_z(buffer, iib)) return 0;
 		break;
 
 	case i_EXG:
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
-		generate_ea(buffer, iib, tp_dst, 1, opcode);
-		generate_eaval(buffer, iib, tp_dst);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
+		if(!generate_ea(buffer, iib, tp_dst, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_dst, opcode)) return 0;
 		OUT("\n");
 		switch (iib->dtype) {
 		case dt_Dreg:
@@ -1189,35 +1248,35 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 		break;
 
 	case i_TST:
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
-		generate_outdata(buffer, iib, "srcdata");
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
+		if(!generate_outdata(buffer, iib, "srcdata")) return 0;
 		if (flags)
 			OUT("\n");
 		if (flags && iib->flags.set & IIB_FLAG_V)
-			generate_clrflag_v(buffer, iib);
+			if(!generate_clrflag_v(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_C)
-			generate_clrflag_c(buffer, iib);
+			if(!generate_clrflag_c(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_N)
-			generate_stdflag_n(buffer, iib);
+			if(!generate_stdflag_n(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_Z)
-			generate_stdflag_z(buffer, iib);
+			if(!generate_stdflag_z(buffer, iib)) return 0;
 		break;
 
 	case i_TAS:
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
-		generate_outdata(buffer, iib, "srcdata");
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
+		if(!generate_outdata(buffer, iib, "srcdata")) return 0;
 		if (flags)
 			OUT("\n");
 		if (flags && iib->flags.set & IIB_FLAG_V)
-			generate_clrflag_v(buffer, iib);
+			if(!generate_clrflag_v(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_C)
-			generate_clrflag_c(buffer, iib);
+			if(!generate_clrflag_c(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_N)
-			generate_stdflag_n(buffer, iib);
+			if(!generate_stdflag_n(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_Z)
-			generate_stdflag_z(buffer, iib);
+			if(!generate_stdflag_z(buffer, iib)) return 0;
 #ifndef BROKEN_TAS
 		switch (iib->size) {
 		case sz_byte:
@@ -1233,15 +1292,15 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 			OUT("ERROR size\n");
 			break;
 		}
-		generate_eastore(buffer, iib, tp_src);
+		if(!generate_eastore(buffer, iib, tp_src)) return 0;
 #endif
 		break;
 
 	case i_CHK:
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
-		generate_ea(buffer, iib, tp_dst, 1, opcode);
-		generate_eaval(buffer, iib, tp_dst);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
+		if(!generate_ea(buffer, iib, tp_dst, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_dst, opcode)) return 0;
 		*buffer += sprintf(*buffer, "\n");
 		if (iib->size != sz_word)
 			OUT("ERROR size\n");
@@ -1266,8 +1325,8 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 		break;
 
 	case i_TRAP:
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
 		OUT("\n");
 		*buffer += sprintf(*buffer, "  reg68k_internal_vector(V_TRAP+srcdata, PC+%d);\n",
 			(iib->wordlen) * 2);
@@ -1284,8 +1343,8 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 		break;
 
 	case i_STOP:
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
 		OUT("\n");
 		OUT("  if (regs.stop)\n");
 		OUT("    return;\n");
@@ -1301,10 +1360,10 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 		break;
 
 	case i_LINK:
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
-		generate_ea(buffer, iib, tp_dst, 1, opcode);
-		generate_eaval(buffer, iib, tp_dst);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
+		if(!generate_ea(buffer, iib, tp_dst, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_dst, opcode)) return 0;
 		if (iib->stype != dt_ImmW)
 			OUT("ERROR stype\n");
 		OUT("\n");
@@ -1315,8 +1374,8 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 		break;
 
 	case i_UNLK:
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
 		OUT("\n");
 		OUT("  ADDRREG(srcreg) = fetchlong(srcdata);\n");
 		OUT("  ADDRREG(7) = srcdata+4;\n");
@@ -1351,7 +1410,7 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 		break;
 
 	case i_JSR:
-		generate_ea(buffer, iib, tp_src, 1, opcode);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
 		OUT("\n");
 		OUT("  ADDRREG(7)-= 4;\n");
 		*buffer += sprintf(*buffer, "  storelong(ADDRREG(7), PC+%d);\n", (iib->wordlen) * 2);
@@ -1360,33 +1419,32 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 		break;
 
 	case i_JMP:
-		generate_ea(buffer, iib, tp_src, 1, opcode);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
 		OUT("\n");
 		OUT("  PC = srcaddr;\n");
 		pcinc = 0;
 		break;
 
 	case i_Scc:
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_cc(buffer, iib);
-		generate_outdata(buffer, iib, "cc ? (uint8)(-1) : 0");
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_cc(buffer, iib)) return 0;
+		if(!generate_outdata(buffer, iib, "cc ? (uint8)(-1) : 0")) return 0;
 		OUT("\n");
-		generate_eastore(buffer, iib, tp_src);
+		if(!generate_eastore(buffer, iib, tp_src)) return 0;
 		break;
 
 	case i_SF:
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_outdata(buffer, iib, "0");
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_outdata(buffer, iib, "0")) return 0;
 		OUT("\n");
-		generate_eastore(buffer, iib, tp_src);
+		if(!generate_eastore(buffer, iib, tp_src)) return 0;
 		break;
 
 	case i_DBcc:
-		/* special case where ipc holds the already PC-relative value */
-		*buffer += sprintf(*buffer, "  uint32 srcdata = ipc->src;\n");
-		generate_ea(buffer, iib, tp_dst, 1, opcode);
-		generate_eaval(buffer, iib, tp_dst);
-		generate_cc(buffer, iib);
+		*buffer += sprintf(*buffer, "  uint32 srcdata = (sint16)fetchword(PC);");
+		if(!generate_ea(buffer, iib, tp_dst, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_dst, opcode)) return 0;
+		if(!generate_cc(buffer, iib)) return 0;
 		*buffer += sprintf(*buffer, "\n");
 		if (iib->size != sz_word) {
 			OUT("ERROR size\n");
@@ -1405,10 +1463,9 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 		break;
 
 	case i_DBRA:
-		/* special case where ipc holds the already PC-relative value */
-		*buffer += sprintf(*buffer, "  uint32 srcdata = ipc->src;\n");
-		generate_ea(buffer, iib, tp_dst, 1, opcode);
-		generate_eaval(buffer, iib, tp_dst);
+		*buffer += sprintf(*buffer, "  uint32 srcdata = (sint16)fetchword(PC);");
+		if(!generate_ea(buffer, iib, tp_dst, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_dst, opcode)) return 0;
 		OUT("\n");
 		if (iib->size != sz_word) {
 			OUT("ERROR size\n");
@@ -1424,9 +1481,8 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 		break;
 
 	case i_Bcc:
-		/* special case where ipc holds the already PC-relative value */
-		OUT("  uint32 srcdata = ipc->src;\n");
-		generate_cc(buffer, iib);
+		OUT("  uint32 srcdata = (sint8)(OPCODE & 0xFF);\n");
+		if(!generate_cc(buffer, iib)) return 0;
 		OUT("\n");
 		OUT("  if (cc)\n");
 		OUT("    PC = srcdata;\n");
@@ -1436,8 +1492,7 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 		break;
 
 	case i_BSR:
-		/* special case where ipc holds the already PC-relative value */
-		OUT("  uint32 srcdata = ipc->src;\n");
+		OUT("  uint32 srcdata = (sint8)(OPCODE & 0xFF);\n");
 		OUT("\n");
 		OUT("  ADDRREG(7)-= 4;\n");
 		*buffer += sprintf(*buffer, "  storelong(ADDRREG(7), PC+%d);\n", (iib->wordlen) * 2);
@@ -1450,9 +1505,9 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 		source and destination! */
 		if (iib->dtype != dt_Dreg)
 			OUT("ERROR dtype\n");
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src); /* 16bit EA */
-		generate_ea(buffer, iib, tp_dst, 1, opcode); /* 32bit Dn */
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0; /* 16bit EA */
+		if(!generate_ea(buffer, iib, tp_dst, 1, opcode)) return 0; /* 32bit Dn */
 		OUT("  uint32 dstdata = DATAREG(dstreg);\n");
 		OUT("  uint32 quotient;\n");
 		OUT("\n");
@@ -1489,9 +1544,9 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 		source and destination! */
 		if (iib->dtype != dt_Dreg)
 			OUT("ERROR dtype\n");
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src); /* 16bit EA */
-		generate_ea(buffer, iib, tp_dst, 1, opcode); /* 32bit Dn */
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0; /* 16bit EA */
+		if(!generate_ea(buffer, iib, tp_dst, 1, opcode)) return 0; /* 32bit Dn */
 		OUT("  sint32 dstdata = DATAREG(dstreg);\n");
 		OUT("  sint32 quotient;\n");
 		OUT("  sint16 remainder;\n");
@@ -1536,11 +1591,11 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 		break;
 
 	case i_ASR:
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
-		generate_ea(buffer, iib, tp_dst, 1, opcode);
-		generate_eaval(buffer, iib, tp_dst);
-		generate_bits(buffer, iib);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
+		if(!generate_ea(buffer, iib, tp_dst, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_dst, opcode)) return 0;
+		if(!generate_bits(buffer, iib)) return 0;
 		OUT("  uint8 count = srcdata & 63;\n");
 		switch (iib->size) {
 		case sz_byte:
@@ -1560,7 +1615,7 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 			break;
 		}
 		OUT("\n");
-		generate_eastore(buffer, iib, tp_dst);
+		if(!generate_eastore(buffer, iib, tp_dst)) return 0;
 		if (flags) {
 			OUT("\n");
 			OUT("  if (!srcdata)\n");
@@ -1578,25 +1633,25 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 				OUT("    XFLAG = dstdata>>(count-1) & 1;\n");
 			OUT("  }\n");
 			if (iib->flags.set & IIB_FLAG_V)
-				generate_clrflag_v(buffer, iib);
+				if(!generate_clrflag_v(buffer, iib)) return 0;
 			if (iib->flags.set & IIB_FLAG_N)
-				generate_stdflag_n(buffer, iib);
+				if(!generate_stdflag_n(buffer, iib)) return 0;
 			if (iib->flags.set & IIB_FLAG_Z)
-				generate_stdflag_z(buffer, iib);
+				if(!generate_stdflag_z(buffer, iib)) return 0;
 		}
 		break;
 
 	case i_LSR:
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
-		generate_ea(buffer, iib, tp_dst, 1, opcode);
-		generate_eaval(buffer, iib, tp_dst);
-		generate_bits(buffer, iib);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
+		if(!generate_ea(buffer, iib, tp_dst, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_dst, opcode)) return 0;
+		if(!generate_bits(buffer, iib)) return 0;
 		OUT("  uint8 count = srcdata & 63;\n");
 		generate_outdata(buffer, iib,
 							"dstdata >> (count > (bits-1) ? (bits-1) : count)");
 		OUT("\n");
-		generate_eastore(buffer, iib, tp_dst);
+		if(!generate_eastore(buffer, iib, tp_dst)) return 0;
 		if (flags) {
 			OUT("\n");
 			OUT("  if (!count)\n");
@@ -1614,25 +1669,25 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 				OUT("    XFLAG = dstdata>>(count-1) & 1;\n");
 			OUT("  }\n");
 			if (iib->flags.set & IIB_FLAG_V)
-				generate_clrflag_v(buffer, iib);
+				if(!generate_clrflag_v(buffer, iib)) return 0;
 			if (iib->flags.set & IIB_FLAG_N)
-				generate_stdflag_n(buffer, iib);
+				if(!generate_stdflag_n(buffer, iib)) return 0;
 			if (iib->flags.set & IIB_FLAG_Z)
-				generate_stdflag_z(buffer, iib);
+				if(!generate_stdflag_z(buffer, iib)) return 0;
 		}
 		break;
 
 	case i_ASL:
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
-		generate_ea(buffer, iib, tp_dst, 1, opcode);
-		generate_eaval(buffer, iib, tp_dst);
-		generate_bits(buffer, iib);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
+		if(!generate_ea(buffer, iib, tp_dst, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_dst, opcode)) return 0;
+		if(!generate_bits(buffer, iib)) return 0;
 		OUT("  uint8 count = srcdata & 63;\n");
 		generate_outdata(buffer, iib,
 							"count >= bits ? 0 : (dstdata << count)");
 		OUT("\n");
-		generate_eastore(buffer, iib, tp_dst);
+		if(!generate_eastore(buffer, iib, tp_dst)) return 0;
 		if (flags) {
 			OUT("\n");
 			OUT("  if (!count)\n");
@@ -1672,23 +1727,23 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 				OUT("  }\n");
 			}
 			if (iib->flags.set & IIB_FLAG_N)
-				generate_stdflag_n(buffer, iib);
+				if(!generate_stdflag_n(buffer, iib)) return 0;
 			if (iib->flags.set & IIB_FLAG_Z)
-				generate_stdflag_z(buffer, iib);
+				if(!generate_stdflag_z(buffer, iib)) return 0;
 		}
 		break;
 
 	case i_LSL:
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
-		generate_ea(buffer, iib, tp_dst, 1, opcode);
-		generate_eaval(buffer, iib, tp_dst);
-		generate_bits(buffer, iib);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
+		if(!generate_ea(buffer, iib, tp_dst, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_dst, opcode)) return 0;
+		if(!generate_bits(buffer, iib)) return 0;
 		OUT("  uint8 count = srcdata & 63;\n");
 		generate_outdata(buffer, iib,
 							"count >= bits ? 0 : (dstdata << count)");
 		OUT("\n");
-		generate_eastore(buffer, iib, tp_dst);
+		if(!generate_eastore(buffer, iib, tp_dst)) return 0;
 		if (flags) {
 			OUT("\n");
 			OUT("  if (!count)\n");
@@ -1706,11 +1761,11 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 				OUT("    XFLAG = dstdata>>(bits-count) & 1;\n");
 			OUT("  }\n");
 			if (iib->flags.set & IIB_FLAG_V)
-				generate_clrflag_v(buffer, iib);
+				if(!generate_clrflag_v(buffer, iib)) return 0;
 			if (iib->flags.set & IIB_FLAG_N)
-				generate_stdflag_n(buffer, iib);
+				if(!generate_stdflag_n(buffer, iib)) return 0;
 			if (iib->flags.set & IIB_FLAG_Z)
-				generate_stdflag_z(buffer, iib);
+				if(!generate_stdflag_z(buffer, iib)) return 0;
 		}
 		break;
 
@@ -1718,15 +1773,15 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 
 	case i_ROXR:
 	case i_ROXL:
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
-		generate_ea(buffer, iib, tp_dst, 1, opcode);
-		generate_eaval(buffer, iib, tp_dst);
-		generate_bits(buffer, iib);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
+		if(!generate_ea(buffer, iib, tp_dst, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_dst, opcode)) return 0;
+		if(!generate_bits(buffer, iib)) return 0;
 		OUT("  uint8 loop = srcdata & 63;\n");
 		OUT("  uint8 cflag = CFLAG;\n");
 		OUT("  uint8 xflag = XFLAG;\n");
-		generate_outdata(buffer, iib, "dstdata");
+		if(!generate_outdata(buffer, iib, "dstdata")) return 0;
 		OUT("\n");
 		if (iib->mnemonic == i_ROXR) {
 			OUT("  while(loop) {\n");
@@ -1746,7 +1801,7 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 			OUT("    loop--;\n");
 			OUT("  }\n");
 		}
-		generate_eastore(buffer, iib, tp_dst);
+		if(!generate_eastore(buffer, iib, tp_dst)) return 0;
 		if (flags)
 			OUT("\n");
 		if (flags && iib->flags.set & IIB_FLAG_X)
@@ -1754,23 +1809,23 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 		if (flags && iib->flags.set & IIB_FLAG_C)
 			OUT("  CFLAG = xflag;\n");
 		if (flags && iib->flags.set & IIB_FLAG_N)
-			generate_stdflag_n(buffer, iib);
+			if(!generate_stdflag_n(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_Z)
-			generate_stdflag_z(buffer, iib);
+			if(!generate_stdflag_z(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_V)
-			generate_clrflag_v(buffer, iib);
+			if(!generate_clrflag_v(buffer, iib)) return 0;
 		break;
 
 	case i_ROR:
 	case i_ROL:
-		generate_ea(buffer, iib, tp_src, 1, opcode);
-		generate_eaval(buffer, iib, tp_src);
-		generate_ea(buffer, iib, tp_dst, 1, opcode);
-		generate_eaval(buffer, iib, tp_dst);
-		generate_bits(buffer, iib);
+		if(!generate_ea(buffer, iib, tp_src, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_src, opcode)) return 0;
+		if(!generate_ea(buffer, iib, tp_dst, 1, opcode)) return 0;
+		if(!generate_eaval(buffer, iib, tp_dst, opcode)) return 0;
+		if(!generate_bits(buffer, iib)) return 0;
 		OUT("  uint8 loop = srcdata & 63;\n");
 		OUT("  uint8 cflag = 0;\n");
-		generate_outdata(buffer, iib, "dstdata");
+		if(!generate_outdata(buffer, iib, "dstdata")) return 0;
 		OUT("\n");
 		if (iib->mnemonic == i_ROR) {
 			OUT("  while(loop) {\n");
@@ -1789,17 +1844,17 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 			OUT("    loop--;\n");
 			OUT("  }\n");
 		}
-		generate_eastore(buffer, iib, tp_dst);
+		if(!generate_eastore(buffer, iib, tp_dst)) return 0;
 		if (flags)
 			OUT("\n");
 		if (flags && iib->flags.set & IIB_FLAG_C)
 			OUT("  CFLAG = cflag;\n");
 		if (flags && iib->flags.set & IIB_FLAG_N)
-			generate_stdflag_n(buffer, iib);
+			if(!generate_stdflag_n(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_Z)
-			generate_stdflag_z(buffer, iib);
+			if(!generate_stdflag_z(buffer, iib)) return 0;
 		if (flags && iib->flags.set & IIB_FLAG_V)
-			generate_clrflag_v(buffer, iib);
+			if(!generate_clrflag_v(buffer, iib)) return 0;
 		break;
 
 	case i_LINE10:
@@ -1820,13 +1875,14 @@ static int generate_opcode_buf(char **buffer, t_iib *iib, int opcode, int flags)
 		break;
 
 	} /* switch */
-	if (pcinc) {
+	if (pcinc > 0) pcinc -= 2;
+	if (pcinc > 0) {
 		*buffer += sprintf(*buffer, "  PC+= %d;\n", (iib->wordlen) * 2);
 	}
 	OUT("}\n\n");
 }
 
-static void generate_ea(char **buffer, t_iib *iib, t_type type, int update, int opcode) {
+static int generate_ea(char **buffer, t_iib *iib, t_type type, int update, int opcode) {
 	t_datatype datatype = type ? iib->dtype : iib->stype;
 
 	/* generate information about EA to be used in calculations */
@@ -1881,8 +1937,7 @@ static void generate_ea(char **buffer, t_iib *iib, t_type type, int update, int 
 						"ADDRREG(dstreg)-4);\n");
 			break;
 		default:
-			*buffer += sprintf(*buffer, "ERROR size\n");
-			break;
+			return 0;
 		}
 	} else if (datatype == dt_Adec && update) {
 
@@ -1911,8 +1966,7 @@ static void generate_ea(char **buffer, t_iib *iib, t_type type, int update, int 
 				*buffer += sprintf(*buffer, "  uint32 dstaddr = ADDRREG(dstreg)-=4;\n");
 			break;
 		default:
-			*buffer += sprintf(*buffer, "ERROR size\n");
-			break;
+			return 0;
 		}
 	} else {
 
@@ -1933,33 +1987,33 @@ static void generate_ea(char **buffer, t_iib *iib, t_type type, int update, int 
 		case dt_Adis:
 			if (type == tp_src)
 				*buffer += sprintf(*buffer, "  uint32 srcaddr = (sint32)ADDRREG(srcreg) + "
-						"(sint32)(sint16)ipc->src;\n");
+						"(sint32)(sint16)fetchword(PC);\n");
 			else
 				*buffer += sprintf(*buffer, "  uint32 dstaddr = (sint32)ADDRREG(dstreg) + "
-						"(sint32)(sint16)ipc->dst;\n");
+						"(sint32)(sint16)fetchword(PC);\n");
 			break;
 		case dt_Aidx:
 			if (type == tp_src) {
 				*buffer += sprintf(*buffer, "  uint32 srcaddr = (sint32)ADDRREG(srcreg) + "
-						"idxval_src(ipc);\n");
+						"idxval_src(fetchword(PC));\n");
 			} else {
 				*buffer += sprintf(*buffer, "  uint32 dstaddr = (sint32)ADDRREG(dstreg) + "
-						"idxval_dst(ipc);\n");
+						"idxval_dst(fetchword(PC));\n");
 			}
 			break;
 		case dt_AbsW:
 		case dt_AbsL:
 		case dt_Pdis:
 			if (type == tp_src)
-				*buffer += sprintf(*buffer, "  uint32 srcaddr = ipc->src;\n");
+				*buffer += sprintf(*buffer, "  uint32 srcaddr = fetchword(PC);\n");
 			else
-				*buffer += sprintf(*buffer, "  uint32 dstaddr = ipc->dst;\n");
+				*buffer += sprintf(*buffer, "  uint32 dstaddr = fetchword(PC);\n");
 			break;
 		case dt_Pidx:
 			if (type == tp_src) {
-				*buffer += sprintf(*buffer, "  uint32 srcaddr = idxval_src(ipc);\n");
+				*buffer += sprintf(*buffer, "  uint32 srcaddr = idxval_src(fetchword(PC));\n");
 			} else {
-				*buffer += sprintf(*buffer, "  uint32 dstaddr = idxval_dst(ipc);\n");
+				*buffer += sprintf(*buffer, "  uint32 dstaddr = idxval_dst(fetchword(PC));\n");
 			}
 			break;
 		case dt_ImmB:
@@ -1973,13 +2027,13 @@ static void generate_ea(char **buffer, t_iib *iib, t_type type, int update, int 
 			/* no address - it is immediate */
 			break;
 		default:
-			*buffer += sprintf(*buffer, "ERROR\n");
-			break;
+			return 0;
 		}
 	}
+	return 1;
 }
 
-static void generate_eaval(char **buffer, t_iib *iib, t_type type) {
+static int generate_eaval(char **buffer, t_iib *iib, t_type type, uint16 opcode) {
 	t_datatype datatype = type ? iib->dtype : iib->stype;
 
 	/* get value in EA */
@@ -2006,8 +2060,7 @@ static void generate_eaval(char **buffer, t_iib *iib, t_type type) {
 				*buffer += sprintf(*buffer, "  uint32 dstdata = DATAREG(dstreg);\n");
 			break;
 		default:
-			*buffer += sprintf(*buffer, "ERROR size\n");
-			break;
+			return 0;
 		}
 		break;
 	case dt_Areg:
@@ -2031,8 +2084,7 @@ static void generate_eaval(char **buffer, t_iib *iib, t_type type) {
 				*buffer += sprintf(*buffer, "  uint32 dstdata = ADDRREG(dstreg);\n");
 			break;
 		default:
-			*buffer += sprintf(*buffer, "ERROR size\n");
-			break;
+			return 0;
 		}
 		break;
 	case dt_Aind:
@@ -2044,47 +2096,40 @@ static void generate_eaval(char **buffer, t_iib *iib, t_type type) {
 	case dt_AbsL:
 	case dt_Pdis:
 	case dt_Pidx:
+
 		switch (iib->size) {
 		case sz_byte:
-			if (type == tp_src)
-				*buffer += sprintf(*buffer, "  uint8 srcdata = fetchbyte(srcaddr);\n");
-			else
-				*buffer += sprintf(*buffer, "  uint8 dstdata = fetchbyte(dstaddr);\n");
+			*buffer += sprintf(*buffer, "  uint8 srcdata = fetchbyte(%s);\n", src_dst_addr[type]);
 			break;
 		case sz_word:
-			if (type == tp_src)
-				*buffer += sprintf(*buffer, "  uint16 srcdata = fetchword(srcaddr);\n");
-			else
-				*buffer += sprintf(*buffer, "  uint16 dstdata = fetchword(dstaddr);\n");
+			*buffer += sprintf(*buffer, "  uint16 srcdata = fetchword(%s);\n", src_dst_addr[type]);
 			break;
 		case sz_long:
-			if (type == tp_src)
-				*buffer += sprintf(*buffer, "  uint32 srcdata = fetchlong(srcaddr);\n");
-			else
-				*buffer += sprintf(*buffer, "  uint32 dstdata = fetchlong(dstaddr);\n");
+			*buffer += sprintf(*buffer, "  uint32 srcdata = fetchlong(%s);\n", src_dst_addr[type]);
 			break;
 		default:
-			*buffer += sprintf(*buffer, "ERROR size\n");
-			break;
+			return 0;
 		}
 		break;
+
+	// ALL IPC functions need to be handled here instead!!
 	case dt_ImmB:
 		if (type == tp_src)
-			*buffer += sprintf(*buffer, "  uint8 srcdata = ipc->src;\n");
+			*buffer += sprintf(*buffer, "  uint8 srcdata = fetchword(PC);\n");
 		else
-			*buffer += sprintf(*buffer, "  uint8 dstdata = ipc->dst;\n");
+			*buffer += sprintf(*buffer, "  uint8 dstdata = fetchword(PC)\n");
 		break;
 	case dt_ImmW:
 		if (type == tp_src)
-			*buffer += sprintf(*buffer, "  uint16 srcdata = ipc->src;\n");
+			*buffer += sprintf(*buffer, "  uint16 srcdata = fetchword(PC);\n");
 		else
-			*buffer += sprintf(*buffer, "  uint16 dstdata = ipc->dst;\n");
+			*buffer += sprintf(*buffer, "  uint16 dstdata = fetchword(PC);\n");
 		break;
 	case dt_ImmL:
 		if (type == tp_src)
-			*buffer += sprintf(*buffer, "  uint32 srcdata = ipc->src;\n");
+			*buffer += sprintf(*buffer, "  uint32 srcdata = fetchlong(PC);\n");
 		else
-			*buffer += sprintf(*buffer, "  uint32 dstdata = ipc->dst;\n");
+			*buffer += sprintf(*buffer, "  uint32 dstdata = fetchlong(PC);\n");
 		break;
 	case dt_ImmS:
 		if (type == tp_src)
@@ -2093,25 +2138,35 @@ static void generate_eaval(char **buffer, t_iib *iib, t_type type) {
 			*buffer += sprintf(*buffer, "  unsigned int dstdata = %d;\n", iib->immvalue);
 		break;
 	case dt_Imm3:
+		opcode = ((opcode >> 9) & 7) + 1; if(0)
 	case dt_Imm4:
+		opcode &= 0xF;
+		if (type == tp_src)
+			*buffer += sprintf(*buffer, "  const unsigned int srcdata = %d;\n", opcode);
+		else
+			*buffer += sprintf(*buffer, "  const unsigned int dstdata = %d;\n", opcode);
+		break;
+
 	case dt_Imm8:
 		if (type == tp_src)
-			*buffer += sprintf(*buffer, "  unsigned int srcdata = ipc->src;\n");
+			*buffer += sprintf(*buffer, "  unsigned int srcdata = OPCODE & 0xFF;\n");
 		else
-			*buffer += sprintf(*buffer, "  unsigned int dstdata = ipc->dst;\n");
+			*buffer += sprintf(*buffer, "  unsigned int dstdata = OPCODE & 0xFF;\n");
 		break;
+
 	case dt_Imm8s:
 		if (type == tp_src)
-			*buffer += sprintf(*buffer, "  signed int srcdata = ipc->src;\n");
+			*buffer += sprintf(*buffer, "  signed int srcdata = (sint8)(OPCODE & 0xFF);\n");
 		else
-			*buffer += sprintf(*buffer, "  signed int dstdata = ipc->dst;\n");
+			*buffer += sprintf(*buffer, "  signed int dstdata = (sint8)(OPCODE & 0xFF);\n");
 		break;
 	default:
-		*buffer += sprintf(*buffer, "ERROR\n");
+		return 0;
 	}
+	return 1;
 }
 
-static void generate_eastore(char **buffer, t_iib *iib, t_type type) {
+static int generate_eastore(char **buffer, t_iib *iib, t_type type) {
 	/* get value in EA */
 
 	switch (type == tp_dst ? iib->dtype : iib->stype) {
@@ -2140,8 +2195,7 @@ static void generate_eastore(char **buffer, t_iib *iib, t_type type) {
 				*buffer += sprintf(*buffer, "  DATAREG(dstreg) = outdata;\n");
 			break;
 		default:
-			*buffer += sprintf(*buffer, "ERROR size\n");
-			break;
+			return 0;
 		}
 		break;
 	case dt_Areg:
@@ -2169,8 +2223,7 @@ static void generate_eastore(char **buffer, t_iib *iib, t_type type) {
 				*buffer += sprintf(*buffer, "  ADDRREG(dstreg) = outdata;\n");
 			break;
 		default:
-			*buffer += sprintf(*buffer, "ERROR size\n");
-			break;
+			return 0;
 		}
 		break;
 	case dt_Adec:
@@ -2199,7 +2252,7 @@ static void generate_eastore(char **buffer, t_iib *iib, t_type type) {
 			}
 			break;
 		default:
-			*buffer += sprintf(*buffer, "ERROR size\n");
+			return 0;
 		}
 		break;
 	case dt_Aind:
@@ -2230,15 +2283,16 @@ static void generate_eastore(char **buffer, t_iib *iib, t_type type) {
 				*buffer += sprintf(*buffer, "  storelong(dstaddr, outdata);\n");
 			break;
 		default:
-			*buffer += sprintf(*buffer, "ERROR size\n");
+			return 0;
 		}
 		break;
 	default:
-		*buffer += sprintf(*buffer, "ERROR type\n");
+		return 0;
 	}
+	return 1;
 }
 
-static void generate_outdata(char **buffer, t_iib *iib, const char *init) {
+static int generate_outdata(char **buffer, t_iib *iib, const char *init) {
 	switch (iib->size) {
 	case sz_byte:
 		*buffer += sprintf(*buffer, "  uint8 ");
@@ -2250,14 +2304,14 @@ static void generate_outdata(char **buffer, t_iib *iib, const char *init) {
 		*buffer += sprintf(*buffer, "  uint32 ");
 		break;
 	default:
-		*buffer += sprintf(*buffer, "ERROR size\n");
-		break;
+		return 0;
 	}
 	*buffer += sprintf(*buffer, "outdata%s%s;\n", (init && init[0]) ? " = " : "",
 			init ? init : "");
+	return 1;
 }
 
-static void generate_cc(char **buffer, t_iib *iib) {
+static int generate_cc(char **buffer, t_iib *iib) {
 	switch (iib->cc) {
 	case 0: /*  T */
 		*buffer += sprintf(*buffer, "  const uint8 cc = 1;\n");
@@ -2308,12 +2362,12 @@ static void generate_cc(char **buffer, t_iib *iib) {
 		*buffer += sprintf(*buffer, "  uint8 cc = ZFLAG || (NFLAG != VFLAG);\n");
 		break;
 	default:
-		*buffer += sprintf(*buffer, "ERROR cc\n");
-		break;
+		return 0;
 	}
+	return 1;
 }
 
-static void generate_stdflag_n(char **buffer, t_iib *iib) {
+static int generate_stdflag_n(char **buffer, t_iib *iib) {
 	switch (iib->size) {
 	case sz_byte:
 		*buffer += sprintf(*buffer, "  NFLAG = ((sint8)outdata) < 0;\n");
@@ -2325,37 +2379,42 @@ static void generate_stdflag_n(char **buffer, t_iib *iib) {
 		*buffer += sprintf(*buffer, "  NFLAG = ((sint32)outdata) < 0;\n");
 		break;
 	default:
-		*buffer += sprintf(*buffer, "ERROR size\n");
-		break;
+		return 0;
 	}
+	return 1;
 }
 
-static void generate_stdflag_z(char **buffer, t_iib *iib) {
+static int generate_stdflag_z(char **buffer, t_iib *iib) {
 	(void)iib;
 	*buffer += sprintf(*buffer, "  ZFLAG = !outdata;\n");
+	return 1;
 }
 
-static void generate_clrflag_v(char **buffer, t_iib *iib) {
+static int generate_clrflag_v(char **buffer, t_iib *iib) {
 	(void)iib;
 	*buffer += sprintf(*buffer, "  VFLAG = 0;\n");
+	return 1;
 }
 
-static void generate_clrflag_c(char **buffer, t_iib *iib) {
+static int generate_clrflag_c(char **buffer, t_iib *iib) {
 	(void)iib;
 	*buffer += sprintf(*buffer, "  CFLAG = 0;\n");
+	return 1;
 }
 
-static void generate_clrflag_n(char **buffer, t_iib *iib) {
+static int generate_clrflag_n(char **buffer, t_iib *iib) {
 	(void)iib;
 	*buffer += sprintf(*buffer, "  NFLAG = 0;\n");
+	return 1;
 }
 
-static void generate_setflag_z(char **buffer, t_iib *iib) {
+static int generate_setflag_z(char **buffer, t_iib *iib) {
 	(void)iib;
 	*buffer += sprintf(*buffer, "  ZFLAG = 1;\n");
+	return 1;
 }
 
-static void generate_subflag_c(char **buffer, t_iib *iib) {
+static int generate_subflag_c(char **buffer, t_iib *iib) {
 	/* C = (Sm && !Dm) || (Rm && !Dm) || (Sm && Rm)
 	carry is performed as if both source and destination are unsigned,
 	so this is simply if the source is greater than the destination - I
@@ -2363,9 +2422,10 @@ static void generate_subflag_c(char **buffer, t_iib *iib) {
 	motorola definition */
 	(void)iib;
 	*buffer += sprintf(*buffer, "  CFLAG = srcdata > dstdata;\n");
+	return 1;
 }
 
-static void generate_subflag_cx(char **buffer, t_iib *iib) {
+static int generate_subflag_cx(char **buffer, t_iib *iib) {
 	/* C = (Sm && !Dm) || (Rm && !Dm) || (Sm && Rm)
 	carry is performed as if both source and destination are unsigned,
 	so this is simply if the source is greater than the destination - I
@@ -2373,9 +2433,10 @@ static void generate_subflag_cx(char **buffer, t_iib *iib) {
 	motorola definition */
 	(void)iib;
 	*buffer += sprintf(*buffer, "  XFLAG = CFLAG = srcdata > dstdata;\n");
+	return 1;
 }
 
-static void generate_subxflag_cx(char **buffer, t_iib *iib) {
+static int generate_subxflag_cx(char **buffer, t_iib *iib) {
 	/* V = (Sm && !Dm) || (Rm && (!Dm || Sm)) */
 	*buffer += sprintf(*buffer, "  {\n");
 	switch (iib->size) {
@@ -2395,21 +2456,22 @@ static void generate_subxflag_cx(char **buffer, t_iib *iib) {
 		*buffer += sprintf(*buffer, "    int Rm = (sint32)outdata < 0;\n");
 		break;
 	default:
-		*buffer += sprintf(*buffer, "ERROR size\n");
-		break;
+		return 0;
 	}
 	*buffer += sprintf(*buffer, "    XFLAG = CFLAG = (Sm && !Dm) || (Rm && (!Dm || Sm));\n");
 	*buffer += sprintf(*buffer, "  }\n");
+	return 1;
 }
 
-static void generate_cmpaflag_c(char **buffer, t_iib *iib) {
+static int generate_cmpaflag_c(char **buffer, t_iib *iib) {
 	/* see generate_subflag_c - this is just the same but with a sign extend
 	on the source */
 	(void)iib;
 	*buffer += sprintf(*buffer, "  CFLAG = (uint32)(sint32)(sint16)srcdata > dstdata;\n");
+	return 1;
 }
 
-static void generate_subflag_v(char **buffer, t_iib *iib) {
+static int generate_subflag_v(char **buffer, t_iib *iib) {
 	/* V = (!Sm && Dm && !Rm) || (Sm && !Dm && Rm)
 	overflow is performed as if both source and destination are signed,
 	the only two condtions are if we've added too much to a +ve number
@@ -2432,25 +2494,27 @@ static void generate_subflag_v(char **buffer, t_iib *iib) {
 		*buffer += sprintf(*buffer, "    (((sint32)dstdata < 0) != ((sint32)outdata < 0));\n");
 		break;
 	default:
-		*buffer += sprintf(*buffer, "ERROR size\n");
-		break;
+		return 0;
 	}
+	return 1;
 }
 
-static void generate_cmpaflag_v(char **buffer, t_iib *iib) {
+static int generate_cmpaflag_v(char **buffer, t_iib *iib) {
 	/* see generate_subflag_v - this is just the sz_long version with a sign
 	extend on the source */
 	(void)iib;
 	*buffer += sprintf(*buffer, "  VFLAG = (((sint32)(sint16)srcdata < 0) != ((sint32)dstdata < 0)) &&\n");
 	*buffer += sprintf(*buffer, "    (((sint32)dstdata < 0) != ((sint32)outdata < 0));\n");
+	return 1;
 }
 
-static void generate_stdxflag_z(char **buffer, t_iib *iib) {
+static int generate_stdxflag_z(char **buffer, t_iib *iib) {
 	(void)iib;
 	*buffer += sprintf(*buffer, "  if (outdata) ZFLAG = 0;\n");
+	return 1;
 }
 
-static void generate_addflag_cx(char **buffer, t_iib *iib) {
+static int generate_addflag_cx(char **buffer, t_iib *iib) {
 	/* C = (Sm && Dm) || (!Rm && Dm) || (Sm && !Rm)
 	carry is performed as if both source and destination are unsigned,
 	so this is simply if the source is bigger than how much can be added
@@ -2469,14 +2533,14 @@ static void generate_addflag_cx(char **buffer, t_iib *iib) {
 		*buffer += sprintf(*buffer, "  XFLAG = CFLAG = srcdata > (uint32)~(uint32)dstdata;\n");
 		break;
 	default:
-		*buffer += sprintf(*buffer, "ERROR size\n");
-		break;
+		return 0;
 	}
 	/* gcc doesn't like a one's compliment of an unsigned - take out the
 	casts in the above and it will warn you incorrectly */
+	return 1;
 }
 
-static void generate_addxflag_cx(char **buffer, t_iib *iib) {
+static int generate_addxflag_cx(char **buffer, t_iib *iib) {
 	/* V = (Sm && Dm) || (!Rm && (Dm || Sm)) */
 	*buffer += sprintf(*buffer, "  {\n");
 	switch (iib->size) {
@@ -2496,14 +2560,14 @@ static void generate_addxflag_cx(char **buffer, t_iib *iib) {
 		*buffer += sprintf(*buffer, "    int Rm = (sint32)outdata < 0;\n");
 		break;
 	default:
-		*buffer += sprintf(*buffer, "ERROR size\n");
-		break;
+		return 0;
 	}
 	*buffer += sprintf(*buffer, "    XFLAG = CFLAG = (Sm && Dm) || (!Rm && (Dm || Sm));\n");
 	*buffer += sprintf(*buffer, "  }\n");
+	return 1;
 }
 
-static void generate_addflag_v(char **buffer, t_iib *iib) {
+static int generate_addflag_v(char **buffer, t_iib *iib) {
 	/* V = (Sm && Dm && !Rm) || (!Sm && !Dm && Rm)
 	overflow is performed as if both source and destination are signed,
 	the only two condtions are if we've added too much to a +ve number
@@ -2514,28 +2578,28 @@ static void generate_addflag_v(char **buffer, t_iib *iib) {
 	case sz_byte:
 		*buffer += sprintf(*buffer, "  VFLAG = (((sint8)srcdata < 0) == ((sint8)dstdata < 0)) &&\n");
 		*buffer += sprintf(*buffer, "    (((sint8)dstdata < 0) != ((sint8)outdata < 0));\n");
-		break;
+		return 1;
 	case sz_word:
 		*buffer += sprintf(*buffer, "  VFLAG = (((sint16)srcdata < 0) == ((sint16)dstdata < 0)) &&\n");
 		*buffer += sprintf(*buffer, "    (((sint16)dstdata < 0) != ((sint16)outdata < 0));\n");
-		break;
+		return 1;
 	case sz_long:
 		*buffer += sprintf(*buffer, "  VFLAG = (((sint32)srcdata < 0) == ((sint32)dstdata < 0)) &&\n");
 		*buffer += sprintf(*buffer, "    (((sint32)dstdata < 0) != ((sint32)outdata < 0));\n");
-		break;
+		return 1;
 	default:
-		*buffer += sprintf(*buffer, "ERROR size\n");
-		break;
+		return 0;
 	}
 }
 
-static void generate_negflag_cx(char **buffer, t_iib *iib) {
+static int generate_negflag_cx(char **buffer, t_iib *iib) {
 	(void)iib;
 	/* C = (Dm || Rm) */
 	*buffer += sprintf(*buffer, "  XFLAG = CFLAG = srcdata ? 1 : 0;\n");
+	return 1;
 }
 
-static void generate_negflag_v(char **buffer, t_iib *iib) {
+static int generate_negflag_v(char **buffer, t_iib *iib) {
 	/* V = (Dm && Rm)
 	which is the same as V = src == 1<<15 as the only case where both the
 	data and the result are both negative is in the case of the extreme
@@ -2543,71 +2607,67 @@ static void generate_negflag_v(char **buffer, t_iib *iib) {
 	switch (iib->size) {
 	case sz_byte:
 		*buffer += sprintf(*buffer, "  VFLAG = (srcdata == (1u<<7));\n");
-		break;
+		return 1;
 	case sz_word:
 		*buffer += sprintf(*buffer, "  VFLAG = (srcdata == (1u<<15));\n");
-		break;
+		return 1;
 	case sz_long:
 		*buffer += sprintf(*buffer, "  VFLAG = (srcdata == (1u<<31));\n");
-		break;
+		return 1;
 	default:
-		*buffer += sprintf(*buffer, "ERROR size\n");
-		break;
+		return 0;
 	}
 }
 
-static void generate_negxflag_cx(char **buffer, t_iib *iib) {
+static int generate_negxflag_cx(char **buffer, t_iib *iib) {
 	/* C = (Dm || Rm)
 	unlike NEG, NEGX is done properly */
 	*buffer += sprintf(*buffer, "  XFLAG = CFLAG ");
 	switch (iib->size) {
 	case sz_byte:
 		*buffer += sprintf(*buffer, "= ((sint8)srcdata < 0) || ((sint8)outdata < 0);\n");
-		break;
+		return 1;
 	case sz_word:
 		*buffer += sprintf(*buffer, "= ((sint16)srcdata < 0) || ((sint16)outdata < 0);\n");
-		break;
+		return 1;
 	case sz_long:
 		*buffer += sprintf(*buffer, "= ((sint32)srcdata < 0) || ((sint32)outdata < 0);\n");
-		break;
+		return 1;
 	default:
-		*buffer += sprintf(*buffer, "ERROR size\n");
-		break;
+		return 0;
 	}
 }
 
-static void generate_negxflag_v(char **buffer, t_iib *iib) {
+static int generate_negxflag_v(char **buffer, t_iib *iib) {
 	/* V = (Dm && Rm)
 	unlike NEG, NEGX is done properly */
 	switch (iib->size) {
 	case sz_byte:
 		*buffer += sprintf(*buffer, "  VFLAG = ((sint8)srcdata < 0) && ((sint8)outdata < 0);\n");
-		break;
+		return 1;
 	case sz_word:
 		*buffer += sprintf(*buffer, "  VFLAG = ((sint16)srcdata < 0) && ((sint16)outdata < 0);\n");
-		break;
+		return 1;
 	case sz_long:
 		*buffer += sprintf(*buffer, "  VFLAG = ((sint32)srcdata < 0) && ((sint32)outdata < 0);\n");
-		break;
+		return 1;
 	default:
-		*buffer += sprintf(*buffer, "ERROR size\n");
-		break;
+		return 0;
 	}
 }
 
-static void generate_bits(char **buffer, t_iib *iib) {
+static int generate_bits(char **buffer, t_iib *iib) {
 	switch (iib->size) {
 	case sz_byte:
 		*buffer += sprintf(*buffer, "  const uint8 bits = 8;\n");
-		break;
+		return 1;
 	case sz_word:
 		*buffer += sprintf(*buffer, "  const uint8 bits = 16;\n");
-		break;
+		return 1;
 	case sz_long:
 		*buffer += sprintf(*buffer, "  const uint8 bits = 32;\n");
-		break;
+		return 1;
 	default:
-		*buffer += sprintf(*buffer, "ERROR size\n");
-		break;
+		return 0;
 	}
 }
