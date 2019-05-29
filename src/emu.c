@@ -58,7 +58,7 @@
 
 
 int frame;
-int nb_interlace = 256;
+const int nb_interlace = 1;
 int current_line;
 static int arcade;
 
@@ -159,10 +159,13 @@ static void take_screenshot(void) {
  
 }
 
+int paused = 0;
+
 static int fc;
 static int last_line;
-static int skip_this_frame = 0;
+//static int skip_this_frame = 0;
 static int bench = 0;
+static ULONG frame_count = 0;
 
 static ULONG startBenchTime;
 static ULONG timerTemp;
@@ -171,7 +174,7 @@ static ULONG timerVideo;
 static ULONG timer68k;
 static ULONG timerZ80;
 
-static inline int neo_interrupt(void) {
+static inline int neo_interrupt(int skip_this_frame) {
     static int frames;
 
 	
@@ -184,32 +187,45 @@ static inline int neo_interrupt(void) {
 		}
 		fc++;
 	}
-
-	skip_this_frame = skip_next_frame;
-	skip_next_frame = frame_skip(0);
+ 
+//	skip_this_frame = skip_next_frame;
+//	skip_next_frame = frame_skip(0);
 
 	if (!skip_this_frame) {
 		draw_screen();
-		if(bench) {
-			if(--bench == 0) exit(0);
-		}
+	}
+	if(bench) {
+		if(--bench == 0) exit(0);
 	}
 	return 1;
 }
 
 void dumpStats(void) {
 	ULONG ms = (ULONG)((int)getMilliseconds() - (int)startBenchTime);
-	printf("%d frames completed in %d ms; %d fps\n", 
-		arg[OPTION_BENCH], ms, ((arg[OPTION_BENCH] * 1000 + (ms / 2)) / ms));
-		
-	printf("Video %d ms, %d%%\n", timerVideo, (timerVideo * 100) / ms);
-	printf("Sound %d ms, %d%%\n", timerSound, (timerSound * 100) / ms);
-	printf("CPU 68K %d ms, %d%%\n", timer68k, (timer68k * 100) / ms);
-	printf("CPU Z80 %d ms, %d%%\n", timerZ80, (timerZ80 * 100) / ms);
+	ULONG round = (ms >> 1);
+	ULONG leftover = ms - timerVideo - timerSound - timer68k - timerZ80;
+	ULONG frames = frame_count;//arg[OPTION_BENCH] - bench;
+	ULONG fps = (frames * 1000 + (ms / 2)) / ms;
+
+	if(leftover < 0) leftover = 0;
+	
+	printf("%d frames completed in %d ms; %d fps\n",  frames, ms, fps);
+	if(arg[OPTION_BENCH]) {
+		printf("Video %d ms, %d%%\n", timerVideo, (timerVideo * 100 + round) / ms);
+		printf("Sound %d ms, %d%%\n", timerSound, (timerSound * 100 + round) / ms);
+		printf("CPU 68K %d ms, %d%%\n", timer68k, (timer68k * 100 + round) / ms);
+		printf("CPU Z80 %d ms, %d%%\n", timerZ80, (timerZ80 * 100 + round) / ms);
+		printf("Overhead %d ms, %d%%\n", leftover, (leftover * 100 + round) / ms);
+	}
 }
 
 static Uint16 pending_save_state = 0, pending_load_state = 0;
 static int slow_motion = 0;
+
+extern uint8_t *lHBuffer, *rHBuffer;
+extern uint8_t *lLBuffer, *rLBuffer;
+extern uint8_t *_lHBuffer, *_rHBuffer;
+extern uint8_t *_lLBuffer, *_rLBuffer;
 
 static inline void state_handling(int save,int load) {
 	if (save) {
@@ -226,43 +242,67 @@ static inline void state_handling(int save,int load) {
 void main_loop(void) {
 	int a,i;
  
-	const Uint32 cpu_68k_timeslice = 200000;
-	const Uint32 cpu_z80_timeslice = 73333;
-	
-	const Uint32 cpu_68k_timeslice_scanline = (cpu_68k_timeslice + 132) / 264;
-	const Uint32 cpu_z80_timeslice_interlace = (cpu_z80_timeslice + (nb_interlace >> 1)) / nb_interlace;
+ 	extern volatile uint8_t updateSound;
+ 	uint32_t _updateSound;
+ 
+ 	// 10 MHZ 68000
+	Uint32 cpu_68k_timeslice;// = 200000;
+	//Uint32 cpu_68k_timeslice_scanline;// = cpu_68k_timeslice / nb_interlace;
+	//Uint32 cpu_68k_timeslice_rem;// = cpu_68k_timeslice - (cpu_68k_timeslice_scanline) * nb_interlace;
+
+	Uint32 cpu_z80_timeslice;// = 73333;
+	//Uint32 cpu_z80_timeslice_scanline;// = cpu_z80_timeslice / nb_interlace;
+	//Uint32 cpu_z80_timeslice_rem;// = cpu_z80_timeslice - (cpu_z80_timeslice_scanline) * nb_interlace;
+
+	const float m68k_ratio = arg[OPTION_M68K] / 100.0f;
+	const float z80_ratio = 1.0f;//arg[OPTION_Z80] / 100.0f;
 
 	Uint32 tm_cycle = 0;
+	Uint32 display_hz = 0;
+	Uint32 frameskip = 0;
+
+	if((arg[OPTION_REGION] == CTY_USA) || (arg[OPTION_REGION] == CTY_JAPAN)) 
+		display_hz = 60;
+	else
+		display_hz = 50;
+
+	cpu_68k_timeslice = 9000000 / display_hz;
+	cpu_68k_timeslice *= m68k_ratio; 
+	//cpu_68k_timeslice_scanline = cpu_68k_timeslice;// / nb_interlace;
+	//cpu_68k_timeslice_rem = cpu_68k_timeslice - (cpu_68k_timeslice_scanline) * nb_interlace;
+
+	cpu_z80_timeslice = 4000000 / display_hz;
+	cpu_z80_timeslice *= z80_ratio; 
+	//cpu_z80_timeslice_scanline = cpu_z80_timeslice / nb_interlace;
+	//cpu_z80_timeslice_rem = cpu_z80_timeslice - (cpu_z80_timeslice_scanline) * nb_interlace;
 	
-	reset_frame_skip();
+	//reset_frame_skip();
 	my_timer();
 	
-	printf("Starting main loop\n");
-	if((bench = arg[OPTION_BENCH])) {
-		startBenchTime = getMilliseconds();
-		atexit(dumpStats);
-	}
+	printf("Starting main loop, CPU at %d%%\n", arg[OPTION_M68K]);
+	startBenchTime = getMilliseconds();
+	//if((bench = arg[OPTION_BENCH])) nb_interlace = 8;
+	atexit(dumpStats);
 
-	//pause_audio(0);
 	while (true) {
 		handle_event();
+
+		if(!paused) {
+			if(arg[OPTION_BENCH]) timerTemp = getMilliseconds();
+			tm_cycle = cpu_68k_run(cpu_68k_timeslice - tm_cycle);
+			if(arg[OPTION_BENCH]) timer68k += (ULONG)((int)getMilliseconds() - (int)timerTemp);
 		
-		if(arg[OPTION_BENCH]) timerTemp = getMilliseconds();
-		if (arg[OPTION_SAMPLERATE]) {
-			for (i = 0; i < nb_interlace; i++) {
-				cpu_z80_run(cpu_z80_timeslice_interlace);
-				my_timer();
-			}
+			my_timer();
 		}
-		if(arg[OPTION_BENCH]) timerZ80 += (ULONG)((int)getMilliseconds() - (int)timerTemp);
 		
 		if(arg[OPTION_BENCH]) timerTemp = getMilliseconds();
-		tm_cycle = cpu_68k_run(cpu_68k_timeslice - tm_cycle);
-		if(arg[OPTION_BENCH]) timer68k += (ULONG)((int)getMilliseconds() - (int)timerTemp);
 		
-		if(arg[OPTION_BENCH]) timerTemp = getMilliseconds();
-		if ((a = neo_interrupt())) cpu_68k_interrupt(a);
+		frameskip += arg[OPTION_FRAMESKIP];
+		if ((a = neo_interrupt(frameskip > 100))) cpu_68k_interrupt(a);
+		if(frameskip > 100) frameskip -= 100;
+		
 		if(arg[OPTION_BENCH]) timerVideo += (ULONG)((int)getMilliseconds() - (int)timerTemp);
+		frame_count++;
 
 	}
 }

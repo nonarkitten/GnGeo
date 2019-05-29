@@ -37,9 +37,9 @@
 #define WRITE_WORD(a,d)       (*(Uint16 *)(a) = (d))
 #define READ_BYTE(a)          (*(Uint8 *)(a))
 #define WRITE_BYTE(a,d)       (*(Uint8 *)(a) = (d))
-#define SWAP_BYTE_ADDRESS(a)  ((Uintptr)(a)^1)
-#define SWAP16(y) SDL_Swap16(y)
-#define SWAP32(y) SDL_Swap32(y)
+//#define SWAP_BYTE_ADDRESS(a)  ((Uintptr)(a)^1)
+//#define SWAP16(y) SDL_Swap16(y)
+//#define SWAP32(y) SDL_Swap32(y)
 		    
 #if defined(USE_GENERATOR68K) // || defined(USE_CYCLONE)
 /* Programs are stored as BIGENDIAN */
@@ -49,6 +49,7 @@
 #    define WRITE_BYTE_ROM WRITE_BYTE
 #    define READ_BYTE_ROM READ_BYTE
 #  else /* WORDS_BIGENDIAN */
+#    error "no"
 #    define WRITE_WORD_ROM(a,d) (WRITE_WORD(a,SWAP16(d)))
 #    define READ_WORD_ROM(a) (SWAP16(READ_WORD(a)))
 #    define WRITE_BYTE_ROM WRITE_BYTE
@@ -56,6 +57,7 @@
 #  endif
 #else /* USE_GENERATOR68K */
 /* Programs are stored as LITTLEENDIAN */
+#  error "no"
 #  define WRITE_WORD_ROM WRITE_WORD
 #  define READ_WORD_ROM READ_WORD
 #  define WRITE_BYTE_ROM(a,d) WRITE_BYTE(SWAP_BYTE_ADDRESS(a),(d))

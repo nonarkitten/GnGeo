@@ -46,14 +46,16 @@ const char * argTemplate =
 	 "ROMPATH,"			// Path to ROMS
 	 "BIOSPATH,"			// Path to BIOS
 	 "AGA/S,"				// Enable AGA mode
-	 "VSYNC/S"			// Enable VSYNC
+	 "VSYNC/S,"			// Enable VSYNC
+
+	 "M68K/N"  			// Specify relative speed of CPU
 ;
 
 static char game_name[32] = {0};
 static char roms_path[32] = "roms";
 static char bios_path[32] = "bios";
 
-int arg[OPTION_MAX] = { 0 };
+int arg[OPTION_MAX + 1] = { 0 };
 
 static setArgInt(char **toolarray, char *argName, int index, int def) {
 	char *s = (char*)FindToolType(toolarray,argName);
@@ -111,9 +113,10 @@ void ParseArguments(int argc, char *argv[]) {
 	arg[OPTION_PAL] = 0;
 	arg[OPTION_NTSC] = 0;
 	arg[OPTION_SHOWFPS] = 1;
-	arg[OPTION_ENABLEFM] = 1;
+	arg[OPTION_ENABLEFM] = 0;
 	arg[OPTION_LOADLASTSTATE] = 0;
 	arg[OPTION_VSYNC] = 0;
+	arg[OPTION_M68K] = 100;
 	
     if(!FromWb) {
 		// CLI start
@@ -137,6 +140,7 @@ void ParseArguments(int argc, char *argv[]) {
 		FIXUP(OPTION_REGION,(int)CTY_USA);
 		FIXUP(OPTION_SYSTEM,(int)SYS_UNIBIOS);
 		FIXUP(OPTION_BITRATE,8);
+		FIXUP(OPTION_M68K,100);
 		#undef FIXUP
 		
 		FreeArgs(rdargs);
@@ -220,6 +224,10 @@ void ParseArguments(int argc, char *argv[]) {
 			CloseLibrary(AslBase);
 		}
 	}
+
+		 if(arg[OPTION_M68K] < 25) arg[OPTION_M68K] = 25;
+	else if(arg[OPTION_M68K] > 999) arg[OPTION_M68K] = 100;
+	else if(arg[OPTION_M68K] > 150) arg[OPTION_M68K] = 150;
         
     	 if(arg[OPTION_FRAMESKIP] < 0) arg[OPTION_FRAMESKIP] = 0;
     else if(arg[OPTION_FRAMESKIP] > 9) arg[OPTION_FRAMESKIP] = 9;

@@ -2892,7 +2892,7 @@ int YM2610TimerOver(int ch) {
 	return YM2610.OPN.ST.irq;
 }
 
-#define LENGTH 256
+#define LENGTH 4096
 
 extern volatile uint8_t *lHBuffer, *rHBuffer;
 extern volatile uint8_t *lLBuffer, *rLBuffer;
