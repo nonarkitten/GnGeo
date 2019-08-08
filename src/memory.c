@@ -516,14 +516,14 @@ LONG_STORE(mem68k_store_sram)
 #include <inline/cybergraphics.h>
 
 // D R0 G0 B0 R4 R3 R2 R1 G4 G3 G2 G1 B4 B3 B2 B1
-extern int AC68080;
+extern int AC68080, real_AC68080;
 Uint16 convert_pal(Uint16 npal) {
 	int r = 0, g = 0, b = 0, c = 0;
 	r = ((npal >> 7) & 0x1e) | ((npal >> 14) & 0x01);
 	g = ((npal >> 3) & 0x1e) | ((npal >> 13) & 0x01);
 	b = ((npal << 1) & 0x1e) | ((npal >> 12) & 0x01);
 
-	if(AC68080) {
+	if(real_AC68080) {
 		c = (r << 10) + (g << 5) + b;
 		if(!(npal & 0x8000)) c |= 0x421;
 		return c;

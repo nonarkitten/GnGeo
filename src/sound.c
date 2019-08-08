@@ -74,6 +74,10 @@
 #define INTF_LEVEL3 (INTF_VERTB | INTF_BLIT | INTF_COPER)
 #define INTF_LEVEL4 (INTF_AUD0 | INTF_AUD1 | INTF_AUD2 | INTF_AUD3)
 
+extern int AC68080;
+extern int enablefm;
+extern int enable16;
+
 volatile struct Custom* const custom = (APTR)0xdff000;
 volatile struct CIA* const ciaa = (APTR)0xbfe001;
 volatile struct CIA* const ciab = (APTR)0xbfd000;
@@ -223,6 +227,54 @@ uint8_t *lLBuffer, *rLBuffer;
 uint8_t *_lHBuffer, *_rHBuffer;
 uint8_t *_lLBuffer, *_rLBuffer;
 
+extern int16_t L_Mix[BUFFER_LEN];
+extern int16_t R_Mix[BUFFER_LEN];
+
+void RemixAmiga14bit(void) {
+	uint32_t i;
+	uint16_t lt, rt;
+	uint32_t lh_out, rh_out, ll_out, rl_out;
+
+	for(i=0; i<BUFFER_LEN; i++) {
+		lt = L_Mix[i]; rt = R_Mix[i];
+
+		/* 4-byte buffering, shift previous 8-bit up */
+		lh_out <<= 8; rh_out <<= 8; 
+
+		/* Or in the low 8-bits from each of our accumulators */
+		lh_out |= (uint8_t)(lt >> 8);  
+		rh_out |= (uint8_t)(rt >> 8);
+
+		if(enable16) {
+			ll_out <<= 8; rl_out <<= 8;
+			ll_out |= (uint8_t)(lt & 255); 
+			rl_out |= (uint8_t)(rt & 255);
+		}
+
+ 		if((i & 3) == 3) {
+ 			/* Write out the high bytes as one 32-bit op */
+ 			*(uint32_t*)&lHBuffer[i - 3] = lh_out;
+ 			*(uint32_t*)&rHBuffer[i - 3] = rh_out;
+ 			
+ 			if(enable16) {
+				/* Parallel sign extend each byte with a 2-bit right shift */
+				ll_out = ((ll_out & 0xFCFCFCFC ) >> 2) | (((ll_out & 0x80808080) >> 1) * 3);
+				rl_out = ((rl_out & 0xFCFCFCFC ) >> 2) | (((rl_out & 0x80808080) >> 1) * 3);
+			
+				/* And write out the low bytes as one 32-bit op */
+				*(uint32_t*)&lLBuffer[i - 3] = ll_out;
+				*(uint32_t*)&rLBuffer[i - 3] = rl_out;
+ 			}
+ 		}
+	}
+}
+
+void RemixAmigaAmmx(void) {
+	// To-do, make this zero-copy
+	memcpy( lHBuffer, L_Mix, 2 * BUFFER_LEN );
+	memcpy( rHBuffer, L_Mix, 2 * BUFFER_LEN );
+}
+
 __saveds __interrupt static int AudioServer(ChanT num asm("a1")) {
 	extern void YM2610Update_Amiga(void);
 	extern  ULONG timerSound;
@@ -231,20 +283,34 @@ __saveds __interrupt static int AudioServer(ChanT num asm("a1")) {
 	
 	if(!paused) {
 		if(arg[OPTION_BENCH]) timerTemp = getMilliseconds();
-		
-		// kick off next chunk	
-		AudioAttachSamples(0, rHBuffer, BUFFER_LEN);
-		AudioAttachSamples(1, lLBuffer, BUFFER_LEN);	
-		AudioAttachSamples(2, lHBuffer, BUFFER_LEN);
-		AudioAttachSamples(3, rLBuffer, BUFFER_LEN);
 
-		YM2610Update_Amiga();
-		
-		// swap buffers
-		temp = rHBuffer; rHBuffer = _rHBuffer; _rHBuffer = temp;
-		temp = rLBuffer; rLBuffer = _rLBuffer; _rLBuffer = temp;
-		temp = lHBuffer; lHBuffer = _lHBuffer; _lHBuffer = temp;
-		temp = lLBuffer; lLBuffer = _lLBuffer; _lLBuffer = temp;
+		if(AC68080) {
+			// kick off next chunk	
+			AudioAttachSamples(0, rHBuffer, BUFFER_LEN);
+			AudioAttachSamples(2, lHBuffer, BUFFER_LEN);
+
+			YM2610Update();
+			RemixAmigaAmmx();
+
+			// swap buffers
+			temp = rHBuffer; rHBuffer = _rHBuffer; _rHBuffer = temp;
+			temp = lHBuffer; lHBuffer = _lHBuffer; _lHBuffer = temp;
+		} else {
+			// kick off next chunk	
+			AudioAttachSamples(0, rHBuffer, BUFFER_LEN);
+			AudioAttachSamples(1, lLBuffer, BUFFER_LEN);	
+			AudioAttachSamples(2, lHBuffer, BUFFER_LEN);
+			AudioAttachSamples(3, rLBuffer, BUFFER_LEN);
+
+			YM2610Update();
+			RemixAmiga14bit();
+
+			// swap buffers
+			temp = rHBuffer; rHBuffer = _rHBuffer; _rHBuffer = temp;
+			temp = rLBuffer; rLBuffer = _rLBuffer; _rLBuffer = temp;
+			temp = lHBuffer; lHBuffer = _lHBuffer; _lHBuffer = temp;
+			temp = lLBuffer; lLBuffer = _lLBuffer; _lLBuffer = temp;
+		}
 
 		if(arg[OPTION_BENCH]) timerSound += (ULONG)((int)getMilliseconds() - (int)timerTemp);
 	}
@@ -254,11 +320,22 @@ __saveds __interrupt static int AudioServer(ChanT num asm("a1")) {
 
 void pause_audio(int pause) {
 	if(paused && !pause) {
-		YM2610Update_Amiga();
-		AudioAttachSamples(0, rHBuffer, BUFFER_LEN);
-		AudioAttachSamples(1, lLBuffer, BUFFER_LEN);	
-		AudioAttachSamples(2, lHBuffer, BUFFER_LEN);
-		AudioAttachSamples(3, rLBuffer, BUFFER_LEN);
+		if(AC68080) {
+			YM2610Update();
+			RemixAmigaAmmx();
+			AudioAttachSamples(0, rHBuffer, BUFFER_LEN);
+			AudioAttachSamples(2, lHBuffer, BUFFER_LEN);
+
+		} else {
+			YM2610Update();
+			RemixAmiga14bit();
+			AudioAttachSamples(0, rHBuffer, BUFFER_LEN);
+			AudioAttachSamples(1, lLBuffer, BUFFER_LEN);	
+			AudioAttachSamples(2, lHBuffer, BUFFER_LEN);
+			AudioAttachSamples(3, rLBuffer, BUFFER_LEN);
+
+		}
+
 		// Enabled DMA all at once
 		custom->dmacon = DMAF_SETCLR 
 			| (1 << DMAB_AUD0)
@@ -298,25 +375,40 @@ int init_audio(void) {
 		return 0;
 	}
 
-	// RLLR
-	lHBuffer = AllocAudioData(BUFFER_LEN);
-	rHBuffer = AllocAudioData(BUFFER_LEN);
-	lLBuffer = AllocAudioData(BUFFER_LEN);
-	rLBuffer = AllocAudioData(BUFFER_LEN);
-	_lHBuffer = AllocAudioData(BUFFER_LEN);
-	_rHBuffer = AllocAudioData(BUFFER_LEN);
-	_lLBuffer = AllocAudioData(BUFFER_LEN);
-	_rLBuffer = AllocAudioData(BUFFER_LEN);
+	if(AC68080) {
+		// RLLR
+		lHBuffer = AllocAudioData(BUFFER_LEN * 2);
+		rHBuffer = AllocAudioData(BUFFER_LEN * 2);
+		_lHBuffer = AllocAudioData(BUFFER_LEN * 2);
+		_rHBuffer = AllocAudioData(BUFFER_LEN * 2);
+
+		// enable 16-bit on channels 0-3
+		*((volatile uint16_t*)0xDFF29E) = 0x800F; 
+
+	} else {
+		// RLLR
+		lHBuffer = AllocAudioData(BUFFER_LEN);
+		rHBuffer = AllocAudioData(BUFFER_LEN);
+		lLBuffer = AllocAudioData(BUFFER_LEN);
+		rLBuffer = AllocAudioData(BUFFER_LEN);
+		_lHBuffer = AllocAudioData(BUFFER_LEN);
+		_rHBuffer = AllocAudioData(BUFFER_LEN);
+		_lLBuffer = AllocAudioData(BUFFER_LEN);
+		_rLBuffer = AllocAudioData(BUFFER_LEN);
+
+	}
 	
 	AudioSetVolume(0, 64); 
 	AudioSetSampleRate(0, 27776);
-	AudioSetVolume(1, 1 ); 
-	AudioSetSampleRate(1, 27776);
 	AudioSetVolume(2, 64); 
 	AudioSetSampleRate(2, 27776);
-	AudioSetVolume(3, 1 ); 
-	AudioSetSampleRate(3, 27776);
-	
+	if(!AC68080) {
+		AudioSetVolume(1, 1 ); 
+		AudioSetSampleRate(1, 27776);
+		AudioSetVolume(3, 1 ); 
+		AudioSetSampleRate(3, 27776);
+	}
+
 	return 1;
 }
 
@@ -333,12 +425,14 @@ void close_audio(void) {
 
 	FreeAudioData(lHBuffer); lHBuffer = 0;
 	FreeAudioData(rHBuffer); rHBuffer = 0;
-	FreeAudioData(lLBuffer); lLBuffer = 0;
-	FreeAudioData(rLBuffer); rLBuffer = 0;
 	FreeAudioData(_lHBuffer); _lHBuffer = 0;
 	FreeAudioData(_rHBuffer); _rHBuffer = 0;
-	FreeAudioData(_lLBuffer); _lLBuffer = 0;
-	FreeAudioData(_rLBuffer); _rLBuffer = 0;
+	if(!AC68080) {
+		FreeAudioData(lLBuffer); lLBuffer = 0;
+		FreeAudioData(rLBuffer); rLBuffer = 0;
+		FreeAudioData(_lLBuffer); _lLBuffer = 0;
+		FreeAudioData(_rLBuffer); _rLBuffer = 0;
+	}
 	Permit();
 	
 	printf("Deinitialized sound\r\n");	

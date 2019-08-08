@@ -48,7 +48,8 @@ const char * argTemplate =
 	 "AGA/S,"				// Enable AGA mode
 	 "VSYNC/S,"			// Enable VSYNC
 
-	 "M68K/N"  			// Specify relative speed of CPU
+	 "M68K/N,"  			// Specify relative speed of CPU
+	 "NOAMMX/S"				// disable AMMX
 ;
 
 static char game_name[32] = {0};
@@ -94,6 +95,7 @@ struct TagItem frtags[] = {
 };
 
 BOOL FromWb;
+extern int AC68080;
 
 void ParseArguments(int argc, char *argv[]) {
 	struct DiskObject *dobj;
@@ -176,7 +178,9 @@ void ParseArguments(int argc, char *argv[]) {
 	 		setArgBool(toolarray, "ENABLEFM", 		OPTION_ENABLEFM);
 	 		setArgBool(toolarray, "LOADLASTSTATE", 	OPTION_LOADLASTSTATE);
 	 		setArgBool(toolarray, "VSYNC", 			OPTION_VSYNC);
-			
+//OPTION_NOAMMX			
+	 		setArgBool(toolarray, "NOAMMX", 		OPTION_NOAMMX);
+
 			if(MatchToolValue(FindToolType(toolarray, "REGION"), "europe"))
 				arg[OPTION_REGION] = CTY_EUROPE;
 			else if(MatchToolValue(FindToolType(toolarray, "REGION"), "usa"))
@@ -244,6 +248,8 @@ void ParseArguments(int argc, char *argv[]) {
     if((arg[OPTION_SAMPLERATE] != 9260)
     && (arg[OPTION_SAMPLERATE] != 18520)
     && (arg[OPTION_SAMPLERATE] != 27780)) arg[OPTION_SAMPLERATE] = 0;
+
+	if(arg[OPTION_NOAMMX]) AC68080 = 0;
 }
 
 

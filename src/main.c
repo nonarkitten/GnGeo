@@ -112,6 +112,7 @@ static struct GfxBase *GfxBase;
 int HostCpuClock = 0;
 int HostPAL = 0;
 int AC68080 = 0;
+int real_AC68080 = 0;
 
 extern void ParseArguments(int argc, char *argv[]);
 extern void convert_audio_rom(void);
@@ -130,6 +131,7 @@ int main(int argc, char *argv[]) {
 		return -1;
 	}
 	AC68080 = !!(SysBase->AttnFlags & (1<<10));
+	real_AC68080 = AC68080;
 		
 	ParseArguments(argc, argv);
 

@@ -58,7 +58,7 @@
 
 
 int frame;
-const int nb_interlace = 1;
+const int nb_interlace = 256;
 int current_line;
 static int arcade;
 
@@ -203,7 +203,7 @@ static inline int neo_interrupt(int skip_this_frame) {
 void dumpStats(void) {
 	ULONG ms = (ULONG)((int)getMilliseconds() - (int)startBenchTime);
 	ULONG round = (ms >> 1);
-	ULONG leftover = ms - timerVideo - timerSound - timer68k - timerZ80;
+	ULONG leftover = ms - timerVideo - timer68k - timerZ80 - timerSound;
 	ULONG frames = frame_count;//arg[OPTION_BENCH] - bench;
 	ULONG fps = (frames * 1000 + (ms / 2)) / ms;
 
@@ -222,10 +222,10 @@ void dumpStats(void) {
 static Uint16 pending_save_state = 0, pending_load_state = 0;
 static int slow_motion = 0;
 
-extern uint8_t *lHBuffer, *rHBuffer;
-extern uint8_t *lLBuffer, *rLBuffer;
-extern uint8_t *_lHBuffer, *_rHBuffer;
-extern uint8_t *_lLBuffer, *_rLBuffer;
+// extern uint8_t *lHBuffer, *rHBuffer;
+// extern uint8_t *lLBuffer, *rLBuffer;
+// extern uint8_t *_lHBuffer, *_rHBuffer;
+// extern uint8_t *_lLBuffer, *_rLBuffer;
 
 static inline void state_handling(int save,int load) {
 	if (save) {
@@ -242,8 +242,8 @@ static inline void state_handling(int save,int load) {
 void main_loop(void) {
 	int a,i;
  
- 	extern volatile uint8_t updateSound;
- 	uint32_t _updateSound;
+ 	//extern volatile uint8_t updateSound;
+ 	//uint32_t _updateSound;
  
  	// 10 MHZ 68000
 	Uint32 cpu_68k_timeslice;// = 200000;
@@ -251,8 +251,8 @@ void main_loop(void) {
 	//Uint32 cpu_68k_timeslice_rem;// = cpu_68k_timeslice - (cpu_68k_timeslice_scanline) * nb_interlace;
 
 	Uint32 cpu_z80_timeslice;// = 73333;
-	//Uint32 cpu_z80_timeslice_scanline;// = cpu_z80_timeslice / nb_interlace;
-	//Uint32 cpu_z80_timeslice_rem;// = cpu_z80_timeslice - (cpu_z80_timeslice_scanline) * nb_interlace;
+	Uint32 cpu_z80_timeslice_scanline;// = cpu_z80_timeslice / nb_interlace;
+	Uint32 cpu_z80_timeslice_rem;// = cpu_z80_timeslice - (cpu_z80_timeslice_scanline) * nb_interlace;
 
 	const float m68k_ratio = arg[OPTION_M68K] / 100.0f;
 	const float z80_ratio = 1.0f;//arg[OPTION_Z80] / 100.0f;
@@ -266,23 +266,23 @@ void main_loop(void) {
 	else
 		display_hz = 50;
 
-	cpu_68k_timeslice = 9000000 / display_hz;
+	cpu_68k_timeslice = 10000000 / display_hz;
 	cpu_68k_timeslice *= m68k_ratio; 
 	//cpu_68k_timeslice_scanline = cpu_68k_timeslice;// / nb_interlace;
 	//cpu_68k_timeslice_rem = cpu_68k_timeslice - (cpu_68k_timeslice_scanline) * nb_interlace;
 
 	cpu_z80_timeslice = 4000000 / display_hz;
 	cpu_z80_timeslice *= z80_ratio; 
-	//cpu_z80_timeslice_scanline = cpu_z80_timeslice / nb_interlace;
-	//cpu_z80_timeslice_rem = cpu_z80_timeslice - (cpu_z80_timeslice_scanline) * nb_interlace;
-	
-	//reset_frame_skip();
+	cpu_z80_timeslice_scanline = cpu_z80_timeslice / nb_interlace;
+	cpu_z80_timeslice_rem = cpu_z80_timeslice - (cpu_z80_timeslice_scanline) * nb_interlace;
+	if(!cpu_z80_timeslice_rem) cpu_z80_timeslice_rem = cpu_z80_timeslice_scanline;
+
 	my_timer();
 	
 	printf("Starting main loop, CPU at %d%%\n", arg[OPTION_M68K]);
 	startBenchTime = getMilliseconds();
-	//if((bench = arg[OPTION_BENCH])) nb_interlace = 8;
 	atexit(dumpStats);
+	bench = arg[OPTION_BENCH];
 
 	while (true) {
 		handle_event();
@@ -292,15 +292,23 @@ void main_loop(void) {
 			tm_cycle = cpu_68k_run(cpu_68k_timeslice - tm_cycle);
 			if(arg[OPTION_BENCH]) timer68k += (ULONG)((int)getMilliseconds() - (int)timerTemp);
 		
-			my_timer();
+			handle_event();
+
+			if(arg[OPTION_BENCH]) timerTemp = getMilliseconds();
+			for(i=0; i<nb_interlace; i++) {
+				cpu_z80_run(cpu_z80_timeslice_scanline);
+				my_timer();
+			}
+//			cpu_z80_run(cpu_z80_timeslice_rem);
+			if(arg[OPTION_BENCH]) timerZ80 += (ULONG)((int)getMilliseconds() - (int)timerTemp);
 		}
 		
-		if(arg[OPTION_BENCH]) timerTemp = getMilliseconds();
-		
+		handle_event();
+
+		if(arg[OPTION_BENCH]) timerTemp = getMilliseconds();		
 		frameskip += arg[OPTION_FRAMESKIP];
 		if ((a = neo_interrupt(frameskip > 100))) cpu_68k_interrupt(a);
-		if(frameskip > 100) frameskip -= 100;
-		
+		if(frameskip > 100) frameskip -= 100;		
 		if(arg[OPTION_BENCH]) timerVideo += (ULONG)((int)getMilliseconds() - (int)timerTemp);
 		frame_count++;
 
