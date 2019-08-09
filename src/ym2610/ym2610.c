@@ -418,8 +418,8 @@ static const u8 ALIGN_DATA lfo_pm_output[7 * 8][8] = { /* 7 bits meaningful (of 
 };
 
 #include "../conf.h"
-static int enablefm = 0;
-static int enable16 = 0;
+int enablefm = 0;
+int enable16 = 0;
 
 /* all 128 LFO PM waveforms */
 static s32 ALIGN_DATA lfo_pm_table[128 * 8 * 32]; /* 128 combinations of 7 bits meaningful (of F-NUMBER), 8 LFO depths, 32 LFO output levels per one depth */
@@ -2029,11 +2029,13 @@ static int step_inc[16] = {
 };
 
 /* speedup purposes only */
-static int jedi_table[49 * 16 + 15] = { 0 };
+#define JEDI_PADDING 0
+static int16_t jedi_table[50 * 16] = { 0 };
 
 static void OPNB_ADPCMA_init_table(void) {
 	int step, nib;
 	
+	// 0 to 48 are the base samples
 	for (step = 0; step < 49; step++) {
 		/* loop over all nibbles and compute the difference */
 		for (nib = 0; nib < 16; nib++) {
@@ -2098,26 +2100,65 @@ static int bufferA_patched(int c) {
 	return 0;
 }
 
-static void decode_bufferA(uint8_t *pi, int16_t *po, uint32_t length) {
-	register int32_t acc = 0, decstep = 0;
-	register uint8_t data0, data1;
-	
-	while(length--) {
-		data0 = *pi++; data1 = data0; data0 >>= 4; data1 &= 0xF;
+typedef union { struct { int8_t h; uint8_t l; } part; int16_t s; } int16_bytes_t;
+typedef union { struct { int8_t a; uint8_t b; int8_t c; uint8_t d; } part; int32_t s; } int32_bytes_t;
+typedef union { struct { int16_t a; int16_t b; } part; int32_t s; } int32_words_t;
 
-		acc += jedi_table[ decstep + data0 ];
-		decstep += step_inc[ data0 ];
+#define DO_ADPCM(OUT,SAMPLE) { \
+	acc += jedi_table[ decstep + SAMPLE ]; \
+	decstep += step_inc[ SAMPLE ]; \
+	/* ensure buffer is in-range */ \
+	if(decstep > 768) decstep = 768; \
+	else if(decstep < 0) decstep = 0; \
+    /* sign-extend 12 to 16 bits */ \
+    /* acc = ((int16_t)(((uint16_t)acc) << 4)) >> 4; */\
+	if(acc & 0x800) acc |= 0xF000; else acc &= 0x7FFF; \
+    /* write out our 16-bit value to memory */ \
+    OUT = acc; }
 
-		if (acc & 0x800) acc |= ~0xfff; else acc &= 0xfff;
-		if (decstep > 768) decstep = 768; else if (decstep < 0) decstep = 0;
+static void decode_bufferA(uint32_t *pi, int32_t *po, uint32_t length) {
+    // fast extract nibbles using bitfields
+    union { 
+        struct { 
+            uint32_t a:4; 
+            uint32_t b:4; 
+            uint32_t c:4; 
+            uint32_t d:4;
+            uint32_t e:4; 
+            uint32_t f:4; 
+            uint32_t g:4; 
+            uint32_t h:4; 
+        } part; 
+        uint32_t s; 
+    } sample;
+    int32_words_t out;
+    int16_t acc = 0;
+    int16_t decstep = 0;
+	int i;
 
-		acc += jedi_table[ decstep + data1 ];
-		decstep += step_inc[ data1 ];
+    // doing eight samples per read; length should be multiples of 256
+	//length += 7; 
+    length >>= 2; 
+	for(i=0; i<length; i++) {
+        // read eight samples (one nibble each)
+        sample.s = *pi++; //out.s = 0;
 
-		if (acc & 0x800) acc |= ~0xfff; else acc &= 0xfff;
-		if (decstep > 768) decstep = 768; else if (decstep < 0) decstep = 0;
-	
-		*po++ = acc;	
+        DO_ADPCM(out.part.a,sample.part.a);
+        DO_ADPCM(out.part.b,sample.part.b);
+        //*po++ = out.s;
+
+        DO_ADPCM(out.part.a,sample.part.c);
+        DO_ADPCM(out.part.b,sample.part.d);
+        *po++ = out.s;
+
+        DO_ADPCM(out.part.a,sample.part.e);
+        DO_ADPCM(out.part.b,sample.part.f);
+        //*po++ = out.s;
+
+        DO_ADPCM(out.part.a,sample.part.g);
+        DO_ADPCM(out.part.b,sample.part.h);
+        *po++ = out.s;  
+
 	}
 }
 
@@ -2147,8 +2188,8 @@ INLINE void OPNB_ADPCMA_write(int r, int v) {
 				if ((v >> c) & 1) {
 					int enable = 1;
 					/**** start adpcm ****/
-// 					adpcma[c].step = (u32) ((float) (1 << ADPCM_SHIFT)
-// 							* ((float) YM2610.OPN.ST.freqbase) / 3.0);
+					// 					adpcma[c].step = (u32) ((float) (1 << ADPCM_SHIFT)
+					// 							* ((float) YM2610.OPN.ST.freqbase) / 3.0);
 					adpcma[c].now_addr = adpcma[c].start;
 					//adpcma[c].now_step = 0;
 					//adpcma[c].adpcma_acc = 0;
@@ -2158,7 +2199,7 @@ INLINE void OPNB_ADPCMA_write(int r, int v) {
 
 					if (pcmbufA == NULL) {
 						/* Check ROM Mapped */
-//						logerror("YM2610: ADPCM-A rom not mapped\n");
+						//						logerror("YM2610: ADPCM-A rom not mapped\n");
 						enable = 0;
 					} else {
 						if (adpcma[c].end >= pcmsizeA) {
@@ -2894,8 +2935,11 @@ int YM2610TimerOver(int ch) {
 
 #define LENGTH 256
 
-extern volatile uint8_t *lHBuffer, *rHBuffer;
-extern volatile uint8_t *lLBuffer, *rLBuffer;
+//extern volatile uint8_t *lHBuffer, *rHBuffer;
+//extern volatile uint8_t *lLBuffer, *rLBuffer;
+
+int16_t L_Mix[LENGTH];
+int16_t R_Mix[LENGTH];
 
 
 /*
@@ -2938,7 +2982,7 @@ static uint8_t this_fmCh = 0;
 static const uint8_t next_chA[] = { 1, 2, 3, 4, 5, 0 };
 uint8_t looper = 0;
 
-void YM2610Update_Amiga(void) {
+void YM2610Update(void) {
 	int last_fm[6];
 	register int32_t lt = 0, rt = 0, ct = 0;
 	int i, j, outn, c;
@@ -3093,36 +3137,10 @@ void YM2610Update_Amiga(void) {
 			mixChannel(YM2610.adpcmb.pan, YM2610.adpcmb.adpcml);
 		}
 
+
 		ct >>= 1; lt += ct; rt += ct;
-		
-		/* 4-byte buffering, shift previous 8-bit up */
-		lh_out <<= 8; rh_out <<= 8; 
-		
-		/* Or in the low 8-bits from each of our accumulators */
-		lh_out |= (uint8_t)(lt >> 8);  
-		rh_out |= (uint8_t)(rt >> 8);
-		
-		if(enable16) {
-			ll_out <<= 8; rl_out <<= 8;
-			ll_out |= (uint8_t)(lt & 255); 
-			rl_out |= (uint8_t)(rt & 255);
-		}
-		
- 		if((i & 3) == 3) {
- 			/* Write out the high bytes as one 32-bit op */
- 			*(uint32_t*)&lHBuffer[i - 3] = lh_out;
- 			*(uint32_t*)&rHBuffer[i - 3] = rh_out;
- 			
- 			if(enable16) {
-				/* Parallel sign extend each byte with a 2-bit right shift */
-				ll_out = ((ll_out & 0xFCFCFCFC ) >> 2) | (((ll_out & 0x80808080) >> 1) * 3);
-				rl_out = ((rl_out & 0xFCFCFCFC ) >> 2) | (((rl_out & 0x80808080) >> 1) * 3);
-			
-				/* And write out the low bytes as one 32-bit op */
-				*(uint32_t*)&lLBuffer[i - 3] = ll_out;
-				*(uint32_t*)&rLBuffer[i - 3] = rl_out;
- 			}
- 		}
+		L_Mix[i] = lt;
+		R_Mix[i] = rt;
 		
 		INTERNAL_TIMER_A( cch[1] );
 	}

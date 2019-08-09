@@ -196,6 +196,7 @@ Uint8 mem68k_fetch_invalid_byte(Uint32 addr) {
 }
 
 Uint16 mem68k_fetch_invalid_word(Uint32 addr) {
+	//printf("mem68k_fetch_invalid_word %08x\n",addr);
 	return 0xF0F0;
 }
 
@@ -227,9 +228,11 @@ Uint8 mem68k_fetch_cpu_byte(Uint32 addr) {
 }
 
 Uint16 mem68k_fetch_cpu_word(Uint32 addr) {
+	Uint16 d;
 	addr &= 0xFFFFF;
-
-	return (READ_WORD_ROM(memory.rom.cpu_m68k.p + addr));
+	d = (READ_WORD_ROM(memory.rom.cpu_m68k.p + addr));
+	//printf("ROM fetch %08x = %d\n", addr, d);
+	return d;
 }
 
 LONG_FETCH(mem68k_fetch_cpu)
@@ -449,17 +452,18 @@ Uint32 mem68k_fetch_memcrd_long(Uint32 addr) {
 /**** INVALID STORE ****/
 void mem68k_store_invalid_byte(Uint32 addr, Uint8 data) {
 	if (addr != 0x300001)
-		printf("Invalid write b %x %x \n", addr, data);
+	;
+		//printf("Invalid write b %x %x \n", addr, data);
 	else {
 		memory.watchdog = 0;
 		//printf("restet_watchdog\n");
 	}
 }
 void mem68k_store_invalid_word(Uint32 addr, Uint16 data) {
-	printf("Invalid write w %x %x \n", addr, data);
+	//printf("Invalid write w %x %x \n", addr, data);
 }
 void mem68k_store_invalid_long(Uint32 addr, Uint32 data) {
-	printf("Invalid write l %x %x \n", addr, data);
+	//printf("Invalid write l %x %x \n", addr, data);
 }
 
 /**** RAM ****/
@@ -511,15 +515,26 @@ LONG_STORE(mem68k_store_sram)
 #include <cybergraphx/cybergraphics.h>
 #include <inline/cybergraphics.h>
 
-extern int AC68080;
+// D R0 G0 B0 R4 R3 R2 R1 G4 G3 G2 G1 B4 B3 B2 B1
+extern int AC68080, real_AC68080;
 Uint16 convert_pal(Uint16 npal) {
 	int r = 0, g = 0, b = 0, c = 0;
 	r = ((npal >> 7) & 0x1e) | ((npal >> 14) & 0x01);
 	g = ((npal >> 3) & 0x1e) | ((npal >> 13) & 0x01);
 	b = ((npal << 1) & 0x1e) | ((npal >> 12) & 0x01);
 
-	c = (r << 11) + (g << 6) + b;
-	return AC68080 ? c : SwapSHORT(c);
+	if(real_AC68080) {
+		c = (r << 10) + (g << 5) + b;
+		if(!(npal & 0x8000)) c |= 0x421;
+		return c;
+	} else {
+		c = (r << 11) + (g << 6) + b;
+		if(!(npal & 0x8000)) c |= 0x821;
+		if(!c) c = 0x821;
+		return SwapSHORT(c);
+	}
+	
+//	return AC68080 ? c : SwapSHORT(c);
 }
 
 void update_all_pal(void) {
@@ -529,27 +544,50 @@ void update_all_pal(void) {
 	for (i = 0; i < 0x1000; i++) {
 		//pc_pal1[i] = convert_pal(READ_WORD_ROM(&memory.pal1[i<<1]));
 		//pc_pal2[i] = convert_pal(READ_WORD_ROM(&memory.pal2[i<<1]));
-		pc_pal1[i] = convert_pal(READ_WORD(&memory.vid.pal_neo[0][i]));
-		pc_pal2[i] = convert_pal(READ_WORD(&memory.vid.pal_neo[1][i]));
+		if(i & 0xF) {
+			pc_pal1[i] = convert_pal(READ_WORD(&memory.vid.pal_neo[0][i]));
+			pc_pal2[i] = convert_pal(READ_WORD(&memory.vid.pal_neo[1][i]));
+		} else if(AC68080) {
+			pc_pal1[i] = 0xF81F;
+			pc_pal2[i] = 0xF81F;			
+		} else {
+			pc_pal1[i] = 0;
+			pc_pal2[i] = 0;
+		}
 	}
 }
 
 void mem68k_store_pal_byte(Uint32 addr, Uint8 data) {
-	uint32_t index = (addr & 0x1ffe) >> 1;
-	uint16_t a = READ_WORD(&current_pal[index]);
-	
-	if (addr & 0x1) a = data | (a & 0xff00);
-	else a = (a & 0xff) | (data << 8);
-		
-	WRITE_WORD(&current_pal[index], a);
-	current_pc_pal[index] = (index & 0xF) ? convert_pal(a) :  0xF81F;
+    /* TODO: verify this */
+    addr &= 0xffff;
+    if (addr <= 0x1fff) {
+        Uint16 a = READ_WORD(&current_pal[addr & 0xfffe]);
+        if (addr & 0x1)
+            a = data | (a & 0xff00);
+        else
+            a = (a & 0xff) | (data << 8);
+        WRITE_WORD(&current_pal[addr & 0xfffe], a);
+        if ((addr >> 1) & 0xF)
+            current_pc_pal[(addr) >> 1] = convert_pal(a);
+		else if(AC68080) 
+            current_pc_pal[(addr) >> 1] = 0xF81F;
+        else
+            current_pc_pal[(addr) >> 1] = 0;
+    }
 }
 
 void mem68k_store_pal_word(Uint32 addr, Uint16 data) {
-	uint32_t index = (addr & 0x1ffe) >> 1;
-
-	WRITE_WORD(&current_pal[index], data);
-	current_pc_pal[index] = (index & 0xF) ? convert_pal(data) :  0xF81F;
+    //printf("Store pal word @ %08x %08x %04x\n",cpu_68k_getpc(),addr,data);
+    addr &= 0xffff;
+    if (addr <= 0x1fff) {
+        WRITE_WORD(&current_pal[addr], data);
+        if ((addr >> 1) & 0xF)
+            current_pc_pal[(addr) >> 1] = convert_pal(data);
+		else if(AC68080) 
+            current_pc_pal[(addr) >> 1] = 0xF81F;
+        else
+            current_pc_pal[(addr) >> 1] = 0;
+    }
 }
 
 LONG_STORE(mem68k_store_pal)

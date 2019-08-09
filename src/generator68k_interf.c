@@ -24,7 +24,8 @@
 #include <config.h>
 #endif
 
-#ifdef USE_GENERATOR68K
+//#ifdef USE_GENERATOR68K
+
 #include <stdlib.h>
 
 #include "generator68k/generator.h"
@@ -432,4 +433,4 @@ int cpu_68k_getcycle(void)
     return cpu68k_clocks;
 }
 
-#endif
+//#endif

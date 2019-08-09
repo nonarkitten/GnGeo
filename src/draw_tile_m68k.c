@@ -36,10 +36,9 @@ static uint32_t scalex;
 
 #define DO_NOT_REORDER() asm volatile("": : :"memory")
 
-INLINE void __attribute__((regparm(4))) draw_tile_m68k_norm (uint32_t*palbase,uint16_t*screen,uint32_t*gfxdata,int zy) {
+INLINE void __attribute__((regparm(4))) draw_tile_m68k_norm (uint32_t*palbase,uint16_t*screen,uint32_t*gfxdata,int scaley) {
 	packpix_t pixels0;
 	int16_t y = 16;
-	uint16_t scaley = ddaxskip_i[zy];
     uint32_t pixel1, pixel2;
 	
 	while(y--) {
@@ -78,9 +77,9 @@ INLINE void __attribute__((regparm(4))) draw_tile_m68k_norm (uint32_t*palbase,ui
 		gfxdata += 2;
 	}
 }
-INLINE void __attribute__((regparm(4))) draw_tile_m68k_xflip_norm (uint32_t*palbase,uint16_t*screen,uint32_t*gfxdata,int zy) {
+INLINE void __attribute__((regparm(4))) draw_tile_m68k_xflip_norm (uint32_t*palbase,uint16_t*screen,uint32_t*gfxdata,int scaley) {
 	packpix_t pixels0;
-	uint16_t y = 16, scaley = ddaxskip_i[zy];
+	uint16_t y = 16;
     uint16_t pixel1, pixel2;
 	
 	while(y--) {
@@ -119,9 +118,9 @@ INLINE void __attribute__((regparm(4))) draw_tile_m68k_xflip_norm (uint32_t*palb
 		gfxdata += 2;
 	}
 }
-INLINE void __attribute__((regparm(4))) draw_tile_m68k_yflip_norm  (uint32_t*palbase,uint16_t*screen,uint32_t*gfxdata,int zy) { 
+INLINE void __attribute__((regparm(4))) draw_tile_m68k_yflip_norm  (uint32_t*palbase,uint16_t*screen,uint32_t*gfxdata,int scaley) { 
 	packpix_t pixels0;
-	uint16_t y = 16, scaley = ddaxskip_i[zy];
+	uint16_t y = 16;
     uint16_t pixel1, pixel2;
 	
 	gfxdata += 30;
@@ -162,9 +161,9 @@ INLINE void __attribute__((regparm(4))) draw_tile_m68k_yflip_norm  (uint32_t*pal
 		gfxdata -= 2;
 	}
 }
-INLINE void __attribute__((regparm(4))) draw_tile_m68k_xyflip_norm (uint32_t*palbase,uint16_t*screen,uint32_t*gfxdata,int zy) { 
+INLINE void __attribute__((regparm(4))) draw_tile_m68k_xyflip_norm (uint32_t*palbase,uint16_t*screen,uint32_t*gfxdata,int scaley) { 
 	packpix_t pixels0;
-	uint16_t y = 16, scaley = ddaxskip_i[zy];
+	uint16_t y = 16;
     uint16_t pixel1, pixel2;
 	
 	gfxdata += 30;
@@ -205,9 +204,9 @@ INLINE void __attribute__((regparm(4))) draw_tile_m68k_xyflip_norm (uint32_t*pal
 	}
 }
 
-INLINE void __attribute__((regparm(4))) draw_tile_m68k_xzoom (uint32_t*palbase,uint16_t*tilepos,uint32_t*gfxdata,int zy) {
+INLINE void __attribute__((regparm(4))) draw_tile_m68k_xzoom (uint32_t*palbase,uint16_t*tilepos,uint32_t*gfxdata,int scaley) {
 	packpix_t pixeldata;
-	uint16_t color, y = 16, scaley = ddaxskip_i[zy];
+	uint16_t color, y = 16;
 	uint16_t* org_tilepos = tilepos;
 	for(;;) {
 		tilepos = org_tilepos;
@@ -245,9 +244,9 @@ INLINE void __attribute__((regparm(4))) draw_tile_m68k_xzoom (uint32_t*palbase,u
 		y -= 1;
 	}
 }
-INLINE void __attribute__((regparm(4))) draw_tile_m68k_xzoomX  (uint32_t*palbase,uint16_t*tilepos,uint32_t*gfxdata,int zy) { 
+INLINE void __attribute__((regparm(4))) draw_tile_m68k_xzoomX  (uint32_t*palbase,uint16_t*tilepos,uint32_t*gfxdata,int scaley) { 
 	packpix_t pixeldata;
-	uint16_t color, y = 16, scaley = ddaxskip_i[zy];
+	uint16_t color, y = 16;
 	uint16_t* org_tilepos = tilepos;
 	for(;;) {
 		tilepos = org_tilepos;
@@ -285,9 +284,9 @@ INLINE void __attribute__((regparm(4))) draw_tile_m68k_xzoomX  (uint32_t*palbase
 		y -= 1;
 	}
 }
-INLINE void __attribute__((regparm(4))) draw_tile_m68k_xzoomY  (uint32_t*palbase,uint16_t*tilepos,uint32_t*gfxdata,int zy) { 
+INLINE void __attribute__((regparm(4))) draw_tile_m68k_xzoomY  (uint32_t*palbase,uint16_t*tilepos,uint32_t*gfxdata,int scaley) { 
 	packpix_t pixeldata;
-	uint16_t color, y = 16, scaley = ddaxskip_i[zy];
+	uint16_t color, y = 16;
 	uint16_t* org_tilepos = tilepos;
 	
 	gfxdata += 30;
@@ -327,9 +326,9 @@ INLINE void __attribute__((regparm(4))) draw_tile_m68k_xzoomY  (uint32_t*palbase
 		y -= 1;
 	}
 }
-INLINE void __attribute__((regparm(4))) draw_tile_m68k_xzoomXY (uint32_t*palbase,uint16_t*tilepos,uint32_t*gfxdata,int zy) { 
+INLINE void __attribute__((regparm(4))) draw_tile_m68k_xzoomXY (uint32_t*palbase,uint16_t*tilepos,uint32_t*gfxdata,int scaley) { 
 	packpix_t pixeldata;
-	uint16_t color, y = 16, scaley = ddaxskip_i[zy];
+	uint16_t color, y = 16;
 	uint16_t* org_tilepos = tilepos;
 	
 	gfxdata += 30;
@@ -500,6 +499,7 @@ void draw_tiles_m68k(uint16_t *bufferpixels) {
 					uint32_t color = tileatr >> 8;
 					uint32_t *palbase = (uint32_t*)&current_pc_pal[16 * color];
 					uint32_t *gfxdata = (uint32_t*)&memory.rom.tiles.p[(tileno % memory.nb_of_tiles)<<7];
+					uint16_t scaley = ddaxskip_i[yskip];
 					const int pitch = PITCH / 2;
 	
 					limit = &line_limit[sy];
@@ -507,15 +507,15 @@ void draw_tiles_m68k(uint16_t *bufferpixels) {
 					if (rzx==16) {
 						if (tileatr & 0x01) {
 							if (tileatr & 0x02)
-								draw_tile_m68k_xyflip_norm(palbase, (unsigned short*) bufferpixels + (sy) * pitch + sx, gfxdata, yskip);
+								draw_tile_m68k_xyflip_norm(palbase, (unsigned short*) bufferpixels + (sy) * pitch + sx, gfxdata, scaley);
 							else
-								draw_tile_m68k_xflip_norm(palbase, (unsigned short*) bufferpixels + (sy) * pitch + sx, gfxdata, yskip);
+								draw_tile_m68k_xflip_norm(palbase, (unsigned short*) bufferpixels + (sy) * pitch + sx, gfxdata, scaley);
 		  
 						} else {
 							if (tileatr & 0x02)
-								draw_tile_m68k_yflip_norm(palbase, (unsigned short*) bufferpixels + (sy) * pitch + sx, gfxdata, yskip); 
+								draw_tile_m68k_yflip_norm(palbase, (unsigned short*) bufferpixels + (sy) * pitch + sx, gfxdata, scaley); 
 							else			
-								draw_tile_m68k_norm(palbase, (unsigned short*) bufferpixels + (sy) * pitch + sx, gfxdata, yskip);
+								draw_tile_m68k_norm(palbase, (unsigned short*) bufferpixels + (sy) * pitch + sx, gfxdata, scaley);
 						}
 					} else {
 						//dda_x_skip_i = ddaxskip_i[zx];
@@ -523,15 +523,15 @@ void draw_tiles_m68k(uint16_t *bufferpixels) {
 		
 						if (!(tileatr & 0x01)) {
 							if (!(tileatr & 0x02)) {
-								draw_tile_m68k_xzoom(palbase, (unsigned short*) bufferpixels + (sy) * pitch + sx, gfxdata, yskip);
+								draw_tile_m68k_xzoom(palbase, (unsigned short*) bufferpixels + (sy) * pitch + sx, gfxdata, scaley);
 							} else {
-								draw_tile_m68k_xzoomY(palbase, (unsigned short*) bufferpixels + (sy) * pitch + sx, gfxdata, yskip);
+								draw_tile_m68k_xzoomY(palbase, (unsigned short*) bufferpixels + (sy) * pitch + sx, gfxdata, scaley);
 							}
 						} else {
 							if (!(tileatr & 0x02)) {
-								draw_tile_m68k_xzoomX(palbase, (unsigned short*) bufferpixels + (sy) * pitch + sx, gfxdata, yskip);
+								draw_tile_m68k_xzoomX(palbase, (unsigned short*) bufferpixels + (sy) * pitch + sx, gfxdata, scaley);
 							} else {
-								draw_tile_m68k_xzoomXY(palbase, (unsigned short*) bufferpixels + (sy) * pitch + sx, gfxdata, yskip);
+								draw_tile_m68k_xzoomXY(palbase, (unsigned short*) bufferpixels + (sy) * pitch + sx, gfxdata, scaley);
 							}
 						}
 					}	

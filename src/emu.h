@@ -35,6 +35,7 @@ typedef signed int	Sint32;
 
 extern int HostCpuClock;
 extern int HostPAL;
+extern int paused;
 
 typedef struct {
    Uint32 x;

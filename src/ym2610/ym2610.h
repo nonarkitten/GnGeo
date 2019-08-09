@@ -36,7 +36,7 @@ int  YM2610Write(int addr, u8 value);
 u8   YM2610Read(int addr);
 int  YM2610TimerOver(int channel);
 
-void YM2610Update(int *p);
+void YM2610Update(void);
 void YM2610Update_stream(int length);
 
 #ifdef SOUND_TEST

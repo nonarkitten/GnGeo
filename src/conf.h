@@ -20,9 +20,16 @@ typedef enum {
 	OPTION_BIOSPATH,
 	OPTION_AGA,
 	OPTION_VSYNC,
+	OPTION_M68K,
+	OPTION_NOAMMX,
+	// OPTION_Z80,
+	// OPTION_NOFPS,
+	// OPTION_DOWNSAMPLE,
+	// OPTION_HIFI,
+	// OPTION_OVERSCAN,
 	OPTION_MAX
 } ARG_t;
 
-extern int arg[OPTION_MAX];
+extern int arg[OPTION_MAX + 1];
 
 #endif

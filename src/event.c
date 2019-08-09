@@ -85,7 +85,8 @@ bool init_event(void) {
     int i;
 
     if(!LowLevelBase) LowLevelBase = (struct Library *) OpenLibrary((UBYTE *)"lowlevel.library",0);
-
+	if(!LowLevelBase) exit(-1);
+	
 //     jmap = calloc(sizeof(JOYMAP),1);
 // 
 //     create_joymap_from_string(1,CF_STR(cf_get_item_by_name("p1control")));
@@ -124,16 +125,19 @@ int KB_P1_COIN = 0x50;
 int KB_P2_SELECT = 0x51;
 int KB_P2_COIN = 0x51;
 
-static struct KeyQuery keys[14] = {
+#define KEY_COUNT 15
+static struct KeyQuery keys[KEY_COUNT] = {
 	{ 0x11, 0 }, { 0x20, 0 }, { 0x21, 0 }, { 0x22, 0 }, // ULDR - WASD
 	{ 0x27, 0 }, { 0x28, 0 }, { 0x18, 0 }, { 0x19, 0 }, // RBGY - KLOP
 	{ 0x40, 0 }, { 0x50, 0 }, { 0x50, 0 },				// P1 Start Select Coin
 				 { 0x51, 0 }, { 0x51, 0 }, 				// P2       Select Coin
-	{ 0x45, 0 }											// Quit
+	{ 0x45, 0 },										// Quit
+	{ 0x42, 0 }                                         // Pause
 };
 
 int handle_event(void) {
     static ULONG previous = 0;
+	UBYTE waspaused;
 	ULONG getkey, joypos;
 	UBYTE port;
 	
@@ -142,10 +146,14 @@ int handle_event(void) {
     if (!LowLevelBase) return 0;
 
 	//getkey = GetKey();
-	QueryKeys(&keys, 14);
+	waspaused = keys[14].kq_Pressed;
+
+	QueryKeys(&keys, KEY_COUNT);
 	joypos = ReadJoyPort (1);
 
 	if(keys[13].kq_Pressed) exit(0);
+
+	if(!waspaused && keys[14].kq_Pressed) paused ^= 1;
 
 	// Controler bits: D C B A Right Left Down Up
 	/* Update P1 */

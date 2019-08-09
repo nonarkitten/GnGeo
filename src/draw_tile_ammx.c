@@ -87,19 +87,24 @@ INLINE void draw_tile_m68k_norm (uint16_t*tilepos asm("a2"), uint32_t*gfxdata as
             if(*limit < 96) {
 				*limit += 1;
 			#endif
-                __asm__ volatile ( "\n"
+ 				__asm__ volatile ( "\n"
                     "\tmove.w  (%0),d0 \n" 
-                    "\tdc.w 	0xfe00,0x1803 \n" // TRANSi-LO D0, E0:E1
                     "\tmove.w  2(%0),d1 \n"
-                    "\tdc.w 	0xfe01,0x1A03 \n" // TRANSi-LO D1, E2:E3
                     "\tmove.w  4(%0),d2 \n" 
-                    "\tdc.w 	0xfe02,0x1C03 \n" // TRANSi-LO D2, E4:E5
                     "\tmove.w  6(%0),d3 \n" 
+
+                    // TRANSi takes 8, 4-bit values from source and uses
+                    // words stored in E8 thru E23 to write the dest
+                    // since this needs 128-bit, this uses a register pair
+                    "\tdc.w 	0xfe00,0x1803 \n" // TRANSi-LO D0, E0:E1
+                    "\tdc.w 	0xfe01,0x1A03 \n" // TRANSi-LO D1, E2:E3
+                    "\tdc.w 	0xfe02,0x1C03 \n" // TRANSi-LO D2, E4:E5
                     "\tdc.w 	0xfe03,0x1E03 \n" // TRANSi-LO D3, E6:E7
+
+                    // STOREM3 will conditionally store each word
                     "\tdc.w 	0xFE12,0x9926 \n" // STOREM3.W E1,E1,(A2)
                     "\tdc.w 	0xFE2A,0xBB26,0x0008 \n" // STOREM3.W E3,E3,(8,A2)
                     "\tdc.w 	0xFE2A,0xDD26,0x0010 \n" // STOREM3.W E5,E5,(16,A2)
-					"\taddql   #1,_limit\n"
                     "\tdc.w 	0xFE2A,0xFF26,0x0018 \n" // STOREM3.W E7,E7,(24,A2)
 
                     : "+a"(gfxdata),"+a"(tilepos)
@@ -256,13 +261,168 @@ INLINE void draw_tile_m68k_xyflip_norm (uint16_t*tilepos asm("a2"), uint32_t*gfx
 	}	
 }
 
-INLINE void draw_tile_m68k_xzoom (uint16_t*tilepos asm("a2"), uint32_t*gfxdata asm("a3"), uint16_t scaley asm("d5")) {
+INLINE void __attribute__((regparm(4))) draw_tile_m68k_xzoom (uint32_t*palbase,uint16_t*tilepos,uint32_t*gfxdata,int scaley) {
+	packpix_t pixeldata;
+	uint16_t color, y = 16;
+	uint16_t* org_tilepos = tilepos;
+	for(;;) {
+		tilepos = org_tilepos;
+		if(scaley & 0x8000) {
+			if(*limit < 96) {
+				*limit += 1;
+			
+				pixeldata.pixel = gfxdata[0]; 
+				if(scalex & 0x8000) { if(pixeldata.p.p0) *tilepos = (uint16_t)palbase[pixeldata.p.p0]; tilepos++; }
+				if(scalex & 0x4000) { if(pixeldata.p.p1) *tilepos = (uint16_t)palbase[pixeldata.p.p1]; tilepos++; }
+				if(scalex & 0x2000) { if(pixeldata.p.p2) *tilepos = (uint16_t)palbase[pixeldata.p.p2]; tilepos++; }
+				if(scalex & 0x1000) { if(pixeldata.p.p3) *tilepos = (uint16_t)palbase[pixeldata.p.p3]; tilepos++; }
+				if(scalex & 0x0800) { if(pixeldata.p.p4) *tilepos = (uint16_t)palbase[pixeldata.p.p4]; tilepos++; }
+				if(scalex & 0x0400) { if(pixeldata.p.p5) *tilepos = (uint16_t)palbase[pixeldata.p.p5]; tilepos++; }
+				if(scalex & 0x0200) { if(pixeldata.p.p6) *tilepos = (uint16_t)palbase[pixeldata.p.p6]; tilepos++; }
+				if(scalex & 0x0100) { if(pixeldata.p.p7) *tilepos = (uint16_t)palbase[pixeldata.p.p7]; tilepos++; }
+ 
+				pixeldata.pixel = gfxdata[1]; 
+				if(scalex & 0x0080) { if(pixeldata.p.p0) *tilepos = (uint16_t)palbase[pixeldata.p.p0]; tilepos++; }
+				if(scalex & 0x0040) { if(pixeldata.p.p1) *tilepos = (uint16_t)palbase[pixeldata.p.p1]; tilepos++; }
+				if(scalex & 0x0020) { if(pixeldata.p.p2) *tilepos = (uint16_t)palbase[pixeldata.p.p2]; tilepos++; }
+				if(scalex & 0x0010) { if(pixeldata.p.p3) *tilepos = (uint16_t)palbase[pixeldata.p.p3]; tilepos++; }
+				if(scalex & 0x0008) { if(pixeldata.p.p4) *tilepos = (uint16_t)palbase[pixeldata.p.p4]; tilepos++; }
+				if(scalex & 0x0004) { if(pixeldata.p.p5) *tilepos = (uint16_t)palbase[pixeldata.p.p5]; tilepos++; }
+				if(scalex & 0x0002) { if(pixeldata.p.p6) *tilepos = (uint16_t)palbase[pixeldata.p.p6]; tilepos++; }
+				if(scalex & 0x0001) { if(pixeldata.p.p7) *tilepos = (uint16_t)palbase[pixeldata.p.p7]; tilepos++; }
+			
+			}
+			org_tilepos += PITCH / 2;
+			limit++;
+		}
+		if(!y) break;
+		scaley <<= 1;
+		gfxdata += 2;
+		y -= 1;
+	}
 }
-INLINE void draw_tile_m68k_xzoomX  (uint16_t*tilepos asm("a2"), uint32_t*gfxdata asm("a3"), uint16_t scaley asm("d5")) { 
+INLINE void __attribute__((regparm(4))) draw_tile_m68k_xzoomX  (uint32_t*palbase,uint16_t*tilepos,uint32_t*gfxdata,int scaley) { 
+	packpix_t pixeldata;
+	uint16_t color, y = 16;
+	uint16_t* org_tilepos = tilepos;
+	for(;;) {
+		tilepos = org_tilepos;
+		if(scaley & 0x8000) {
+			if(*limit < 96) {
+				*limit += 1;
+			
+				pixeldata.pixel = gfxdata[1];
+				if(scalex & 0x0001) { if(pixeldata.p.p7) *tilepos = (uint16_t)palbase[pixeldata.p.p7]; tilepos++; }
+				if(scalex & 0x0002) { if(pixeldata.p.p6) *tilepos = (uint16_t)palbase[pixeldata.p.p6]; tilepos++; }
+				if(scalex & 0x0004) { if(pixeldata.p.p5) *tilepos = (uint16_t)palbase[pixeldata.p.p5]; tilepos++; }
+				if(scalex & 0x0008) { if(pixeldata.p.p4) *tilepos = (uint16_t)palbase[pixeldata.p.p4]; tilepos++; }
+				if(scalex & 0x0010) { if(pixeldata.p.p3) *tilepos = (uint16_t)palbase[pixeldata.p.p3]; tilepos++; }
+				if(scalex & 0x0020) { if(pixeldata.p.p2) *tilepos = (uint16_t)palbase[pixeldata.p.p2]; tilepos++; }
+				if(scalex & 0x0040) { if(pixeldata.p.p1) *tilepos = (uint16_t)palbase[pixeldata.p.p1]; tilepos++; }
+				if(scalex & 0x0080) { if(pixeldata.p.p0) *tilepos = (uint16_t)palbase[pixeldata.p.p0]; tilepos++; }
+
+				pixeldata.pixel = gfxdata[0];
+				if(scalex & 0x0100) { if(pixeldata.p.p7) *tilepos = (uint16_t)palbase[pixeldata.p.p7]; tilepos++; }
+				if(scalex & 0x0200) { if(pixeldata.p.p6) *tilepos = (uint16_t)palbase[pixeldata.p.p6]; tilepos++; }
+				if(scalex & 0x0400) { if(pixeldata.p.p5) *tilepos = (uint16_t)palbase[pixeldata.p.p5]; tilepos++; }
+				if(scalex & 0x0800) { if(pixeldata.p.p4) *tilepos = (uint16_t)palbase[pixeldata.p.p4]; tilepos++; }
+				if(scalex & 0x1000) { if(pixeldata.p.p3) *tilepos = (uint16_t)palbase[pixeldata.p.p3]; tilepos++; }
+				if(scalex & 0x2000) { if(pixeldata.p.p2) *tilepos = (uint16_t)palbase[pixeldata.p.p2]; tilepos++; }
+				if(scalex & 0x4000) { if(pixeldata.p.p1) *tilepos = (uint16_t)palbase[pixeldata.p.p1]; tilepos++; }
+				if(scalex & 0x8000) { if(pixeldata.p.p0) *tilepos = (uint16_t)palbase[pixeldata.p.p0]; tilepos++; }
+			}
+			
+			org_tilepos += PITCH / 2;
+			limit++;
+		}
+		if(!y) break;
+		scaley <<= 1;
+		gfxdata += 2;
+		y -= 1;
+	}
 }
-INLINE void draw_tile_m68k_xzoomY  (uint16_t*tilepos asm("a2"), uint32_t*gfxdata asm("a3"), uint16_t scaley asm("d5")) { 
+INLINE void __attribute__((regparm(4))) draw_tile_m68k_xzoomY  (uint32_t*palbase,uint16_t*tilepos,uint32_t*gfxdata,int scaley) { 
+	packpix_t pixeldata;
+	uint16_t color, y = 16;
+	uint16_t* org_tilepos = tilepos;
+	
+	gfxdata += 30;
+	for(;;) {
+		tilepos = org_tilepos;
+		if(scaley & 0x8000) {
+			if(*limit < 96) {
+				*limit += 1;
+						
+				pixeldata.pixel = gfxdata[0]; 
+				if(scalex & 0x8000) { if(pixeldata.p.p0) *tilepos = (uint16_t)palbase[pixeldata.p.p0]; tilepos++; }
+				if(scalex & 0x4000) { if(pixeldata.p.p1) *tilepos = (uint16_t)palbase[pixeldata.p.p1]; tilepos++; }
+				if(scalex & 0x2000) { if(pixeldata.p.p2) *tilepos = (uint16_t)palbase[pixeldata.p.p2]; tilepos++; }
+				if(scalex & 0x1000) { if(pixeldata.p.p3) *tilepos = (uint16_t)palbase[pixeldata.p.p3]; tilepos++; }
+				if(scalex & 0x0800) { if(pixeldata.p.p4) *tilepos = (uint16_t)palbase[pixeldata.p.p4]; tilepos++; }
+				if(scalex & 0x0400) { if(pixeldata.p.p5) *tilepos = (uint16_t)palbase[pixeldata.p.p5]; tilepos++; }
+				if(scalex & 0x0200) { if(pixeldata.p.p6) *tilepos = (uint16_t)palbase[pixeldata.p.p6]; tilepos++; }
+				if(scalex & 0x0100) { if(pixeldata.p.p7) *tilepos = (uint16_t)palbase[pixeldata.p.p7]; tilepos++; }
+
+				pixeldata.pixel = gfxdata[1];
+				if(scalex & 0x0080) { if(pixeldata.p.p0) *tilepos = (uint16_t)palbase[pixeldata.p.p0]; tilepos++; }
+				if(scalex & 0x0040) { if(pixeldata.p.p1) *tilepos = (uint16_t)palbase[pixeldata.p.p1]; tilepos++; }
+				if(scalex & 0x0020) { if(pixeldata.p.p2) *tilepos = (uint16_t)palbase[pixeldata.p.p2]; tilepos++; }
+				if(scalex & 0x0010) { if(pixeldata.p.p3) *tilepos = (uint16_t)palbase[pixeldata.p.p3]; tilepos++; }
+				if(scalex & 0x0008) { if(pixeldata.p.p4) *tilepos = (uint16_t)palbase[pixeldata.p.p4]; tilepos++; }
+				if(scalex & 0x0004) { if(pixeldata.p.p5) *tilepos = (uint16_t)palbase[pixeldata.p.p5]; tilepos++; }
+				if(scalex & 0x0002) { if(pixeldata.p.p6) *tilepos = (uint16_t)palbase[pixeldata.p.p6]; tilepos++; }
+				if(scalex & 0x0001) { if(pixeldata.p.p7) *tilepos = (uint16_t)palbase[pixeldata.p.p7]; tilepos++; }
+			}
+			
+			org_tilepos += PITCH / 2;
+			limit++;
+		}
+		if(!y) break;
+		scaley <<= 1;
+		gfxdata -= 2;
+		y -= 1;
+	}
 }
-INLINE void draw_tile_m68k_xzoomXY (uint16_t*tilepos asm("a2"), uint32_t*gfxdata asm("a3"), uint16_t scaley asm("d5")) { 
+INLINE void __attribute__((regparm(4))) draw_tile_m68k_xzoomXY (uint32_t*palbase,uint16_t*tilepos,uint32_t*gfxdata,int scaley) { 
+	packpix_t pixeldata;
+	uint16_t color, y = 16;
+	uint16_t* org_tilepos = tilepos;
+	
+	gfxdata += 30;
+	for(;;) {
+		tilepos = org_tilepos;
+		if(scaley & 0x8000) {
+			if(*limit < 96) {
+				*limit += 1;
+						
+				pixeldata.pixel = gfxdata[1];
+				if(scalex & 0x0001) { if(pixeldata.p.p7) *tilepos = (uint16_t)palbase[pixeldata.p.p7]; tilepos++; }
+				if(scalex & 0x0002) { if(pixeldata.p.p6) *tilepos = (uint16_t)palbase[pixeldata.p.p6]; tilepos++; }
+				if(scalex & 0x0004) { if(pixeldata.p.p5) *tilepos = (uint16_t)palbase[pixeldata.p.p5]; tilepos++; }
+				if(scalex & 0x0008) { if(pixeldata.p.p4) *tilepos = (uint16_t)palbase[pixeldata.p.p4]; tilepos++; }
+				if(scalex & 0x0010) { if(pixeldata.p.p3) *tilepos = (uint16_t)palbase[pixeldata.p.p3]; tilepos++; }
+				if(scalex & 0x0020) { if(pixeldata.p.p2) *tilepos = (uint16_t)palbase[pixeldata.p.p2]; tilepos++; }
+				if(scalex & 0x0040) { if(pixeldata.p.p1) *tilepos = (uint16_t)palbase[pixeldata.p.p1]; tilepos++; }
+				if(scalex & 0x0080) { if(pixeldata.p.p0) *tilepos = (uint16_t)palbase[pixeldata.p.p0]; tilepos++; }
+
+				pixeldata.pixel = gfxdata[0];
+				if(scalex & 0x0100) { if(pixeldata.p.p7) *tilepos = (uint16_t)palbase[pixeldata.p.p7]; tilepos++; }
+				if(scalex & 0x0200) { if(pixeldata.p.p6) *tilepos = (uint16_t)palbase[pixeldata.p.p6]; tilepos++; }
+				if(scalex & 0x0400) { if(pixeldata.p.p5) *tilepos = (uint16_t)palbase[pixeldata.p.p5]; tilepos++; }
+				if(scalex & 0x0800) { if(pixeldata.p.p4) *tilepos = (uint16_t)palbase[pixeldata.p.p4]; tilepos++; }
+				if(scalex & 0x1000) { if(pixeldata.p.p3) *tilepos = (uint16_t)palbase[pixeldata.p.p3]; tilepos++; }
+				if(scalex & 0x2000) { if(pixeldata.p.p2) *tilepos = (uint16_t)palbase[pixeldata.p.p2]; tilepos++; }
+				if(scalex & 0x4000) { if(pixeldata.p.p1) *tilepos = (uint16_t)palbase[pixeldata.p.p1]; tilepos++; }
+				if(scalex & 0x8000) { if(pixeldata.p.p0) *tilepos = (uint16_t)palbase[pixeldata.p.p0]; tilepos++; }
+			}
+			org_tilepos += PITCH / 2;
+			limit++;
+		}
+		if(!y) break;
+		scaley <<= 1;
+		gfxdata -= 2;
+		y -= 1;
+	}
 }
 
 void draw_tiles_ammx(unsigned int tileno,int sx,int sy,int zx,int zy, int color,int xflip,int yflip,unsigned char *bmp) {
@@ -402,9 +562,9 @@ void draw_tiles_ammx(unsigned int tileno,int sx,int sy,int zx,int zy, int color,
 					const int pitch = PITCH / 2;
 	
 					limit = &line_limit[sy];
-					handle_palette(palbase);
 	
 					if (rzx==16) {
+						handle_palette(palbase);
 						if (tileatr & 0x01) {
 							if (tileatr & 0x02)
 								draw_tile_m68k_xyflip_norm((unsigned short*) bufferpixels + (sy) * pitch + sx, gfxdata, scaley);
@@ -423,15 +583,15 @@ void draw_tiles_ammx(unsigned int tileno,int sx,int sy,int zx,int zy, int color,
 		
 						if (!(tileatr & 0x01)) {
 							if (!(tileatr & 0x02)) {
-								draw_tile_m68k_xzoom((unsigned short*) bufferpixels + (sy) * pitch + sx, gfxdata, scaley);
+								draw_tile_m68k_xzoom(palbase, (unsigned short*) bufferpixels + (sy) * pitch + sx, gfxdata, scaley);
 							} else {
-								draw_tile_m68k_xzoomY((unsigned short*) bufferpixels + (sy) * pitch + sx, gfxdata, scaley);
+								draw_tile_m68k_xzoomY(palbase, (unsigned short*) bufferpixels + (sy) * pitch + sx, gfxdata, scaley);
 							}
 						} else {
 							if (!(tileatr & 0x02)) {
-								draw_tile_m68k_xzoomX((unsigned short*) bufferpixels + (sy) * pitch + sx, gfxdata, scaley);
+								draw_tile_m68k_xzoomX(palbase, (unsigned short*) bufferpixels + (sy) * pitch + sx, gfxdata, scaley);
 							} else {
-								draw_tile_m68k_xzoomXY((unsigned short*) bufferpixels + (sy) * pitch + sx, gfxdata, scaley);
+								draw_tile_m68k_xzoomXY(palbase, (unsigned short*) bufferpixels + (sy) * pitch + sx, gfxdata, scaley);
 							}
 						}
 					}	
