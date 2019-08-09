@@ -68,6 +68,8 @@ struct Window *_hardwareWindow;
 struct Screen *_hardwareScreen;
 // Hardware double buffering.
 struct ScreenBuffer *_hardwareScreenBuffer[2];
+/* Actual bitmaps */
+static struct BitMap *_bitmaps[2];
 
 static BYTE _currentScreenBuffer;
 static struct MsgPort *_dispPort;
@@ -86,71 +88,87 @@ static void *AllocAligned(ULONG size, ULONG chunk) {
 }
 
 static struct BitMap bm[2];
+static void initAmigaGraphics(void) {	
+    if (firsttime) {
+		ULONG modeId = INVALID_ID;
+			static const UWORD cmodel = PIXFMT_RGB16PC;
+		struct CyberModeNode * cmode;
+		ULONG i, size;
 
-static void initAmigaGraphics(void) {
-  if (firsttime) {
-    ULONG modeId = INVALID_ID;
-    ULONG i, size;
-    struct BitMap *bitmap;
-	extern int AC68080;
+			firsttime = 0;
 
-    firsttime = 0;
+		if(!CyberGfxBase) {
+			CyberGfxBase = (struct Library *) OpenLibrary((UBYTE *)"cybergraphics.library",41L);
+		}
 
-    if (!CyberGfxBase)
-      CyberGfxBase =
-          (struct Library *)OpenLibrary((UBYTE *)"cybergraphics.library", 41L);
+		printf("Opened CyberGraphX library\n");
+		cmode = (CyberModeNode*)AllocCModeListTagList(
+			CYBRMREQ_MaxWidth, 320,
+			CYBRMREQ_MinHeight, 240,
+			CYBRMREQ_MaxHeight, 256,
+			CYBRMREQ_MinDepth, 16,
+			CYBRMREQ_MaxDepth, 16,
+			CYBRMREQ_CModelArray, (ULONG)&cmodel,
+			TAG_DONE
+		);
+		if(cmode && (cmode->ln_Succ == NULL)) modeId = cmode->DisplayID;
+		FreeCModeList(cmode);
 
-    printf("Opened CyberGraphX library\n");
+		printf("ModeID: %08X\n", modeId);
+		if(modeId == INVALID_ID) exit(1);
 
-    //IntuitionBase = (struct IntuitionBase *)OpenLibrary("intuition.library", 37L);
+		if(!(_bitmaps[0] = (struct BitMap *)AllocVec((LONG)sizeof(struct BitMap), MEMF_PUBLIC|MEMF_CLEAR))) exit(1);
+		InitBitMap(_bitmaps[0], 16, 384, 256);
+		_bitmaps[0].Planes[0] = AllocAligned(2 * 384 * 256);
 
-    modeId =
-        BestCModeIDTags(CYBRBIDTG_NominalWidth, 320, CYBRBIDTG_NominalHeight,
-                        240, CYBRBIDTG_Depth, 16, TAG_DONE);
+		if(!(_bitmaps[0] = (struct BitMap *)AllocVec((LONG)sizeof(struct BitMap), MEMF_PUBLIC|MEMF_CLEAR))) exit(1);
+		InitBitMap(_bitmaps[1], 16, 384, 256);
+		_bitmaps[1].Planes[0] = AllocAligned(2 * 384 * 256);
 
-    printf("ModeID: %08X\n", modeId);
+		_hardwareScreen = OpenScreenTags(NULL,
+			SA_Depth, 16,
+			SA_DisplayID, modeId,
+			SA_Width, 384,
+			SA_Height, 256,
+			SA_Type, CUSTOMSCREEN,
+			SA_Overscan, OSCAN_TEXT,
+			SA_ShowTitle, FALSE,
+			SA_Draggable, FALSE,
+			SA_Exclusive, TRUE,
+			SA_AutoScroll, TRUE,
+			SA_BitMap, _bitmaps,
+			TAG_END
+		);
 
-    _hardwareScreen = OpenScreenTags(
-        NULL, SA_Depth, 16, SA_DisplayID, modeId, SA_Width, 384, SA_Height, 256,
-        SA_Type, CUSTOMSCREEN, SA_Overscan, OSCAN_TEXT, SA_ShowTitle, FALSE,
-        SA_Draggable, FALSE, SA_Exclusive, TRUE, SA_AutoScroll, TRUE, TAG_END);
+		_hardwareScreenBuffer[0] = AllocScreenBuffer(_hardwareScreen, NULL, SB_SCREEN_BITMAP);
+		_hardwareScreenBuffer[1] = AllocScreenBuffer(_hardwareScreen, NULL, 0);
 
-    _hardwareScreenBuffer[0] =
-        AllocScreenBuffer(_hardwareScreen, NULL, SB_SCREEN_BITMAP);
-    _hardwareScreenBuffer[1] = AllocScreenBuffer(_hardwareScreen, NULL, 0);
+		printf("Buffer alignments %p, %p\n", 
+			_hardwareScreenBuffer[0]->sb_BitMap->Planes[0], 
+			_hardwareScreenBuffer[1]->sb_BitMap->Planes[0]);
 
-    printf("Buffer alignments %p, %p\n",
-           _hardwareScreenBuffer[0]->sb_BitMap->Planes[0],
-           _hardwareScreenBuffer[1]->sb_BitMap->Planes[0]);
+		_currentScreenBuffer = 1;    		
 
-    // 		_dispPort = CreateMsgPort();
-    // 		_safePort = CreateMsgPort();
-    //
-    // 		for (i = 0; i < 2; i++) {
-    // 			_hardwareScreenBuffer[i]->sb_DBufInfo->dbi_DispMessage.mn_ReplyPort =
-    // _dispPort;
-    // 			_hardwareScreenBuffer[i]->sb_DBufInfo->dbi_SafeMessage.mn_ReplyPort =
-    // _safePort;
-    // 		}
-    //_safeToWrite = _safeToChange = true;
-    _currentScreenBuffer = 1;
+		_hardwareWindow = OpenWindowTags(NULL,
+			WA_Left, 0,
+			WA_Top, 0,
+			WA_Width, 320,
+			WA_Height, 240,
+			WA_Title, NULL,
+			WA_CustomScreen, (ULONG)_hardwareScreen,
+			WA_Backdrop, TRUE,
+			WA_Borderless, TRUE,
+			WA_DragBar, FALSE,
+			WA_Activate, TRUE,
+			WA_SimpleRefresh, TRUE,
+			WA_NoCareRefresh, TRUE, 
+			WA_IDCMP, IDCMP_RAWKEY|IDCMP_MOUSEBUTTONS|IDCMP_MOUSEMOVE,    
+			WA_Flags, WFLG_REPORTMOUSE|WFLG_RMBTRAP,                   		      		 
+			TAG_END
+		);
 
-    _hardwareWindow = OpenWindowTags(
-        NULL, WA_Left, 0, WA_Top, 0, WA_Width, 320, WA_Height, 240, WA_Title,
-        NULL,
-        //			SA_AutoScroll, FALSE,
-        WA_CustomScreen, (ULONG)_hardwareScreen, WA_Backdrop, TRUE,
-        WA_Borderless, TRUE, WA_DragBar, FALSE, WA_Activate, TRUE,
-        WA_SimpleRefresh, TRUE, WA_NoCareRefresh, TRUE, WA_IDCMP,
-        IDCMP_RAWKEY | IDCMP_MOUSEBUTTONS | IDCMP_MOUSEMOVE, WA_Flags,
-        WFLG_REPORTMOUSE | WFLG_RMBTRAP, TAG_END);
-
-    // ScrollLayer(0,_hardwareWindow->RPort->Layer,-32,0);
-    // bufferpixels = _hardwareScreenBuffer[_currentScreenBuffer]->sb_BitMap;
-    printf("Opened screen *Handle: %p\n", _hardwareScreen);
-
-    if (AC68080) *(uint16_t *)0xDFF1F4 = 0x0703;
-  }
+		printf("Opened screen *Handle: %p\n", _hardwareScreen);		
+    }
 }
 
 static void killAmigaGraphics(void) {

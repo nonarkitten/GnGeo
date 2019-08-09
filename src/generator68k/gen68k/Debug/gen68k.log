@@ -1,0 +1,35 @@
+﻿  gen68k.c
+c:\users\renee\git\amiga-gngeo\src\generator68k\gen68k.c(155): warning C4047: 'function': 'int' differs in levels of indirection from 't_iib *'
+c:\users\renee\git\amiga-gngeo\src\generator68k\gen68k.c(155): warning C4024: 'generate_opcode': different types for formal and actual parameter 2
+c:\users\renee\git\amiga-gngeo\src\generator68k\gen68k.c(163): warning C4047: 'function': 'int' differs in levels of indirection from 't_iib *'
+c:\users\renee\git\amiga-gngeo\src\generator68k\gen68k.c(163): warning C4024: 'generate_opcode': different types for formal and actual parameter 2
+c:\users\renee\git\amiga-gngeo\src\generator68k\gen68k.c(172): warning C4047: 'function': 'int' differs in levels of indirection from 't_iib *'
+c:\users\renee\git\amiga-gngeo\src\generator68k\gen68k.c(172): warning C4024: 'generate_opcode': different types for formal and actual parameter 2
+c:\users\renee\git\amiga-gngeo\src\generator68k\gen68k.c(173): warning C4047: 'function': 'int' differs in levels of indirection from 't_iib *'
+c:\users\renee\git\amiga-gngeo\src\generator68k\gen68k.c(173): warning C4024: 'generate_opcode': different types for formal and actual parameter 2
+c:\users\renee\git\amiga-gngeo\src\generator68k\gen68k.c(195): warning C4047: 'function': 'int' differs in levels of indirection from 't_iib *'
+c:\users\renee\git\amiga-gngeo\src\generator68k\gen68k.c(195): warning C4024: 'generate_opcode': different types for formal and actual parameter 2
+c:\users\renee\git\amiga-gngeo\src\generator68k\gen68k.c(196): warning C4047: 'function': 'int' differs in levels of indirection from 't_iib *'
+c:\users\renee\git\amiga-gngeo\src\generator68k\gen68k.c(196): warning C4024: 'generate_opcode': different types for formal and actual parameter 2
+c:\users\renee\git\amiga-gngeo\src\generator68k\gen68k.c(219): warning C4047: 'function': 'int' differs in levels of indirection from 't_iib *'
+c:\users\renee\git\amiga-gngeo\src\generator68k\gen68k.c(219): warning C4024: 'generate_opcode': different types for formal and actual parameter 2
+c:\users\renee\git\amiga-gngeo\src\generator68k\gen68k.c(220): warning C4047: 'function': 'int' differs in levels of indirection from 't_iib *'
+c:\users\renee\git\amiga-gngeo\src\generator68k\gen68k.c(220): warning C4024: 'generate_opcode': different types for formal and actual parameter 2
+c:\users\renee\git\amiga-gngeo\src\generator68k\gen68k.c(144): warning C4101: 'pcinc': unreferenced local variable
+c:\users\renee\git\amiga-gngeo\src\generator68k\gen68k.c(147): warning C4101: 'iib': unreferenced local variable
+c:\users\renee\git\amiga-gngeo\src\generator68k\gen68k.c(144): warning C4101: 'flags': unreferenced local variable
+c:\users\renee\git\amiga-gngeo\src\generator68k\gen68k.c(235): warning C4028: formal parameter 2 different from declaration
+c:\users\renee\git\amiga-gngeo\src\generator68k\gen68k.c(1337): warning C4473: 'sprintf' : not enough arguments passed for format string
+  c:\users\renee\git\amiga-gngeo\src\generator68k\gen68k.c(1337): note: placeholders and their parameters expect 1 variadic arguments, but 0 were provided
+  c:\users\renee\git\amiga-gngeo\src\generator68k\gen68k.c(1337): note: the missing variadic argument 1 is required by format string '%x'
+c:\users\renee\git\amiga-gngeo\src\generator68k\gen68k.c(1522): warning C4473: 'sprintf' : not enough arguments passed for format string
+  c:\users\renee\git\amiga-gngeo\src\generator68k\gen68k.c(1522): note: placeholders and their parameters expect 1 variadic arguments, but 0 were provided
+  c:\users\renee\git\amiga-gngeo\src\generator68k\gen68k.c(1522): note: the missing variadic argument 1 is required by format string '% s'
+c:\users\renee\git\amiga-gngeo\src\generator68k\gen68k.c(1560): warning C4476: 'sprintf' : unknown type field character '(' in format specifier
+c:\users\renee\git\amiga-gngeo\src\generator68k\gen68k.c(1873): warning C4473: 'sprintf' : not enough arguments passed for format string
+  c:\users\renee\git\amiga-gngeo\src\generator68k\gen68k.c(1873): note: placeholders and their parameters expect 1 variadic arguments, but 0 were provided
+  c:\users\renee\git\amiga-gngeo\src\generator68k\gen68k.c(1873): note: the missing variadic argument 1 is required by format string '%x'
+c:\users\renee\git\amiga-gngeo\src\generator68k\gen68k.c(249): warning C4101: 'i': unreferenced local variable
+c:\users\renee\git\amiga-gngeo\src\generator68k\gen68k.c(233): warning C4715: 'generate': not all control paths return a value
+c:\users\renee\git\amiga-gngeo\src\generator68k\gen68k.c(1883): warning C4715: 'generate_opcode_buf': not all control paths return a value
+  gen68k.vcxproj -> C:\Users\Renee\git\Amiga-GnGeo\src\generator68k\\gen68k.exe
