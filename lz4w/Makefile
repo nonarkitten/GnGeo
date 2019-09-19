@@ -1,4 +1,4 @@
-APPNAME	:= ../release/repack
+APPNAME	:= ../libs/liblz4w
 SOURCES	:= $(wildcard *.c *.s)
 OBJECTS	:= $(patsubst %.c,%.o,$(patsubst %.s,%.o,$(SOURCES)))
 
@@ -11,11 +11,9 @@ DEFINES	:= \
 INCLUDE	:= \
 	-IADE\:include.arti -IADE\:include/os-include -I.
 
-LIBS      = -lm -lz-b -llz4w
+LIBS      = -lm -lz-b
 
-LIBPATH	:= \
-	-L"C:/Development/AmiDevCpp/usr/local/amiga/m68k-amigaos/lib" \
-	-L"C:/Development/AmiDevCpp/usr/local/amiga/m68k-amigaos/lib/libb/libnix"
+LIBPATH	:=
 
 # -funit-at-a-time -frename-registers -fweb -fsingle-precision-constant
 FLAGS    := \
@@ -27,11 +25,15 @@ CC       := m68k-amigaos-gcc $(FLAGS) $(INCLUDE) $(DEFINES) -Wall
 AS       := as -m68040
 
 all: $(OBJECTS)
-	$(CC) -s $(OBJECTS) -o $(APPNAME) $(LIBPATH) $(LIBS)
-	shrinkler $(APPNAME) $(APPNAME)
+	$(CC) -c $(OBJECTS) -o $(APPNAME) $(LIBPATH) $(LIBS)
+
+%.o: ../%.c
+	$(CC) $(CCFLAGS) $(DEFINES) $(INCLUDE) -c $< -o $@
+
+%.o: ../%.s
+	$(AS) $< -o $@
 
 clean:
-	delete *.o
+	delete #?
 	delete $(APPNAME)
-	delete /release/$(APPNAME)
 
