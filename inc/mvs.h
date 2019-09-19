@@ -22,8 +22,8 @@
 #define u32 uint32_t
 
 #define ALIGN_DATA
-#ifndef INLINE
-#define INLINE static __inline__
+#ifndef static inline
+#define static inline static __inline__
 #endif
 #define SOUND_SAMPLES 512
 

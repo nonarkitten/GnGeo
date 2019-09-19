@@ -38,7 +38,7 @@ extern int neogeo_fix_bank_type;
 #define REPEAT4(X) REPEAT2(X) REPEAT2(X)
 #define REPEAT8(X) REPEAT4(X) REPEAT4(X)
 
-INLINE static void draw_fix_char_ammx(uint32_t tile, uint32_t color, uint16_t *screen) {
+static inline static void draw_fix_char_ammx(uint32_t tile, uint32_t color, uint16_t *screen) {
 	static uint32_t last_color = -1ul;
 	uint32_t *gfxdata = (uint32_t*)&current_fix[tile << 5];	
 	//int16_t rept = 8;
@@ -128,7 +128,7 @@ INLINE static void draw_fix_char_ammx(uint32_t tile, uint32_t color, uint16_t *s
 
 #define DO_NOT_REORDER() asm volatile("": : :"memory")
 
-INLINE static void draw_fix_char_m68k(uint32_t tile, uint32_t color, uint16_t *screen) {
+static inline static void draw_fix_char_m68k(uint32_t tile, uint32_t color, uint16_t *screen) {
 	uint32_t *palbase = (uint32_t *)&current_pc_pal[color * 16];
     uint32_t *gfxdata = (uint32_t*)&current_fix[tile << 5];	
 	packpix_t pixels0;

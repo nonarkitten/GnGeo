@@ -70,9 +70,8 @@ extern uint32_t neogeo_frame_counter_speed;
 
 void init_video(void);
 
-extern void draw_tile_m68k(uint32_t tileno, int sx, int sy, int zx, int zy, int color, int xflip, int yflip, uint8_t *bmp);
-extern void draw_tile_ammx(uint32_t tileno, int sx, int sy, int zx, int zy, int color, int xflip, int yflip, uint8_t *bmp);
-//extern void draw_tiles_m68k(uint16_t *bufferpixels);
+extern void draw_tiles_m68k(void);
+extern void draw_tiles_ammx(void);
 extern void draw_fix_char(uint8_t *buf, int start, int end);
 
 void draw_screen(void);

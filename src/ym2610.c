@@ -689,7 +689,7 @@ static s32 LFO_PM; /* runtime LFO calculations helper */
 /*********************************************************************************************/
 
 /* status set and IRQ handling */
-INLINE void FM_STATUS_SET(int flag) {
+static inline void FM_STATUS_SET(int flag) {
 	/* set status flag */
 	YM2610.OPN.ST.status |= flag;
 	if (!(YM2610.OPN.ST.irq) && (YM2610.OPN.ST.status & YM2610.OPN.ST.irqmask)) {
@@ -700,7 +700,7 @@ INLINE void FM_STATUS_SET(int flag) {
 }
 
 /* status reset and IRQ handling */
-INLINE void FM_STATUS_RESET(int flag) {
+static inline void FM_STATUS_RESET(int flag) {
 	/* reset status flag */
 	YM2610.OPN.ST.status &= ~flag;
 	if ((YM2610.OPN.ST.irq) && !(YM2610.OPN.ST.status & YM2610.OPN.ST.irqmask)) {
@@ -711,7 +711,7 @@ INLINE void FM_STATUS_RESET(int flag) {
 }
 
 /* IRQ mask set */
-INLINE void FM_IRQMASK_SET(int flag) {
+static inline void FM_IRQMASK_SET(int flag) {
 	YM2610.OPN.ST.irqmask = flag;
 	/* IRQ handling check */
 	FM_STATUS_SET(0);
@@ -719,7 +719,7 @@ INLINE void FM_IRQMASK_SET(int flag) {
 }
 
 /* OPN Mode Register Write */
-INLINE void set_timers(int v) {
+static inline void set_timers(int v) {
 	/* b7 = CSM MODE */
 	/* b6 = 3 slot mode */
 	/* b5 = reset b */
@@ -775,7 +775,7 @@ INLINE void set_timers(int v) {
 }
 
 /* Timer A Overflow */
-INLINE void TimerAOver() {
+static inline void TimerAOver() {
 	/* set status (if enabled) */
 	if (YM2610.OPN.ST.mode & 0x04) FM_STATUS_SET(0x01);
 	/* clear or reload the counter */
@@ -786,7 +786,7 @@ INLINE void TimerAOver() {
 #endif
 }
 /* Timer B Overflow */
-INLINE void TimerBOver() {
+static inline void TimerBOver() {
 	/* set status (if enabled) */
 	if (YM2610.OPN.ST.mode & 0x08) FM_STATUS_SET(0x02);
 	/* clear or reload the counter */
@@ -823,7 +823,7 @@ INLINE void TimerBOver() {
 #endif /* FM_INTERNAL_TIMER */
 
 #if FM_BUSY_FLAG_SUPPORT
-INLINE u8 FM_STATUS_FLAG() {
+static inline u8 FM_STATUS_FLAG() {
 	if (YM2610.OPN.ST.BusyExpire) {
 		if ((YM2610.OPN.ST.BusyExpire - FM_GET_TIME_NOW()) > 0)
 			return YM2610.OPN.ST.status | 0x80; /* with busy */
@@ -832,7 +832,7 @@ INLINE u8 FM_STATUS_FLAG() {
 	}
 	return YM2610.OPN.ST.status;
 }
-INLINE void FM_BUSY_SET(int busyclock) {
+static inline void FM_BUSY_SET(int busyclock) {
 	YM2610.OPN.ST.BusyExpire = FM_GET_TIME_NOW() + (YM2610.OPN.ST.TimerBase * busyclock);
 }
 #define FM_BUSY_CLEAR() (YM2610.OPN.ST.BusyExpire = 0)
@@ -842,7 +842,7 @@ INLINE void FM_BUSY_SET(int busyclock) {
 #define FM_BUSY_CLEAR() {}
 #endif
 
-INLINE void FM_KEYON(FM_CH *CH, int s) {
+static inline void FM_KEYON(FM_CH *CH, int s) {
 	FM_SLOT *SLOT = &CH->SLOT[s];
 	if (!SLOT->key) {
 		SLOT->key = 1;
@@ -851,7 +851,7 @@ INLINE void FM_KEYON(FM_CH *CH, int s) {
 	}
 }
 
-INLINE void FM_KEYOFF(FM_CH *CH, int s) {
+static inline void FM_KEYOFF(FM_CH *CH, int s) {
 	FM_SLOT *SLOT = &CH->SLOT[s];
 	if (SLOT->key) {
 		SLOT->key = 0;
@@ -946,19 +946,19 @@ static void setup_connection(FM_CH *CH, int ch) {
 	CH->connect4 = carrier;
 }
 
-/* set detune & multiple */INLINE void set_det_mul(FM_CH *CH,
+/* set detune & multiple */static inline void set_det_mul(FM_CH *CH,
 		FM_SLOT *SLOT, int v) {
 	SLOT->mul = (v & 0x0f) ? (v & 0x0f) * 2 : 1;
 	SLOT->DT = YM2610.OPN.ST.dt_tab[(v >> 4) & 7];
 	CH->SLOT[SLOT1].Incr = -1;
 }
 
-/* set total level */INLINE void set_tl(FM_CH *CH, FM_SLOT *SLOT, int v) {
+/* set total level */static inline void set_tl(FM_CH *CH, FM_SLOT *SLOT, int v) {
 	SLOT->tl = (v & 0x7f) << (ENV_BITS - 7); /* 7bit TL */
 }
 
 /* set attack rate & key scale  */
-INLINE void set_ar_ksr(FM_CH *CH, FM_SLOT *SLOT, int v) {
+static inline void set_ar_ksr(FM_CH *CH, FM_SLOT *SLOT, int v) {
 	u8 old_KSR = SLOT->KSR;
 
 	SLOT->ar = (v & 0x1f) ? 32 + ((v & 0x1f) << 1) : 0;
@@ -978,7 +978,7 @@ INLINE void set_ar_ksr(FM_CH *CH, FM_SLOT *SLOT, int v) {
 	}
 }
 
-/* set decay rate */INLINE void set_dr(FM_SLOT *SLOT, int v) {
+/* set decay rate */static inline void set_dr(FM_SLOT *SLOT, int v) {
 	SLOT->d1r = (v & 0x1f) ? 32 + ((v & 0x1f) << 1) : 0;
 
 	SLOT->eg_sh_d1r = eg_rate_shift[SLOT->d1r + SLOT->ksr];
@@ -986,14 +986,14 @@ INLINE void set_ar_ksr(FM_CH *CH, FM_SLOT *SLOT, int v) {
 
 }
 
-/* set sustain rate */INLINE void set_sr(FM_SLOT *SLOT, int v) {
+/* set sustain rate */static inline void set_sr(FM_SLOT *SLOT, int v) {
 	SLOT->d2r = (v & 0x1f) ? 32 + ((v & 0x1f) << 1) : 0;
 
 	SLOT->eg_sh_d2r = eg_rate_shift[SLOT->d2r + SLOT->ksr];
 	SLOT->eg_sel_d2r = eg_rate_select[SLOT->d2r + SLOT->ksr];
 }
 
-/* set release rate */INLINE void set_sl_rr(FM_SLOT *SLOT, int v) {
+/* set release rate */static inline void set_sl_rr(FM_SLOT *SLOT, int v) {
 	SLOT->sl = sl_table[v >> 4];
 
 	SLOT->rr = 34 + ((v & 0x0f) << 2);
@@ -1002,7 +1002,7 @@ INLINE void set_ar_ksr(FM_CH *CH, FM_SLOT *SLOT, int v) {
 	SLOT->eg_sel_rr = eg_rate_select[SLOT->rr + SLOT->ksr];
 }
 
-INLINE int op_calc(unsigned phase, unsigned env, int pm) {
+static inline int op_calc(unsigned phase, unsigned env, int pm) {
 	int a1 = (int)(phase >> 16) + pm, d1 = a1 & 511;
 	int d0 = (d1 * (512 - d1)) >> (4 + (env >> 6));
 	return (a1 & 512) ? -d0 : d0;
@@ -1010,7 +1010,7 @@ INLINE int op_calc(unsigned phase, unsigned env, int pm) {
 // 	return (d1 * (((d1 < 0) ? d1 : -d1) + 512)) >> (4 + (env >> 6));
 }
 
-INLINE int op_calc1(unsigned phase, unsigned env, int pm) {
+static inline int op_calc1(unsigned phase, unsigned env, int pm) {
 	int a1 = ((int)phase + pm) >> 16, d1 = a1 & 511;
 	int d0 = (d1 * (512 - d1)) >> (4 + (env >> 6));
 	return (a1 & 512) ? -d0 : d0;
@@ -1019,7 +1019,7 @@ INLINE int op_calc1(unsigned phase, unsigned env, int pm) {
 }
 
 /* advance LFO to next sample */
-INLINE void advance_lfo(void) {
+static inline void advance_lfo(void) {
 	u8 pos;
 	u8 prev_pos;
 
@@ -1061,7 +1061,7 @@ INLINE void advance_lfo(void) {
 	}
 }
 
-INLINE void advance_eg_channel(FM_SLOT *SLOT) {
+static inline void advance_eg_channel(FM_SLOT *SLOT) {
 	uint32_t out;
 	uint32_t swap_flag = 0;
 	uint32_t i = 4; /* four operators per channel */
@@ -1178,7 +1178,7 @@ INLINE void advance_eg_channel(FM_SLOT *SLOT) {
 
 #define volume_calc(OP) ((OP)->vol_out + (AM & (OP)->AMmask))
 
-INLINE void chan_calc(FM_CH *CH) {
+static inline void chan_calc(FM_CH *CH) {
 	uint32_t eg_out;
 
 	u32 AM = LFO_AM >> CH->ams;
@@ -1278,7 +1278,7 @@ INLINE void chan_calc(FM_CH *CH) {
 }
 
 /* update phase increment and envelope generator */
-INLINE void refresh_fc_eg_slot(FM_SLOT *SLOT, int fc, int kc) {
+static inline void refresh_fc_eg_slot(FM_SLOT *SLOT, int fc, int kc) {
 	int ksr;
 
 	/* (frequency) phase increment counter */
@@ -1309,7 +1309,7 @@ INLINE void refresh_fc_eg_slot(FM_SLOT *SLOT, int fc, int kc) {
 }
 
 /* update phase increment counters */
-INLINE void refresh_fc_eg_chan(FM_CH *CH) {
+static inline void refresh_fc_eg_chan(FM_CH *CH) {
 	if (CH->SLOT[SLOT1].Incr == -1) {
 		int fc = CH->fc;
 		int kc = CH->kcode;
@@ -1414,7 +1414,7 @@ static void OPNInitTable(void) {
 }
 
 /* CSM Key Controll */
-INLINE void CSMKeyControll(FM_CH *CH) {
+static inline void CSMKeyControll(FM_CH *CH) {
 	/* this is wrong, atm */
 
 	/* all key on */
@@ -2049,7 +2049,7 @@ static void OPNB_ADPCMA_init_table(void) {
 }
 
 /* ADPCM A (Non control type) : calculate one channel output */
-// INLINE void OPNB_ADPCMA_calc_chan(int c) {
+// static inline void OPNB_ADPCMA_calc_chan(int c) {
 // 	/* end check */
 // 	/* 11-06-2001 JB: corrected comparison. Was > instead of == */
 // 	/* YM2610 checks lower 20 bits only, the 4 MSB bits are sample bank */
@@ -2174,7 +2174,7 @@ static void patch_bufferA(int c) {
 }
 
 /* ADPCM type A Write */
-INLINE void OPNB_ADPCMA_write(int r, int v) {
+static inline void OPNB_ADPCMA_write(int r, int v) {
 	ADPCMA *adpcma = YM2610.adpcma;
 	u8 c = r & 0x07;
 
@@ -2557,14 +2557,14 @@ static void OPNB_ADPCMB_write(ADPCMB *adpcmb, int r, int v) {
 	}
 }
 
-// INLINE void adpcmb_decode(uint8_t code) {
+// static inline void adpcmb_decode(uint8_t code) {
 // 	acc += adpcmb_decode_table1[ code ] * decstep / 8;
 // 	decstep = decstep * adpcmb_decode_table2[ code ] / 64;
 // 
 // 	//acc = (acc << 16) >> 16;
 // }
 
-// INLINE void OPNB_ADPCMB_CALC(void) {
+// static inline void OPNB_ADPCMB_CALC(void) {
 // 	// this is called by the main loop ONLY when we need a new sample; note that
 // 	// since the Amiga samples at 27Khz we have to also down-sample 2:1
 // 	register int32_t acc, decstep, a, b;
@@ -2965,7 +2965,7 @@ static int chA = 0;
 
 #define mixChannel(P,O) do { int16_t __o = (O); lt += P[0] & __o; rt += P[1] & __o; ct += P[2] & __o; } while(0)
 	
-// INLINE void mixChannel(s32 pan[3], int out) {
+// static inline void mixChannel(s32 pan[3], int out) {
 // //	uint16_t l = pan[0], r = pan[1];
 // //	if(l == r) out >> 1;
 // 	lt += pan[0] & out;

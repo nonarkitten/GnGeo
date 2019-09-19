@@ -388,70 +388,70 @@ static void take_interrupt(void);
 typedef void (*funcptr)(void);
 
 #define PROTOTYPES(tablename,prefix) \
-	INLINE void prefix##_00(void); INLINE void prefix##_01(void); INLINE void prefix##_02(void); INLINE void prefix##_03(void); \
-	INLINE void prefix##_04(void); INLINE void prefix##_05(void); INLINE void prefix##_06(void); INLINE void prefix##_07(void); \
-	INLINE void prefix##_08(void); INLINE void prefix##_09(void); INLINE void prefix##_0a(void); INLINE void prefix##_0b(void); \
-	INLINE void prefix##_0c(void); INLINE void prefix##_0d(void); INLINE void prefix##_0e(void); INLINE void prefix##_0f(void); \
-	INLINE void prefix##_10(void); INLINE void prefix##_11(void); INLINE void prefix##_12(void); INLINE void prefix##_13(void); \
-	INLINE void prefix##_14(void); INLINE void prefix##_15(void); INLINE void prefix##_16(void); INLINE void prefix##_17(void); \
-	INLINE void prefix##_18(void); INLINE void prefix##_19(void); INLINE void prefix##_1a(void); INLINE void prefix##_1b(void); \
-	INLINE void prefix##_1c(void); INLINE void prefix##_1d(void); INLINE void prefix##_1e(void); INLINE void prefix##_1f(void); \
-	INLINE void prefix##_20(void); INLINE void prefix##_21(void); INLINE void prefix##_22(void); INLINE void prefix##_23(void); \
-	INLINE void prefix##_24(void); INLINE void prefix##_25(void); INLINE void prefix##_26(void); INLINE void prefix##_27(void); \
-	INLINE void prefix##_28(void); INLINE void prefix##_29(void); INLINE void prefix##_2a(void); INLINE void prefix##_2b(void); \
-	INLINE void prefix##_2c(void); INLINE void prefix##_2d(void); INLINE void prefix##_2e(void); INLINE void prefix##_2f(void); \
-	INLINE void prefix##_30(void); INLINE void prefix##_31(void); INLINE void prefix##_32(void); INLINE void prefix##_33(void); \
-	INLINE void prefix##_34(void); INLINE void prefix##_35(void); INLINE void prefix##_36(void); INLINE void prefix##_37(void); \
-	INLINE void prefix##_38(void); INLINE void prefix##_39(void); INLINE void prefix##_3a(void); INLINE void prefix##_3b(void); \
-	INLINE void prefix##_3c(void); INLINE void prefix##_3d(void); INLINE void prefix##_3e(void); INLINE void prefix##_3f(void); \
-	INLINE void prefix##_40(void); INLINE void prefix##_41(void); INLINE void prefix##_42(void); INLINE void prefix##_43(void); \
-	INLINE void prefix##_44(void); INLINE void prefix##_45(void); INLINE void prefix##_46(void); INLINE void prefix##_47(void); \
-	INLINE void prefix##_48(void); INLINE void prefix##_49(void); INLINE void prefix##_4a(void); INLINE void prefix##_4b(void); \
-	INLINE void prefix##_4c(void); INLINE void prefix##_4d(void); INLINE void prefix##_4e(void); INLINE void prefix##_4f(void); \
-	INLINE void prefix##_50(void); INLINE void prefix##_51(void); INLINE void prefix##_52(void); INLINE void prefix##_53(void); \
-	INLINE void prefix##_54(void); INLINE void prefix##_55(void); INLINE void prefix##_56(void); INLINE void prefix##_57(void); \
-	INLINE void prefix##_58(void); INLINE void prefix##_59(void); INLINE void prefix##_5a(void); INLINE void prefix##_5b(void); \
-	INLINE void prefix##_5c(void); INLINE void prefix##_5d(void); INLINE void prefix##_5e(void); INLINE void prefix##_5f(void); \
-	INLINE void prefix##_60(void); INLINE void prefix##_61(void); INLINE void prefix##_62(void); INLINE void prefix##_63(void); \
-	INLINE void prefix##_64(void); INLINE void prefix##_65(void); INLINE void prefix##_66(void); INLINE void prefix##_67(void); \
-	INLINE void prefix##_68(void); INLINE void prefix##_69(void); INLINE void prefix##_6a(void); INLINE void prefix##_6b(void); \
-	INLINE void prefix##_6c(void); INLINE void prefix##_6d(void); INLINE void prefix##_6e(void); INLINE void prefix##_6f(void); \
-	INLINE void prefix##_70(void); INLINE void prefix##_71(void); INLINE void prefix##_72(void); INLINE void prefix##_73(void); \
-	INLINE void prefix##_74(void); INLINE void prefix##_75(void); INLINE void prefix##_76(void); INLINE void prefix##_77(void); \
-	INLINE void prefix##_78(void); INLINE void prefix##_79(void); INLINE void prefix##_7a(void); INLINE void prefix##_7b(void); \
-	INLINE void prefix##_7c(void); INLINE void prefix##_7d(void); INLINE void prefix##_7e(void); INLINE void prefix##_7f(void); \
-	INLINE void prefix##_80(void); INLINE void prefix##_81(void); INLINE void prefix##_82(void); INLINE void prefix##_83(void); \
-	INLINE void prefix##_84(void); INLINE void prefix##_85(void); INLINE void prefix##_86(void); INLINE void prefix##_87(void); \
-	INLINE void prefix##_88(void); INLINE void prefix##_89(void); INLINE void prefix##_8a(void); INLINE void prefix##_8b(void); \
-	INLINE void prefix##_8c(void); INLINE void prefix##_8d(void); INLINE void prefix##_8e(void); INLINE void prefix##_8f(void); \
-	INLINE void prefix##_90(void); INLINE void prefix##_91(void); INLINE void prefix##_92(void); INLINE void prefix##_93(void); \
-	INLINE void prefix##_94(void); INLINE void prefix##_95(void); INLINE void prefix##_96(void); INLINE void prefix##_97(void); \
-	INLINE void prefix##_98(void); INLINE void prefix##_99(void); INLINE void prefix##_9a(void); INLINE void prefix##_9b(void); \
-	INLINE void prefix##_9c(void); INLINE void prefix##_9d(void); INLINE void prefix##_9e(void); INLINE void prefix##_9f(void); \
-	INLINE void prefix##_a0(void); INLINE void prefix##_a1(void); INLINE void prefix##_a2(void); INLINE void prefix##_a3(void); \
-	INLINE void prefix##_a4(void); INLINE void prefix##_a5(void); INLINE void prefix##_a6(void); INLINE void prefix##_a7(void); \
-	INLINE void prefix##_a8(void); INLINE void prefix##_a9(void); INLINE void prefix##_aa(void); INLINE void prefix##_ab(void); \
-	INLINE void prefix##_ac(void); INLINE void prefix##_ad(void); INLINE void prefix##_ae(void); INLINE void prefix##_af(void); \
-	INLINE void prefix##_b0(void); INLINE void prefix##_b1(void); INLINE void prefix##_b2(void); INLINE void prefix##_b3(void); \
-	INLINE void prefix##_b4(void); INLINE void prefix##_b5(void); INLINE void prefix##_b6(void); INLINE void prefix##_b7(void); \
-	INLINE void prefix##_b8(void); INLINE void prefix##_b9(void); INLINE void prefix##_ba(void); INLINE void prefix##_bb(void); \
-	INLINE void prefix##_bc(void); INLINE void prefix##_bd(void); INLINE void prefix##_be(void); INLINE void prefix##_bf(void); \
-	INLINE void prefix##_c0(void); INLINE void prefix##_c1(void); INLINE void prefix##_c2(void); INLINE void prefix##_c3(void); \
-	INLINE void prefix##_c4(void); INLINE void prefix##_c5(void); INLINE void prefix##_c6(void); INLINE void prefix##_c7(void); \
-	INLINE void prefix##_c8(void); INLINE void prefix##_c9(void); INLINE void prefix##_ca(void); INLINE void prefix##_cb(void); \
-	INLINE void prefix##_cc(void); INLINE void prefix##_cd(void); INLINE void prefix##_ce(void); INLINE void prefix##_cf(void); \
-	INLINE void prefix##_d0(void); INLINE void prefix##_d1(void); INLINE void prefix##_d2(void); INLINE void prefix##_d3(void); \
-	INLINE void prefix##_d4(void); INLINE void prefix##_d5(void); INLINE void prefix##_d6(void); INLINE void prefix##_d7(void); \
-	INLINE void prefix##_d8(void); INLINE void prefix##_d9(void); INLINE void prefix##_da(void); INLINE void prefix##_db(void); \
-	INLINE void prefix##_dc(void); INLINE void prefix##_dd(void); INLINE void prefix##_de(void); INLINE void prefix##_df(void); \
-	INLINE void prefix##_e0(void); INLINE void prefix##_e1(void); INLINE void prefix##_e2(void); INLINE void prefix##_e3(void); \
-	INLINE void prefix##_e4(void); INLINE void prefix##_e5(void); INLINE void prefix##_e6(void); INLINE void prefix##_e7(void); \
-	INLINE void prefix##_e8(void); INLINE void prefix##_e9(void); INLINE void prefix##_ea(void); INLINE void prefix##_eb(void); \
-	INLINE void prefix##_ec(void); INLINE void prefix##_ed(void); INLINE void prefix##_ee(void); INLINE void prefix##_ef(void); \
-	INLINE void prefix##_f0(void); INLINE void prefix##_f1(void); INLINE void prefix##_f2(void); INLINE void prefix##_f3(void); \
-	INLINE void prefix##_f4(void); INLINE void prefix##_f5(void); INLINE void prefix##_f6(void); INLINE void prefix##_f7(void); \
-	INLINE void prefix##_f8(void); INLINE void prefix##_f9(void); INLINE void prefix##_fa(void); INLINE void prefix##_fb(void); \
-	INLINE void prefix##_fc(void); INLINE void prefix##_fd(void); INLINE void prefix##_fe(void); INLINE void prefix##_ff(void); \
+	static inline void prefix##_00(void); static inline void prefix##_01(void); static inline void prefix##_02(void); static inline void prefix##_03(void); \
+	static inline void prefix##_04(void); static inline void prefix##_05(void); static inline void prefix##_06(void); static inline void prefix##_07(void); \
+	static inline void prefix##_08(void); static inline void prefix##_09(void); static inline void prefix##_0a(void); static inline void prefix##_0b(void); \
+	static inline void prefix##_0c(void); static inline void prefix##_0d(void); static inline void prefix##_0e(void); static inline void prefix##_0f(void); \
+	static inline void prefix##_10(void); static inline void prefix##_11(void); static inline void prefix##_12(void); static inline void prefix##_13(void); \
+	static inline void prefix##_14(void); static inline void prefix##_15(void); static inline void prefix##_16(void); static inline void prefix##_17(void); \
+	static inline void prefix##_18(void); static inline void prefix##_19(void); static inline void prefix##_1a(void); static inline void prefix##_1b(void); \
+	static inline void prefix##_1c(void); static inline void prefix##_1d(void); static inline void prefix##_1e(void); static inline void prefix##_1f(void); \
+	static inline void prefix##_20(void); static inline void prefix##_21(void); static inline void prefix##_22(void); static inline void prefix##_23(void); \
+	static inline void prefix##_24(void); static inline void prefix##_25(void); static inline void prefix##_26(void); static inline void prefix##_27(void); \
+	static inline void prefix##_28(void); static inline void prefix##_29(void); static inline void prefix##_2a(void); static inline void prefix##_2b(void); \
+	static inline void prefix##_2c(void); static inline void prefix##_2d(void); static inline void prefix##_2e(void); static inline void prefix##_2f(void); \
+	static inline void prefix##_30(void); static inline void prefix##_31(void); static inline void prefix##_32(void); static inline void prefix##_33(void); \
+	static inline void prefix##_34(void); static inline void prefix##_35(void); static inline void prefix##_36(void); static inline void prefix##_37(void); \
+	static inline void prefix##_38(void); static inline void prefix##_39(void); static inline void prefix##_3a(void); static inline void prefix##_3b(void); \
+	static inline void prefix##_3c(void); static inline void prefix##_3d(void); static inline void prefix##_3e(void); static inline void prefix##_3f(void); \
+	static inline void prefix##_40(void); static inline void prefix##_41(void); static inline void prefix##_42(void); static inline void prefix##_43(void); \
+	static inline void prefix##_44(void); static inline void prefix##_45(void); static inline void prefix##_46(void); static inline void prefix##_47(void); \
+	static inline void prefix##_48(void); static inline void prefix##_49(void); static inline void prefix##_4a(void); static inline void prefix##_4b(void); \
+	static inline void prefix##_4c(void); static inline void prefix##_4d(void); static inline void prefix##_4e(void); static inline void prefix##_4f(void); \
+	static inline void prefix##_50(void); static inline void prefix##_51(void); static inline void prefix##_52(void); static inline void prefix##_53(void); \
+	static inline void prefix##_54(void); static inline void prefix##_55(void); static inline void prefix##_56(void); static inline void prefix##_57(void); \
+	static inline void prefix##_58(void); static inline void prefix##_59(void); static inline void prefix##_5a(void); static inline void prefix##_5b(void); \
+	static inline void prefix##_5c(void); static inline void prefix##_5d(void); static inline void prefix##_5e(void); static inline void prefix##_5f(void); \
+	static inline void prefix##_60(void); static inline void prefix##_61(void); static inline void prefix##_62(void); static inline void prefix##_63(void); \
+	static inline void prefix##_64(void); static inline void prefix##_65(void); static inline void prefix##_66(void); static inline void prefix##_67(void); \
+	static inline void prefix##_68(void); static inline void prefix##_69(void); static inline void prefix##_6a(void); static inline void prefix##_6b(void); \
+	static inline void prefix##_6c(void); static inline void prefix##_6d(void); static inline void prefix##_6e(void); static inline void prefix##_6f(void); \
+	static inline void prefix##_70(void); static inline void prefix##_71(void); static inline void prefix##_72(void); static inline void prefix##_73(void); \
+	static inline void prefix##_74(void); static inline void prefix##_75(void); static inline void prefix##_76(void); static inline void prefix##_77(void); \
+	static inline void prefix##_78(void); static inline void prefix##_79(void); static inline void prefix##_7a(void); static inline void prefix##_7b(void); \
+	static inline void prefix##_7c(void); static inline void prefix##_7d(void); static inline void prefix##_7e(void); static inline void prefix##_7f(void); \
+	static inline void prefix##_80(void); static inline void prefix##_81(void); static inline void prefix##_82(void); static inline void prefix##_83(void); \
+	static inline void prefix##_84(void); static inline void prefix##_85(void); static inline void prefix##_86(void); static inline void prefix##_87(void); \
+	static inline void prefix##_88(void); static inline void prefix##_89(void); static inline void prefix##_8a(void); static inline void prefix##_8b(void); \
+	static inline void prefix##_8c(void); static inline void prefix##_8d(void); static inline void prefix##_8e(void); static inline void prefix##_8f(void); \
+	static inline void prefix##_90(void); static inline void prefix##_91(void); static inline void prefix##_92(void); static inline void prefix##_93(void); \
+	static inline void prefix##_94(void); static inline void prefix##_95(void); static inline void prefix##_96(void); static inline void prefix##_97(void); \
+	static inline void prefix##_98(void); static inline void prefix##_99(void); static inline void prefix##_9a(void); static inline void prefix##_9b(void); \
+	static inline void prefix##_9c(void); static inline void prefix##_9d(void); static inline void prefix##_9e(void); static inline void prefix##_9f(void); \
+	static inline void prefix##_a0(void); static inline void prefix##_a1(void); static inline void prefix##_a2(void); static inline void prefix##_a3(void); \
+	static inline void prefix##_a4(void); static inline void prefix##_a5(void); static inline void prefix##_a6(void); static inline void prefix##_a7(void); \
+	static inline void prefix##_a8(void); static inline void prefix##_a9(void); static inline void prefix##_aa(void); static inline void prefix##_ab(void); \
+	static inline void prefix##_ac(void); static inline void prefix##_ad(void); static inline void prefix##_ae(void); static inline void prefix##_af(void); \
+	static inline void prefix##_b0(void); static inline void prefix##_b1(void); static inline void prefix##_b2(void); static inline void prefix##_b3(void); \
+	static inline void prefix##_b4(void); static inline void prefix##_b5(void); static inline void prefix##_b6(void); static inline void prefix##_b7(void); \
+	static inline void prefix##_b8(void); static inline void prefix##_b9(void); static inline void prefix##_ba(void); static inline void prefix##_bb(void); \
+	static inline void prefix##_bc(void); static inline void prefix##_bd(void); static inline void prefix##_be(void); static inline void prefix##_bf(void); \
+	static inline void prefix##_c0(void); static inline void prefix##_c1(void); static inline void prefix##_c2(void); static inline void prefix##_c3(void); \
+	static inline void prefix##_c4(void); static inline void prefix##_c5(void); static inline void prefix##_c6(void); static inline void prefix##_c7(void); \
+	static inline void prefix##_c8(void); static inline void prefix##_c9(void); static inline void prefix##_ca(void); static inline void prefix##_cb(void); \
+	static inline void prefix##_cc(void); static inline void prefix##_cd(void); static inline void prefix##_ce(void); static inline void prefix##_cf(void); \
+	static inline void prefix##_d0(void); static inline void prefix##_d1(void); static inline void prefix##_d2(void); static inline void prefix##_d3(void); \
+	static inline void prefix##_d4(void); static inline void prefix##_d5(void); static inline void prefix##_d6(void); static inline void prefix##_d7(void); \
+	static inline void prefix##_d8(void); static inline void prefix##_d9(void); static inline void prefix##_da(void); static inline void prefix##_db(void); \
+	static inline void prefix##_dc(void); static inline void prefix##_dd(void); static inline void prefix##_de(void); static inline void prefix##_df(void); \
+	static inline void prefix##_e0(void); static inline void prefix##_e1(void); static inline void prefix##_e2(void); static inline void prefix##_e3(void); \
+	static inline void prefix##_e4(void); static inline void prefix##_e5(void); static inline void prefix##_e6(void); static inline void prefix##_e7(void); \
+	static inline void prefix##_e8(void); static inline void prefix##_e9(void); static inline void prefix##_ea(void); static inline void prefix##_eb(void); \
+	static inline void prefix##_ec(void); static inline void prefix##_ed(void); static inline void prefix##_ee(void); static inline void prefix##_ef(void); \
+	static inline void prefix##_f0(void); static inline void prefix##_f1(void); static inline void prefix##_f2(void); static inline void prefix##_f3(void); \
+	static inline void prefix##_f4(void); static inline void prefix##_f5(void); static inline void prefix##_f6(void); static inline void prefix##_f7(void); \
+	static inline void prefix##_f8(void); static inline void prefix##_f9(void); static inline void prefix##_fa(void); static inline void prefix##_fb(void); \
+	static inline void prefix##_fc(void); static inline void prefix##_fd(void); static inline void prefix##_fe(void); static inline void prefix##_ff(void); \
 static const funcptr tablename[0x100] = {	\
 	prefix##_00,prefix##_01,prefix##_02,prefix##_03,prefix##_04,prefix##_05,prefix##_06,prefix##_07, \
 	prefix##_08,prefix##_09,prefix##_0a,prefix##_0b,prefix##_0c,prefix##_0d,prefix##_0e,prefix##_0f, \
@@ -498,7 +498,7 @@ PROTOTYPES(Z80xycb,xycb);
 /* Burn an odd amount of cycles, that is instructions taking something		*/
 /* different from 4 T-states per opcode (and R increment)					*/
 /****************************************************************************/
-INLINE void BURNODD(int cycles, int opcodes, int cyclesum)
+static inline void BURNODD(int cycles, int opcodes, int cyclesum)
 {
 	if( cycles > 0 )
 	{
@@ -510,7 +510,7 @@ INLINE void BURNODD(int cycles, int opcodes, int cyclesum)
 /***************************************************************
  * define an opcode function
  ***************************************************************/
-#define OP(prefix,opcode)  INLINE void prefix##_##opcode(void)
+#define OP(prefix,opcode)  static inline void prefix##_##opcode(void)
 
 /***************************************************************
  * adjust cycle count by n T-states
@@ -528,7 +528,7 @@ INLINE void BURNODD(int cycles, int opcodes, int cyclesum)
 }
 
 #if BIG_SWITCH
-#define EXEC_INLINE(prefix,opcode)								\
+#define EXEC_static inline(prefix,opcode)								\
 {																\
 	unsigned op = opcode;										\
 	CC(prefix,op);												\
@@ -601,7 +601,7 @@ INLINE void BURNODD(int cycles, int opcodes, int cyclesum)
 	}																																	\
 }
 #else
-#define EXEC_INLINE EXEC
+#define EXEC_static inline EXEC
 #endif
 
 
@@ -654,7 +654,7 @@ INLINE void BURNODD(int cycles, int opcodes, int cyclesum)
 /***************************************************************
  * Read a word from given memory location
  ***************************************************************/
-INLINE void RM16( uint32_t addr, PAIR *r )
+static inline void RM16( uint32_t addr, PAIR *r )
 {
 	r->b.l = RM(addr);
 	r->b.h = RM((addr+1)&0xffff);
@@ -670,7 +670,7 @@ INLINE void RM16( uint32_t addr, PAIR *r )
 /***************************************************************
  * Write a word to given memory location
  ***************************************************************/
-INLINE void WM16( uint32_t addr, PAIR *r )
+static inline void WM16( uint32_t addr, PAIR *r )
 {
 	WM(addr,r->b.l);
 	WM((addr+1)&0xffff,r->b.h);
@@ -681,7 +681,7 @@ INLINE void WM16( uint32_t addr, PAIR *r )
  * reading opcodes. In case of system with memory mapped I/O,
  * this function can be used to greatly speed up emulation
  ***************************************************************/
-INLINE uint8_t ROP(void)
+static inline uint8_t ROP(void)
 {
 	unsigned pc = _PCD;
 #ifdef Z80_MSX
@@ -697,7 +697,7 @@ INLINE uint8_t ROP(void)
  * support systems that use different encoding mechanisms for
  * opcodes and opcode arguments
  ***************************************************************/
-INLINE uint8_t ARG(void)
+static inline uint8_t ARG(void)
 {
 	unsigned pc = _PCD;
 #ifdef Z80_MSX
@@ -707,7 +707,7 @@ INLINE uint8_t ARG(void)
 	return RM(pc);
 }
 
-INLINE uint32_t ARG16(void)
+static inline uint32_t ARG16(void)
 {
 #ifdef Z80_MSX
 	unsigned ret = ARG();
@@ -964,7 +964,7 @@ INLINE uint32_t ARG16(void)
 /***************************************************************
  * INC	r8
  ***************************************************************/
-INLINE uint8_t INC(uint8_t value)
+static inline uint8_t INC(uint8_t value)
 {
 	uint8_t res = value + 1;
 	_F = (_F & CF) | SZHV_inc[res];
@@ -974,7 +974,7 @@ INLINE uint8_t INC(uint8_t value)
 /***************************************************************
  * DEC	r8
  ***************************************************************/
-INLINE uint8_t DEC(uint8_t value)
+static inline uint8_t DEC(uint8_t value)
 {
 	uint8_t res = value - 1;
 	_F = (_F & CF) | SZHV_dec[res];
@@ -1602,7 +1602,7 @@ asm (															\
 /***************************************************************
  * RLC	r8
  ***************************************************************/
-INLINE uint8_t RLC(uint8_t value)
+static inline uint8_t RLC(uint8_t value)
 {
 	unsigned res = value;
 	unsigned c = (res & 0x80) ? CF : 0;
@@ -1614,7 +1614,7 @@ INLINE uint8_t RLC(uint8_t value)
 /***************************************************************
  * RRC	r8
  ***************************************************************/
-INLINE uint8_t RRC(uint8_t value)
+static inline uint8_t RRC(uint8_t value)
 {
 	unsigned res = value;
 	unsigned c = (res & 0x01) ? CF : 0;
@@ -1626,7 +1626,7 @@ INLINE uint8_t RRC(uint8_t value)
 /***************************************************************
  * RL	r8
  ***************************************************************/
-INLINE uint8_t RL(uint8_t value)
+static inline uint8_t RL(uint8_t value)
 {
 	unsigned res = value;
 	unsigned c = (res & 0x80) ? CF : 0;
@@ -1638,7 +1638,7 @@ INLINE uint8_t RL(uint8_t value)
 /***************************************************************
  * RR	r8
  ***************************************************************/
-INLINE uint8_t RR(uint8_t value)
+static inline uint8_t RR(uint8_t value)
 {
 	unsigned res = value;
 	unsigned c = (res & 0x01) ? CF : 0;
@@ -1650,7 +1650,7 @@ INLINE uint8_t RR(uint8_t value)
 /***************************************************************
  * SLA	r8
  ***************************************************************/
-INLINE uint8_t SLA(uint8_t value)
+static inline uint8_t SLA(uint8_t value)
 {
 	unsigned res = value;
 	unsigned c = (res & 0x80) ? CF : 0;
@@ -1662,7 +1662,7 @@ INLINE uint8_t SLA(uint8_t value)
 /***************************************************************
  * SRA	r8
  ***************************************************************/
-INLINE uint8_t SRA(uint8_t value)
+static inline uint8_t SRA(uint8_t value)
 {
 	unsigned res = value;
 	unsigned c = (res & 0x01) ? CF : 0;
@@ -1674,7 +1674,7 @@ INLINE uint8_t SRA(uint8_t value)
 /***************************************************************
  * SLL	r8
  ***************************************************************/
-INLINE uint8_t SLL(uint8_t value)
+static inline uint8_t SLL(uint8_t value)
 {
 	unsigned res = value;
 	unsigned c = (res & 0x80) ? CF : 0;
@@ -1686,7 +1686,7 @@ INLINE uint8_t SLL(uint8_t value)
 /***************************************************************
  * SRL	r8
  ***************************************************************/
-INLINE uint8_t SRL(uint8_t value)
+static inline uint8_t SRL(uint8_t value)
 {
 	unsigned res = value;
 	unsigned c = (res & 0x01) ? CF : 0;
@@ -1714,7 +1714,7 @@ INLINE uint8_t SRL(uint8_t value)
 /***************************************************************
  * RES	bit,r8
  ***************************************************************/
-INLINE uint8_t RES(uint8_t bit, uint8_t value)
+static inline uint8_t RES(uint8_t bit, uint8_t value)
 {
 	return value & ~(1<<bit);
 }
@@ -1722,7 +1722,7 @@ INLINE uint8_t RES(uint8_t bit, uint8_t value)
 /***************************************************************
  * SET	bit,r8
  ***************************************************************/
-INLINE uint8_t SET(uint8_t bit, uint8_t value)
+static inline uint8_t SET(uint8_t bit, uint8_t value)
 {
 	return value | (1<<bit);
 }
@@ -4243,7 +4243,7 @@ int z80_execute(int cycles)
 		_PPC = _PCD;
 		//CALL_MAME_DEBUG;
 		_R++;
-		EXEC_INLINE(op,ROP());
+		EXEC_static inline(op,ROP());
 	} while( Z80_ICOUNT > 0 );
 
 	Z80_ICOUNT -= Z80.extra_cycles;

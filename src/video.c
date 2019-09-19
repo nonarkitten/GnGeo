@@ -90,8 +90,8 @@ static uint8_t dr, dg, db, sr, sg, sb;
 // #define BLEND16_50(a,b) ((((a)&0xf7de)>>1)+(((b)&0xf7de)>>1))
 // #define BLEND16_25(a,b) alpha_blend(a,b,63)
 
-//#define INLINE static inline
-#define INLINE extern
+//#define static inline static inline
+#define static inline extern
 
 char dda_y_skip[17];
 uint32_t dda_y_skip_i;
@@ -173,10 +173,8 @@ void draw_screen(void) {
 		}
 
 		/* Draw sprites */
-		if(AC68080) 
-			draw_tiles_ammx(bufferpixels);
-		else
-			draw_tiles_m68k(bufferpixels);
+		if(AC68080) draw_tiles_ammx();
+		else draw_tiles_m68k();
 		
 		/* Draw fix layer */
 		draw_fix_char(bufferpixels, 0, 0); 

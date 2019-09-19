@@ -37,7 +37,7 @@ static uint32_t scalex;
 
 #define DO_NOT_REORDER() asm volatile("": : :"memory")
 
-INLINE void __attribute__((regparm(4))) draw_tile_m68k_norm (uint32_t*palbase,uint16_t*screen,uint32_t*gfxdata,int scaley) {
+static inline void  draw_tile_m68k_norm (uint32_t*palbase,uint16_t*screen,uint32_t*gfxdata,int scaley) {
 	packpix_t pixels0;
 	int16_t y = 16;
     uint32_t pixel1, pixel2;
@@ -78,7 +78,7 @@ INLINE void __attribute__((regparm(4))) draw_tile_m68k_norm (uint32_t*palbase,ui
 		gfxdata += 2;
 	}
 }
-INLINE void __attribute__((regparm(4))) draw_tile_m68k_xflip_norm (uint32_t*palbase,uint16_t*screen,uint32_t*gfxdata,int scaley) {
+static inline void  draw_tile_m68k_xflip_norm (uint32_t*palbase,uint16_t*screen,uint32_t*gfxdata,int scaley) {
 	packpix_t pixels0;
 	uint16_t y = 16;
     uint16_t pixel1, pixel2;
@@ -119,7 +119,7 @@ INLINE void __attribute__((regparm(4))) draw_tile_m68k_xflip_norm (uint32_t*palb
 		gfxdata += 2;
 	}
 }
-INLINE void __attribute__((regparm(4))) draw_tile_m68k_yflip_norm  (uint32_t*palbase,uint16_t*screen,uint32_t*gfxdata,int scaley) { 
+static inline void  draw_tile_m68k_yflip_norm  (uint32_t*palbase,uint16_t*screen,uint32_t*gfxdata,int scaley) { 
 	packpix_t pixels0;
 	uint16_t y = 16;
     uint16_t pixel1, pixel2;
@@ -162,7 +162,7 @@ INLINE void __attribute__((regparm(4))) draw_tile_m68k_yflip_norm  (uint32_t*pal
 		gfxdata -= 2;
 	}
 }
-INLINE void __attribute__((regparm(4))) draw_tile_m68k_xyflip_norm (uint32_t*palbase,uint16_t*screen,uint32_t*gfxdata,int scaley) { 
+static inline void  draw_tile_m68k_xyflip_norm (uint32_t*palbase,uint16_t*screen,uint32_t*gfxdata,int scaley) { 
 	packpix_t pixels0;
 	uint16_t y = 16;
     uint16_t pixel1, pixel2;
@@ -205,7 +205,7 @@ INLINE void __attribute__((regparm(4))) draw_tile_m68k_xyflip_norm (uint32_t*pal
 	}
 }
 
-INLINE void __attribute__((regparm(4))) draw_tile_m68k_xzoom (uint32_t*palbase,uint16_t*tilepos,uint32_t*gfxdata,int scaley) {
+static inline void  draw_tile_m68k_xzoom (uint32_t*palbase,uint16_t*tilepos,uint32_t*gfxdata,int scaley) {
 	packpix_t pixeldata;
 	uint16_t color, y = 16;
 	uint16_t* org_tilepos = tilepos;
@@ -246,7 +246,7 @@ INLINE void __attribute__((regparm(4))) draw_tile_m68k_xzoom (uint32_t*palbase,u
 		y -= 1;
 	}
 }
-INLINE void __attribute__((regparm(4))) draw_tile_m68k_xzoomX  (uint32_t*palbase,uint16_t*tilepos,uint32_t*gfxdata,int scaley) { 
+static inline void  draw_tile_m68k_xzoomX  (uint32_t*palbase,uint16_t*tilepos,uint32_t*gfxdata,int scaley) { 
 	packpix_t pixeldata;
 	uint16_t color, y = 16;
 	uint16_t* org_tilepos = tilepos;
@@ -286,7 +286,7 @@ INLINE void __attribute__((regparm(4))) draw_tile_m68k_xzoomX  (uint32_t*palbase
 		y -= 1;
 	}
 }
-INLINE void __attribute__((regparm(4))) draw_tile_m68k_xzoomY  (uint32_t*palbase,uint16_t*tilepos,uint32_t*gfxdata,int scaley) { 
+static inline void  draw_tile_m68k_xzoomY  (uint32_t*palbase,uint16_t*tilepos,uint32_t*gfxdata,int scaley) { 
 	packpix_t pixeldata;
 	uint16_t color, y = 16;
 	uint16_t* org_tilepos = tilepos;
@@ -328,7 +328,7 @@ INLINE void __attribute__((regparm(4))) draw_tile_m68k_xzoomY  (uint32_t*palbase
 		y -= 1;
 	}
 }
-INLINE void __attribute__((regparm(4))) draw_tile_m68k_xzoomXY (uint32_t*palbase,uint16_t*tilepos,uint32_t*gfxdata,int scaley) { 
+static inline void  draw_tile_m68k_xzoomXY (uint32_t*palbase,uint16_t*tilepos,uint32_t*gfxdata,int scaley) { 
 	packpix_t pixeldata;
 	uint16_t color, y = 16;
 	uint16_t* org_tilepos = tilepos;
@@ -370,7 +370,7 @@ INLINE void __attribute__((regparm(4))) draw_tile_m68k_xzoomXY (uint32_t*palbase
 	}
 }
 
-void draw_tiles_m68k(uint16_t *bufferpixels) {
+void draw_tiles_m68k(void) {
 	int sx = 0, sy = 0, oy = 0, my = 0, zx = 1, rzy = 1;
 	uint32_t offs, i, count, y;
 	uint32_t tileno, tileatr, t1, t2, t3;

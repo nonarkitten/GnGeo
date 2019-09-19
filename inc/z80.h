@@ -13,8 +13,8 @@
 #define INT8      Sint8
 #define INT16     Sint16
 #define INT32     Sint32
-#ifndef INLINE
-#define INLINE __inline__
+#ifndef static inline
+#define static inline __inline__
 #endif
 
 #define CALL_MAME_DEBUG
