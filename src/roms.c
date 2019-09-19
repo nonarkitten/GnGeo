@@ -12,10 +12,6 @@
 #include "emu.h"
 #include "roms.h"
 #include "memory.h"
-//#include "unzip.h"
-#if defined(HAVE_LIBZ)// && defined (HAVE_MMAP)
-#include "zlib.h"
-#endif
 #include "unzip.h"
 
 #include "video.h"
@@ -23,10 +19,6 @@
 #include "conf.h"
 #include "resfile.h"
 #include "menu.h"
-#ifdef GP2X
-#include "gp2x.h"
-#include "ym2610-940/940shared.h"
-#endif
 
 /* Prototype */
 void kof98_decrypt_68k(GAME_ROMS *r);
@@ -865,39 +857,7 @@ struct roms_init_func {
 static int allocate_region(ROM_REGION *r, Uint32 size, int region) {
 	DEBUG_LOG("Allocating 0x%08x byte for Region %d\n", size, region);
 	if (size != 0) {
-#ifdef GP2X
-		switch (region) {
-			case REGION_AUDIO_CPU_CARTRIDGE:
-				r->p = gp2x_ram_malloc(size, 1);
-#ifdef ENABLE_940T
-				shared_data->sm1 = (Uint8*) ((r->p - gp2x_ram2) + 0x1000000);
-				debug("Z80 code: %08x\n", (Uint32) shared_data->sm1);
-#endif
-				break;
-			case REGION_AUDIO_DATA_1:
-				r->p = gp2x_ram_malloc(size, 0);
-#ifdef ENABLE_940T
-				shared_data->pcmbufa = (Uint8*) (r->p - gp2x_ram);
-				debug("SOUND1 code: %08x\n", (Uint32) shared_data->pcmbufa);
-				shared_data->pcmbufa_size = size;
-#endif
-				break;
-			case REGION_AUDIO_DATA_2:
-				r->p = gp2x_ram_malloc(size, 0);
-#ifdef ENABLE_940T
-				shared_data->pcmbufb = (Uint8*) (r->p - gp2x_ram);
-				debug("SOUND2 code: %08x\n", (Uint32) shared_data->pcmbufa);
-				shared_data->pcmbufb_size = size;
-#endif
-				break;
-			default:
-				r->p = malloc(size);
-				break;
-
-		}
-#else
 		r->p = malloc(size);
-#endif
 		if (r->p == 0) {
 			r->size = 0;
 			debug("Error allocating\n");
@@ -1491,11 +1451,6 @@ int dr_load_roms(GAME_ROMS *r, char *rom_path, char *name) {
 	if (r->adpcmb.size == 0) {
 		r->adpcmb.p = r->adpcma.p;
 		r->adpcmb.size = r->adpcma.size;
-#ifdef ENABLE_940T
-		shared_data->pcmbufb = (Uint8*) (r->adpcmb.p - gp2x_ram);
-		debug("SOUND2 code: %08x\n", (Uint32) shared_data->pcmbufb);
-		shared_data->pcmbufb_size = r->adpcmb.size;
-#endif
 	}
 
 	memory.fix_game_usage = r->gfix_usage.p; //malloc(r->game_sfix.size >> 5);
@@ -1889,7 +1844,6 @@ void dr_free_roms(GAME_ROMS *r) {
 	}
 	free_region(&r->game_sfix);
 
-#ifndef ENABLE_940T
 	free_region(&r->cpu_z80);
 	free_region(&r->bios_audio);
 	if (r->adpcmb.p != r->adpcma.p)
@@ -1900,8 +1854,6 @@ void dr_free_roms(GAME_ROMS *r) {
 	}
 
 	free_region(&r->adpcma);
-#endif
-
 	free_region(&r->bios_m68k);
 	free_region(&r->bios_sfix);
 

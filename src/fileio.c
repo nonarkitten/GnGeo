@@ -45,13 +45,7 @@
 #include "menu.h"
 #include "frame_skip.h"
 
-#ifdef GP2X
-#include "ym2610-940/940shared.h"
-#endif
-
-#if defined (WII)
-#define ROOTPATH "sd:/apps/gngeo/"
-#elif defined (__AMIGA__)
+#if defined (__AMIGA__)
 #define ROOTPATH "WinDH_C:CrossCompiler/gngeo/release/"
 #else
 #define ROOTPATH ""

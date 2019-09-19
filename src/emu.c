@@ -42,15 +42,6 @@
 #include "screen.h"
 #include "neocrypt.h"
 
-#ifdef FULL_GL
-#include "videogl.h"
-#endif
-#ifdef GP2X
-#include "gp2x.h"
-
-#include "ym2610-940/940shared.h"
-#include "ym2610-940/940private.h"
-#endif
 #include "menu.h"
 #include "event.h"
 
@@ -136,15 +127,7 @@ void init_sound(void) {
 }
 
 void init_neo(void) {
-#ifdef ENABLE_940T
-	int z80_overclk = CF_VAL(cf_get_item_by_name("z80clock"));
-#endif
-
 	neogeo_init_save_state();
-
-#ifdef GP2X
-	gp2x_ram_ptr_reset();
-#endif
 
 	cpu_68k_init();
 //	neogeo_reset();

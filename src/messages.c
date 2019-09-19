@@ -31,11 +31,10 @@
 #include "sound.h"
 #include <stdarg.h>
 
+#include "font.h"
 
-static int font_w=8;
-static int font_h=9;
- 
-//static timer_struct *msg_timer;
+static char message_buffer[128] = { 0 };
+static timer_struct *msg_timer;
 /*
 void stop_message(int param)
 {
@@ -50,7 +49,7 @@ void draw_message(const char *string)
        del_timer(msg_timer);
        msg_timer=NULL;
      */
-    //strcpy(conf.message, string);
+    strcpy(message_buffer, string);
     //conf.do_message = 75;
     //msg_timer=insert_timer(1.0,0,stop_message);
 }

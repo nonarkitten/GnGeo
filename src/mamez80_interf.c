@@ -16,13 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-#ifdef USE_MAMEZ80
-
 #include "emu.h"
 #include "memory.h"
 #include "mamez80/z80.h"
@@ -93,38 +86,22 @@ void cpu_z80_switchbank(Uint8 bank, Uint16 PortNo)
         case 0:
             z80map1 = memory.rom.cpu_z80.p + (0x4000 * ((PortNo >> 8) & 0x0f));
             if ((0x4000 * ((PortNo >> 8) & 0x0f))<memory.rom.cpu_z80.size)
-#ifdef GP2X
-                memcpy(mame_z80mem + 0x8000, z80map1, 0x4000);
-#else
-            memcpy(mame_z80mem + 0x8000, z80map1, 0x4000);
-#endif
+			    memcpy(mame_z80mem + 0x8000, z80map1, 0x4000);
             break;
         case 1:
             z80map2 = memory.rom.cpu_z80.p + (0x2000 * ((PortNo >> 8) & 0x1f));
             if ((0x2000 * ((PortNo >> 8) & 0x1f))<memory.rom.cpu_z80.size)
-#ifdef GP2X
-                memcpy(mame_z80mem + 0xc000, z80map2, 0x2000);
-#else
-            memcpy(mame_z80mem + 0xc000, z80map2, 0x2000);
-#endif
+		        memcpy(mame_z80mem + 0xc000, z80map2, 0x2000);
             break;
         case 2:
             z80map3 = memory.rom.cpu_z80.p + (0x1000 * ((PortNo >> 8) & 0x3f));
             if ((0x1000 * ((PortNo >> 8) & 0x3f))<memory.rom.cpu_z80.size)
-#ifdef GP2X
-                memcpy(mame_z80mem + 0xe000, z80map3, 0x1000);
-#else
-            memcpy(mame_z80mem + 0xe000, z80map3, 0x1000);
-#endif
+	            memcpy(mame_z80mem + 0xe000, z80map3, 0x1000);
             break;
         case 3:
             z80map4 = memory.rom.cpu_z80.p + (0x0800 * ((PortNo >> 8) & 0x7f));
             if ((0x0800 * ((PortNo >> 8) & 0x7f))<memory.rom.cpu_z80.size)
-#ifdef GP2X
-                memcpy(mame_z80mem + 0xf000, z80map3, 0x0800);
-#else
-            memcpy(mame_z80mem + 0xf000, z80map4, 0x0800);
-#endif
+	            memcpy(mame_z80mem + 0xf000, z80map4, 0x0800);
             break;
     }
 }
@@ -277,4 +254,3 @@ Uint16 cpu_z80_get_pc(void)
     return 0;
 }
 
-#endif

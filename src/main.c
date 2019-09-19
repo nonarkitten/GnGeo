@@ -49,17 +49,6 @@
 #include <graphics/gfxbase.h>
 #include <proto/lowlevel.h>
 
-#ifdef USE_GUI
-#include "gui_interf.h"
-#endif
-#ifdef GP2X
-#include "gp2x.h"
-#include "ym2610-940/940shared.h"
-#endif
-#ifdef WII
-extern bool fatInitDefault(void);
-#endif
-
 #ifdef __AMIGA__
 # include <proto/exec.h>
 #endif

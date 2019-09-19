@@ -26,9 +26,6 @@
 #include "timer.h"
 #include "state.h"
 #include "ym2610/ym2610.h"
-#ifdef GP2X
-#include "ym2610-940/940shared.h"
-#endif
 
 double timer_count;
 //Uint32 timer_count;
@@ -69,11 +66,7 @@ void free_all_timer(void) {
     }
 }
 
-#ifdef ENABLE_940T
-void timer_callback_2610(int param){}
-#else
 void timer_callback_2610(int param);
-#endif
 void timer_post_load_state(void) {
     int i;
     for (i = 0; i < MAX_TIMER; i++) {

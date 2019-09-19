@@ -29,10 +29,6 @@
 #include "state.h"
 #include "roms.h"
 
-#ifdef GP2X
-#include "gp2x.h"
-#endif
-
 #define READ_WORD(a)          (*(Uint16 *)(a))
 #define WRITE_WORD(a,d)       (*(Uint16 *)(a) = (d))
 #define READ_BYTE(a)          (*(Uint8 *)(a))

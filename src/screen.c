@@ -29,14 +29,6 @@
 #include "../screen.h"
 #include "../video.h"
 
-#ifdef GP2X
-#include "../gp2x.h"
-
-#define SC_STATUS 0x1802 >> 1
-#define SC_DISP_FIELD (1 << 8)
-
-#endif
-
 #ifdef DEVKIT8000
 static Rect screen_rect;
 #else

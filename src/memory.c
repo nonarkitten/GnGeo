@@ -27,10 +27,6 @@
 #include "pd4990a.h"
 #include "transpack.h"
 
-#ifdef GP2X
-#include "ym2610-940/940shared.h"
-#endif
-
 Uint32 bankaddress = 0;
 extern int current_line;
 
@@ -38,12 +34,10 @@ neo_mem memory;
 
 void neogeo_sound_irq(int irq) {
 	//debug("neogeo_sound_irq %d\n",irq);
-#ifndef ENABLE_940T
 	if (irq) {
 		cpu_z80_raise_irq(0);
 	} else
 	cpu_z80_lower_irq();
-#endif
 	//debug("neogeo_sound_end %d\n",irq);
 }
 
@@ -98,7 +92,6 @@ __inline__ void write_irq2pos(Uint32 data) {
 	}
 }
 
-#ifndef ENABLE_940T
 /* Z80 IO port handler */
 Uint8 z80_port_read(Uint16 PortNo)
 {
@@ -182,7 +175,6 @@ void z80_port_write(Uint16 PortNb, Uint8 Value)
 		break;
 	}
 }
-#endif
 
 /* Protection hack */
 Uint16 protection_9a37(Uint32 addr) {
@@ -402,16 +394,9 @@ Uint8 mem68k_fetch_coin_byte(Uint32 addr) {
 		int res = 0;
 		if (arg[OPTION_SAMPLERATE]) {
 			//debug("fetch coin byte, rescoe= %x\n",result_code);
-#ifdef ENABLE_940T
-
-			res |= shared_ctl->result_code;
-			if (shared_ctl->pending_command)
-				res &= 0x7f;
-#else
 			res |= result_code;
 			if (pending_command)
 			res &= 0x7f;
-#endif
 		} else {
 			res |= 0x01;
 		}
