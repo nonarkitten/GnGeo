@@ -45,7 +45,7 @@ typedef struct {
 	// extra field
 } ZipFILE;
 
-const uint8_t_t ZipFILE_scatter[] = {
+const uint8_t ZipFILE_scatter[] = {
 	3,2,1,0,
 	
 	5,4,
@@ -62,9 +62,9 @@ const uint8_t_t ZipFILE_scatter[] = {
 	29,28
 };
 
-static void Scatter(uint8_t_t *data, uint8_t_t *scatter, int len) {
+static void Scatter(uint8_t *data, uint8_t *scatter, int len) {
 	int i;
-	uint8_t_t t;
+	uint8_t t;
 	
 	for(i=0; i<len; i++) if(scatter[i] > i) { t = data[i]; data[i] = data[scatter[i]]; data[scatter[i]] = t; } 
 }

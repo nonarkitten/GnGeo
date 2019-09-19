@@ -26,13 +26,13 @@
 
 #define MAX(A,B) ((A)<(B)?(B):(A))
 
-static uint16_t_t *out, *literal, *out_base, *literal_base;
+static uint16_t *out, *literal, *out_base, *literal_base;
 
 typedef struct { int curOffset, refOffset, length, savedWord; } Match;
 
 uint32_t lz4w_length(void *source) { return *(uint32_t*)source; }
 
-static void findBestMatch_from(uint16_t_t* wdata, Match *m, int from, int ind, int wdata_size) {
+static void findBestMatch_from(uint16_t* wdata, Match *m, int from, int ind, int wdata_size) {
 	int refOffset = from;
 	int curOffset = ind;
 	int len = 0;
@@ -46,7 +46,7 @@ static void findBestMatch_from(uint16_t_t* wdata, Match *m, int from, int ind, i
     m->savedWord = len - 1;
 }
 
-static int findBestMatch(uint16_t_t* wdata, Match *best, int ind, int wdata_size) {
+static int findBestMatch(uint16_t* wdata, Match *best, int ind, int wdata_size) {
 	int savedWord = 0, i;
 	int matched = 0;
 
@@ -93,23 +93,23 @@ static void addSegment_imm(int curOff, int refOff, int len) {
 
 // out = lz4w_compress(in, in_size, silent, &out_size);
 void* lz4w_compress(void* data, int in_size, int silent, int* out_size) {
-	uint16_t_t* wdata = (uint16_t_t*)data;
+	uint16_t* wdata = (uint16_t*)data;
 	int wdata_size = in_size / 2;
 	int ind = 0;
 	Match match;
 
-	out_base = out = (uint16_t_t*)AllocVec(in_size + (in_size >> 2), MEMF_PUBLIC);
+	out_base = out = (uint16_t*)AllocVec(in_size + (in_size >> 2), MEMF_PUBLIC);
 	if(!out) return NULL;
 
-	literal_base = literal = (uint16_t_t*)AllocVec(1024, MEMF_PUBLIC);
+	literal_base = literal = (uint16_t*)AllocVec(1024, MEMF_PUBLIC);
 	if(!literal) return NULL;
 
 	// write data length in Big Endian format
-	*(uint32_t_t*)out = in_size; out += 2;
+	*(uint32_t*)out = in_size; out += 2;
 	
 	// not enough data ? --> don't attempt any compression
 	if (in_size < 2) {
-		*(uint32_t_t*)out = 0; out += 2;
+		*(uint32_t*)out = 0; out += 2;
         
 	} else while (ind < wdata_size) {
 	
@@ -137,7 +137,7 @@ void* lz4w_compress(void* data, int in_size, int silent, int* out_size) {
 
 	// don't forget the last byte...
 	if ((in_size & 1) == 0) *out++ = 0x0000;
-	else *out++ = 0x8000 | ((uint8_t_t*)data)[in_size - 1];
+	else *out++ = 0x8000 | ((uint8_t*)data)[in_size - 1];
 
     FreeVec(literal_base);
     *out_size = 2 * (out - out_base);

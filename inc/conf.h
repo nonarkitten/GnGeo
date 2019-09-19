@@ -37,5 +37,6 @@ typedef enum {
 } ARG_t;
 
 extern int arg[OPTION_MAX + 1];
+extern int AC68080, real_AC68080;
 
 #endif

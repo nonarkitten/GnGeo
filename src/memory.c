@@ -505,7 +505,6 @@ LONG_STORE(mem68k_store_sram)
 #include <inline/cybergraphics.h>
 
 // D R0 G0 B0 R4 R3 R2 R1 G4 G3 G2 G1 B4 B3 B2 B1
-extern int AC68080, real_AC68080;
 uint16_t convert_pal(uint16_t npal) {
 	int r = 0, g = 0, b = 0, c = 0;
 	r = ((npal >> 7) & 0x1e) | ((npal >> 14) & 0x01);
@@ -528,8 +527,8 @@ uint16_t convert_pal(uint16_t npal) {
 
 void update_all_pal(void) {
 	int i;
-	uint16_t_t *pc_pal1 = (uint16_t_t*) memory.vid.pal_host[0];
-	uint16_t_t *pc_pal2 = (uint16_t_t*) memory.vid.pal_host[1];
+	uint16_t *pc_pal1 = (uint16_t*) memory.vid.pal_host[0];
+	uint16_t *pc_pal2 = (uint16_t*) memory.vid.pal_host[1];
 	for (i = 0; i < 0x1000; i++) {
 		//pc_pal1[i] = convert_pal(READ_WORD_ROM(&memory.pal1[i<<1]));
 		//pc_pal2[i] = convert_pal(READ_WORD_ROM(&memory.pal2[i<<1]));
@@ -714,13 +713,13 @@ void mem68k_store_setting_byte(uint32_t addr, uint8_t data) {
 	}
 	if (addr == 0x000f) { /* set palette 2 */
 		current_pal = memory.vid.pal_neo[1];
-		current_pc_pal = (uint16_t_t *) memory.vid.pal_host[1];
+		current_pc_pal = (uint16_t *) memory.vid.pal_host[1];
 		memory.vid.currentpal=1;
 		return;
 	}
 	if (addr == 0x001f) { /* set palette 1 */
 		current_pal = memory.vid.pal_neo[0];
-		current_pc_pal = (uint16_t_t *) memory.vid.pal_host[0];
+		current_pc_pal = (uint16_t *) memory.vid.pal_host[0];
 		memory.vid.currentpal = 0;
 		return;
 	}
@@ -762,12 +761,12 @@ void mem68k_store_setting_word(uint32_t addr, uint16_t data) {
 	}
 	if (addr == 0x3a000e) {
 		current_pal = memory.vid.pal_neo[1];
-		current_pc_pal = (uint16_t_t *) memory.vid.pal_host[1];
+		current_pc_pal = (uint16_t *) memory.vid.pal_host[1];
 		return;
 	}
 	if (addr == 0x3a001e) {
 		current_pal = memory.vid.pal_neo[0];
-		current_pc_pal = (uint16_t_t *) memory.vid.pal_host[0];
+		current_pc_pal = (uint16_t *) memory.vid.pal_host[0];
 		return;
 	}
 }

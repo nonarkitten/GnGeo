@@ -3345,17 +3345,17 @@ void cpu_op_660b(t_ipc *ipc) /* MOVETSR */ {
   PC+= 4;
 }
 
-static inline uint8_t_t nbcd(uint8_t_t xx, int setflags) {
+static inline uint8_t nbcd(uint8_t xx, int setflags) {
 	// Equivalent to
 	//return sbcd(ctx, 0, xx);
 	// but slightly optimized.
-	uint8_t_t dd = - xx - XFLAG;
+	uint8_t dd = - xx - XFLAG;
 	// Normal carry computation for subtraction:
 	// (sm & ~dm) | (rm & ~dm) | (sm & rm)
 	// but simplified because dm = 0 and ~dm = 1 for 0:
-	uint8_t_t bc = (xx | dd) & 0x88;
-	uint8_t_t corf = bc - (bc >> 2);
-	uint8_t_t rr = dd - corf;
+	uint8_t bc = (xx | dd) & 0x88;
+	uint8_t corf = bc - (bc >> 2);
+	uint8_t rr = dd - corf;
 	
 	if(setflags) {
 		// Compute flags.

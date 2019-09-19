@@ -102,7 +102,6 @@ struct TagItem frtags[] = {
 };
 
 bool FromWb;
-extern int AC68080;
 
 static void fixup_readargs(void) {
 	#define FIXUP(X) if(arg[X]) arg[X] = *(uint32_t*)arg[X];
@@ -125,7 +124,7 @@ void ParseArguments(int argc, char *argv[]) {
 	struct Library *AslBase;
 	struct WBArg *wbarg;
 	struct RDArgs *read_args, *free_args;
-	static uint32_t_t defaults[7] = {
+	static uint32_t defaults[7] = {
 		1, 
 		100,
 		18520,

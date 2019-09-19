@@ -203,10 +203,10 @@ void dumpStats(void) {
 static uint16_t pending_save_state = 0, pending_load_state = 0;
 static int slow_motion = 0;
 
-// extern uint8_t_t *lHBuffer, *rHBuffer;
-// extern uint8_t_t *lLBuffer, *rLBuffer;
-// extern uint8_t_t *_lHBuffer, *_rHBuffer;
-// extern uint8_t_t *_lLBuffer, *_rLBuffer;
+// extern uint8_t *lHBuffer, *rHBuffer;
+// extern uint8_t *lLBuffer, *rLBuffer;
+// extern uint8_t *_lHBuffer, *_rHBuffer;
+// extern uint8_t *_lLBuffer, *_rLBuffer;
 
 static inline void state_handling(int save,int load) {
 	if (save) {
@@ -225,8 +225,8 @@ static inline void state_handling(int save,int load) {
 void main_loop(void) {
 	int a,i;
  
- 	//extern volatile uint8_t_t updateSound;
- 	//uint32_t_t _updateSound;
+ 	//extern volatile uint8_t updateSound;
+ 	//uint32_t _updateSound;
  
  	// 10 MHZ 68000
 	uint32_t cpu_68k_timeslice;// = 200000;

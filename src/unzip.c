@@ -25,7 +25,7 @@
 #include <proto/exec.h>
 
 //pkzip = path
-ZFILE *gn_unzip_fopen(PKZIP *zf, char *filename, uint32_t_t file_crc) {
+ZFILE *gn_unzip_fopen(PKZIP *zf, char *filename, uint32_t file_crc) {
 	uint8_t *mem = NULL, *mem2 = NULL;
 	struct FileInfoBlock *fib = NULL;
 	struct ZFILE *zfile = NULL;
@@ -78,16 +78,16 @@ void gn_unzip_fclose(ZFILE *z) {
 	FreeVec(z);
 }
 
-int gn_unzip_fread(ZFILE *z, uint8_t_t *data, uint32_t size) {
+int gn_unzip_fread(ZFILE *z, uint8_t *data, uint32_t size) {
 	if(size > (z->len - z->pos)) size = (z->len - z->pos);
 	CopyMem( &z->mem[z->pos], data, size );
 	z->pos += size;
 	return size;
 }
 
-uint8_t_t *gn_unzip_file_malloc(PKZIP *zf, char *filename, uint32_t_t file_crc, uint32_t *outlen) {
+uint8_t *gn_unzip_file_malloc(PKZIP *zf, char *filename, uint32_t file_crc, uint32_t *outlen) {
 	ZFILE *z = gn_unzip_fopen(zf, filename, file_crc);
-	uint8_t_t *data = z->mem;
+	uint8_t *data = z->mem;
 	*outlen = z->len;
 	FreeVec(z);
 	return data;

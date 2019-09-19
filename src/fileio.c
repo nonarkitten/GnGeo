@@ -126,7 +126,7 @@ char *get_gngeo_dir(void) {
 void open_nvram(char *name) {
 	char *filename;
 	size_t totread = 0;
-	uint32_t_t checksum = 0;
+	uint32_t checksum = 0;
 	int i;
 #ifdef EMBEDDED_FS
 	const char *gngeo_dir = ROOTPATH"save/";
@@ -156,7 +156,7 @@ void open_nvram(char *name) {
 void open_memcard(char *name) {
 //	char *filename;
 	size_t totread = 0;
-	uint32_t_t checksum = 0;
+	uint32_t checksum = 0;
 	int i;
 // #ifdef EMBEDDED_FS
 // 	const char *gngeo_dir = ROOTPATH"save/";
@@ -183,7 +183,7 @@ void open_memcard(char *name) {
 
 void save_nvram(char *name) {
 	char filename[256];
-	uint32_t_t checksum = 0;
+	uint32_t checksum = 0;
 // #ifdef EMBEDDED_FS
 // 	const char *gngeo_dir = ROOTPATH"save/";
 // #elif defined(__AMIGA__)
@@ -217,7 +217,7 @@ void save_nvram(char *name) {
 }
 
 void save_memcard(char *name) {
-	uint32_t_t checksum = 0;
+	uint32_t checksum = 0;
 	int i;
 //	char filename[256];
 // #ifdef EMBEDDED_FS
@@ -316,7 +316,7 @@ int init_game(char *rom_name) {
 	fix_usage = memory.fix_board_usage;
 	current_pal = memory.vid.pal_neo[0];
 	current_fix = memory.rom.bios_sfix.p;
-	current_pc_pal = (uint16_t_t *) memory.vid.pal_host[0];
+	current_pc_pal = (uint16_t *) memory.vid.pal_host[0];
 
 	memory.vid.currentpal=0;
 	memory.vid.currentfix=0;

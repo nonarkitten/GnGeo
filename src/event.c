@@ -172,8 +172,8 @@ int handle_event(void) {
 	if(arg[OPTION_P1JOY] || arg[OPTION_P13BUTTON]) {
 		joypos1 = ReadJoyPort(1);
 		if(arg[OPTION_P13BUTTON]) {
-			fire1p1 = (fire1p1 << 1) | !!(*(volatile uint16_t_t*)0xDFF016 & 0x0100);
-			fire2p1 = (fire2p1 << 1) | !!(*(volatile uint16_t_t*)0xDFF016 & 0x0400);
+			fire1p1 = (fire1p1 << 1) | !!(*(volatile uint16_t*)0xDFF016 & 0x0100);
+			fire2p1 = (fire2p1 << 1) | !!(*(volatile uint16_t*)0xDFF016 & 0x0400);
 			if (fire1p1 & 3 == 2) joypos1 |= JPF_BUTTON_BLUE;
 			if (fire2p1 & 3 == 2) joypos1 |= JPF_BUTTON_YELLOW;
 		}
@@ -197,8 +197,8 @@ int handle_event(void) {
 	if(arg[OPTION_P2JOY] || arg[OPTION_P23BUTTON]) {
 		joypos0 = ReadJoyPort(0);
 		if(arg[OPTION_P23BUTTON]) {
-			fire1p2 = (fire1p2 << 1) | !!(*(volatile uint16_t_t*)0xDFF016 & 0x0100);
-			fire2p2 = (fire2p2 << 1) | !!(*(volatile uint16_t_t*)0xDFF016 & 0x0400);
+			fire1p2 = (fire1p2 << 1) | !!(*(volatile uint16_t*)0xDFF016 & 0x0100);
+			fire2p2 = (fire2p2 << 1) | !!(*(volatile uint16_t*)0xDFF016 & 0x0400);
 			if (fire1p2 & 3 == 2) joypos0 |= JPF_BUTTON_BLUE;
 			if (fire2p2 & 3 == 2) joypos0 |= JPF_BUTTON_YELLOW;
 		}

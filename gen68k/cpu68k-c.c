@@ -2400,17 +2400,17 @@ void cpu_op_1392b(t_ipc *ipc) /* MULS */ {
   PC+= 4;
 }
 
-static inline uint8_t_t abcd(uint8_t_t xx, uint8_t_t yy, int setflags) {
-	uint8_t_t ss = xx + yy + XFLAG;
+static inline uint8_t abcd(uint8_t xx, uint8_t yy, int setflags) {
+	uint8_t ss = xx + yy + XFLAG;
 	// Normal carry computation for addition:
 	// (sm & dm) | (~rm & dm) | (sm & ~rm)
-	uint8_t_t bc = ((xx & yy) | (~ss & xx) | (~ss & yy)) & 0x88;
+	uint8_t bc = ((xx & yy) | (~ss & xx) | (~ss & yy)) & 0x88;
 	// Compute if we have a decimal carry in both nibbles.
 	// Note: 0x66 is type "int", so the entire computation is
 	// promoted to "int", which is why the "& 0x110" works.
-	uint8_t_t dc = (((ss + 0x66) ^ ss) & 0x110) >> 1;
-	uint8_t_t corf = (bc | dc) - ((bc | dc) >> 2);
-	uint8_t_t rr = ss + corf;
+	uint8_t dc = (((ss + 0x66) ^ ss) & 0x110) >> 1;
+	uint8_t corf = (bc | dc) - ((bc | dc) >> 2);
+	uint8_t rr = ss + corf;
 	if(setflags) {
 		// Compute flags.
 		// Carry has two parts: normal carry for addition

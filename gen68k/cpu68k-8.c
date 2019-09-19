@@ -2862,13 +2862,13 @@ void cpu_op_1140b(t_ipc *ipc) /* DIVS */ {
   PC+= 4;
 }
 
-static inline uint8_t_t sbcd(uint8_t_t xx, uint8_t_t yy, int setflags) {
-	uint8_t_t dd = xx - yy - XFLAG;
+static inline uint8_t sbcd(uint8_t xx, uint8_t yy, int setflags) {
+	uint8_t dd = xx - yy - XFLAG;
 	// Normal carry computation for subtraction:
 	// (sm & ~dm) | (rm & ~dm) | (sm & rm)
-	uint8_t_t bc = ((~xx & yy) | (dd & ~xx) | (dd & yy)) & 0x88;
-	uint8_t_t corf = bc - (bc >> 2);
-	uint8_t_t rr = dd - corf;
+	uint8_t bc = ((~xx & yy) | (dd & ~xx) | (dd & yy)) & 0x88;
+	uint8_t corf = bc - (bc >> 2);
+	uint8_t rr = dd - corf;
 	
 	if(setflags) {
 		// Compute flags.

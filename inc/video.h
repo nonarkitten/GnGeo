@@ -69,12 +69,12 @@ uint32_t neogeo_frame_counter;
 extern uint32_t neogeo_frame_counter_speed;
 
 void init_video(void);
-void debug_draw_tile(uint32_t tileno,int sx,int sy,int zx,int zy,
-		     int color,int xflip,int yflip,uint8_t *bmp);
-void draw_screen_scanline(int start_line, int end_line, int refresh);
+
+extern void draw_tile_m68k(uint32_t tileno, int sx, int sy, int zx, int zy, int color, int xflip, int yflip, uint8_t *bmp);
+extern void draw_tile_ammx(uint32_t tileno, int sx, int sy, int zx, int zy, int color, int xflip, int yflip, uint8_t *bmp);
+//extern void draw_tiles_m68k(uint16_t *bufferpixels);
+extern void draw_fix_char(uint8_t *buf, int start, int end);
+
 void draw_screen(void);
-// void show_cache(void);
-int init_sprite_cache(uint32_t size,uint32_t bsize);
-void free_sprite_cache(void);
 
 #endif

@@ -30,7 +30,7 @@ typedef struct ZFILE {
 // 	int pos;
 // #if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
 // 	z_streamp zb;
-// 	uint8_t_t *inbuf;
+// 	uint8_t *inbuf;
 // #else
 // 	zbuf *zb;
 // #endif
@@ -44,10 +44,10 @@ typedef const char * PKZIP;
 
 // 
 // void gn_unzip_fclose(ZFILE *z);
-// int gn_unzip_fread(ZFILE *z,uint8_t_t *data,uint32_t size);
-// ZFILE *gn_unzip_fopen(PKZIP *zf,char *filename,uint32_t_t file_crc);
+// int gn_unzip_fread(ZFILE *z,uint8_t *data,uint32_t size);
+// ZFILE *gn_unzip_fopen(PKZIP *zf,char *filename,uint32_t file_crc);
 // PKZIP *gn_open_zip(char *file);
-// uint8_t_t *gn_unzip_file_malloc(PKZIP *zf,char *filename,uint32_t_t file_crc,uint32_t *outlen);
+// uint8_t *gn_unzip_file_malloc(PKZIP *zf,char *filename,uint32_t file_crc,uint32_t *outlen);
 // void gn_close_zip(PKZIP *zf);
 
 #endif /* UNZIP_H_ */

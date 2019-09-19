@@ -39,7 +39,6 @@ static uint16_t emptypointer[] = {
     0x0000, 0x0000  /* reserved, must be NULL */
 };
 
-extern int AC68080;
 static void * lockHandle;
 static uint32_t bytesperrow;
 
@@ -66,7 +65,6 @@ static void initAmigaGraphics(void) {
     uint32_t modeId = INVALID_ID;
     uint32_t i, size;
     struct BitMap *bitmap;
-	extern int AC68080;
 
     firsttime = 0;
 
@@ -107,7 +105,7 @@ static void initAmigaGraphics(void) {
 
     debug("Opened screen *Handle: %p\n", _hardwareScreen);
 
-    if (AC68080) *(uint16_t_t *)0xDFF1F4 = 0x0703;
+    if (AC68080) *(uint16_t *)0xDFF1F4 = 0x0703;
   }
 }
 
@@ -227,7 +225,7 @@ static void blitter_soft_update() {
     if (arg[OPTION_VSYNC]) WaitTOF();
   }
 
-  if (AC68080) *(uint16_t_t *)0xDFF1F4 = 0x0703;
+  if (AC68080) *(uint16_t *)0xDFF1F4 = 0x0703;
 }
 
 static void blitter_soft_close() {

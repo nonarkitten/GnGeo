@@ -4,9 +4,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-//typedef unsigned long uint32_t_t_t;
-//typedef uint16_t uint16_t_t;
-//typedef uint8_t uint8_t_t;
+//typedef unsigned long uint32_t_t;
+//typedef uint16_t uint16_t;
+//typedef uint8_t uint8_t;
 //typedef uint8_t byte;
 
 #define HAVE_ATEXIT 1

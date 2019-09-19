@@ -101,8 +101,8 @@ uint32_t neogeo_frame_counter_speed = 8;
 static uint16_t fix_addr[40][32];
 static uint8_t fix_shift[40];
 
-static uint16_t_t dda_x_skip_i;
-const uint16_t_t ddaxskip_i[17] = {
+static uint16_t dda_x_skip_i;
+const uint16_t ddaxskip_i[17] = {
 	0x0000, 0x0080, 0x0880, 0x0888, 0x2888, 0x288a, 0x2a8a, 0x2aaa, 0xaaaa,
 	0xaaea, 0xbaea, 0xbaeb, 0xbbeb, 0xbbef, 0xfbef, 0xfbff, 0xffff
 };
@@ -137,33 +137,27 @@ static void fix_value_init(void) {
 // #endif
 const int overscan = 1;
 
-extern void draw_fix_char(uint8_t *buf, int start, int end);
 
 extern struct RastPort *theRastPort;
 
-uint8_t_t line_limit[256] = {0xFF}, *limit;
-uint32_t_t even_odd = 0;
+uint8_t line_limit[256] = {0xFF}, *limit;
+uint32_t even_odd = 0;
 
 //(palbase, tilepos, gfxdata, rzx, yskip)
-extern void draw_tile_m68k(uint32_t tileno,int sx,int sy,int zx,int zy, int color,int xflip,int yflip,uint8_t *bmp);
-extern void draw_tile_ammx(uint32_t tileno,int sx,int sy,int zx,int zy, int color,int xflip,int yflip,uint8_t *bmp);
-
-extern int AC68080;
-extern void draw_tiles_m68k(uint16_t_t *bufferpixels);
 
 //OPTION_INTERLEAVED
 
 void draw_screen(void) { 
  	if(screen_prerender()) { 
 		if(arg[OPTION_INTERLEAVED]) {
-			uint8_t_t c = even_odd - 1;
-			uint32_t_t i, x;
-			uint16_t_t *clear = (uint16_t_t*)bufferpixels;
+			uint8_t c = even_odd - 1;
+			uint32_t i, x;
+			uint16_t *clear = (uint16_t*)bufferpixels;
 
 			for(i=0;i<224;i++) {
 				line_limit[i] = c;
 				if(!c) {
-					uint16_t_t pixel = current_pc_pal[4095];
+					uint16_t pixel = current_pc_pal[4095];
 					for(x=0;x<320;x++) clear[x] = pixel;
 					c = 255;
 				} else {
