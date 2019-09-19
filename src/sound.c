@@ -78,6 +78,8 @@ extern int AC68080;
 extern int enablefm;
 extern int enable16;
 
+static int enablePAM;
+
 volatile struct Custom* const custom = (APTR)0xdff000;
 volatile struct CIA* const ciaa = (APTR)0xbfe001;
 volatile struct CIA* const ciab = (APTR)0xbfd000;
@@ -272,7 +274,7 @@ void RemixAmiga14bit(void) {
 void RemixAmigaAmmx(void) {
 	// To-do, make this zero-copy
 	memcpy( lHBuffer, L_Mix, 2 * BUFFER_LEN );
-	memcpy( rHBuffer, L_Mix, 2 * BUFFER_LEN );
+	memcpy( rHBuffer, R_Mix, 2 * BUFFER_LEN );
 }
 
 __saveds __interrupt static int AudioServer(ChanT num asm("a1")) {
@@ -284,7 +286,7 @@ __saveds __interrupt static int AudioServer(ChanT num asm("a1")) {
 	if(!paused) {
 		if(arg[OPTION_BENCH]) timerTemp = getMilliseconds();
 
-		if(AC68080) {
+		if(enablePAM) {
 			// kick off next chunk	
 			AudioAttachSamples(0, rHBuffer, BUFFER_LEN);
 			AudioAttachSamples(2, lHBuffer, BUFFER_LEN);
@@ -320,12 +322,17 @@ __saveds __interrupt static int AudioServer(ChanT num asm("a1")) {
 
 void pause_audio(int pause) {
 	if(paused && !pause) {
-		if(AC68080) {
+		if(enablePAM) {
 			YM2610Update();
 			RemixAmigaAmmx();
 			AudioAttachSamples(0, rHBuffer, BUFFER_LEN);
 			AudioAttachSamples(2, lHBuffer, BUFFER_LEN);
 
+			// Enabled DMA all at once
+			custom->dmacon = DMAF_SETCLR 
+				| (1 << DMAB_AUD0)
+				| (1 << DMAB_AUD2)
+				;
 		} else {
 			YM2610Update();
 			RemixAmiga14bit();
@@ -334,18 +341,17 @@ void pause_audio(int pause) {
 			AudioAttachSamples(2, lHBuffer, BUFFER_LEN);
 			AudioAttachSamples(3, rLBuffer, BUFFER_LEN);
 
+			// Enabled DMA all at once
+			custom->dmacon = DMAF_SETCLR 
+				| (1 << DMAB_AUD0)
+				| (1 << DMAB_AUD1)
+				| (1 << DMAB_AUD2)
+				| (1 << DMAB_AUD3)
+				;
 		}
-
-		// Enabled DMA all at once
-		custom->dmacon = DMAF_SETCLR 
-			| (1 << DMAB_AUD0)
-			| (1 << DMAB_AUD1)
-			| (1 << DMAB_AUD2)
-			| (1 << DMAB_AUD3)
-			;
 		// Enable interrupt handler only on channel 0
 		custom->intena = INTF_SETCLR | (1 << INTB_AUD0);
-		
+
 	} else if(pause && !paused) {
 		// Disable channel 0 interrupt handler
 		custom->intena = 1 << INTB_AUD0;
@@ -364,18 +370,21 @@ struct MsgPort *TimerMP;      // Message port pointer
 struct Timerequest *TimerIO;  // I/O structure pointer
 #include "conf.h"
 static int initd = 0;
+static uint16_t oldPamelaState = 0;
+
 int init_audio(void) { 
 	int samplerate = arg[OPTION_SAMPLERATE];
 	if(initd) return 1; else initd = 1;
 	
-	printf("Initializing sound to %dHz\r\n", samplerate);
+	debug("Initializing sound to %dHz\r\n", samplerate);
+	if((0xDFF016 & 0x7E) == 0x02) enablePAM = 1, arg[OPTION_BITRATE] = 16;
 	
 	if(!InitAudio()) {
-		printf("Failed to initialize audio!");
+		debug("Failed to initialize audio!");
 		return 0;
 	}
 
-	if(AC68080) {
+	if(enablePAM) {
 		// RLLR
 		lHBuffer = AllocAudioData(BUFFER_LEN * 2);
 		rHBuffer = AllocAudioData(BUFFER_LEN * 2);
@@ -383,6 +392,7 @@ int init_audio(void) {
 		_rHBuffer = AllocAudioData(BUFFER_LEN * 2);
 
 		// enable 16-bit on channels 0-3
+		oldPamelaState = *((volatile uint16_t*)0xDFF29E);
 		*((volatile uint16_t*)0xDFF29E) = 0x800F; 
 
 	} else {
@@ -402,11 +412,14 @@ int init_audio(void) {
 	AudioSetSampleRate(0, 27776);
 	AudioSetVolume(2, 64); 
 	AudioSetSampleRate(2, 27776);
-	if(!AC68080) {
+	if(!enablePAM) {
 		AudioSetVolume(1, 1 ); 
 		AudioSetSampleRate(1, 27776);
 		AudioSetVolume(3, 1 ); 
 		AudioSetSampleRate(3, 27776);
+	} else {
+		AudioSetVolume(1, 0 ); 
+		AudioSetVolume(3, 0 ); 
 	}
 
 	return 1;
@@ -427,7 +440,10 @@ void close_audio(void) {
 	FreeAudioData(rHBuffer); rHBuffer = 0;
 	FreeAudioData(_lHBuffer); _lHBuffer = 0;
 	FreeAudioData(_rHBuffer); _rHBuffer = 0;
-	if(!AC68080) {
+	if(enablePAM) {
+		*((volatile uint16_t*)0xDFF29E) = ~oldPamelaState;
+		*((volatile uint16_t*)0xDFF29E) = 0x8000 | oldPamelaState;
+	} else {
 		FreeAudioData(lLBuffer); lLBuffer = 0;
 		FreeAudioData(rLBuffer); rLBuffer = 0;
 		FreeAudioData(_lLBuffer); _lLBuffer = 0;
@@ -435,5 +451,5 @@ void close_audio(void) {
 	}
 	Permit();
 	
-	printf("Deinitialized sound\r\n");	
+	debug("Deinitialized sound\r\n");	
 }

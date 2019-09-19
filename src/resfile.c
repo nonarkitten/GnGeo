@@ -16,12 +16,12 @@
 void zread_char(ZFILE *gz, char *c, int len) {
 	int rc;
 	rc = gn_unzip_fread(gz, (Uint8*)c, len);
-	//printf("HS  %s %d\n",c,rc);
+	//debug("HS  %s %d\n",c,rc);
 }
 void zread_uint8(ZFILE *gz, Uint8 *c) {
 	int rc;
 	rc = gn_unzip_fread(gz, c, 1);
-	//printf("H8  %02x %d\n",*c,rc);
+	//debug("H8  %02x %d\n",*c,rc);
 }
 void zread_uint32le(ZFILE *gz, Uint32 *c) {
 	int rc;
@@ -29,7 +29,7 @@ void zread_uint32le(ZFILE *gz, Uint32 *c) {
 #ifdef WORDS_BIGENDIAN
 	*c=SwapLONG(*c);
 #endif
-	//printf("H32  %08x %d\n",*c,rc);
+	//debug("H32  %08x %d\n",*c,rc);
 }
 
 /*
@@ -49,7 +49,7 @@ ROM_DEF *res_load_drv(char *name) {
 
 	/* Open the rom driver def */
 	
-	//printf("%s\n",gngeo_dat);
+	//debug("%s\n",gngeo_dat);
 	
 	pz = gn_open_zip(gngeo_dat);
 	if (pz == NULL) {
@@ -57,13 +57,13 @@ ROM_DEF *res_load_drv(char *name) {
 		return NULL;
 	}
 	sprintf(drvfname, "rom/%s.drv", name);
-    printf("Driver = %s\n",drvfname);
+    debug("Driver = %s\n",drvfname);
     
 	if ((z=gn_unzip_fopen(pz,drvfname,0x0)) == NULL) {
 		fprintf(stderr, "Can't open rom driver for %s\n", name);
 		return NULL;
 	}
-    //printf(" done Driver = %s\n",drvfname);
+    //debug(" done Driver = %s\n",drvfname);
 	//Fill the driver struct
 	zread_char(z, drv->name, 32);
 	zread_char(z, drv->parent, 32);

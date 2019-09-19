@@ -35,6 +35,10 @@ extern int neogeo_fix_bank_type;
 // 	movel sp@(16),a1
 #define REG(x,y) register y __asm(#x)
 
+#define REPEAT2(X) X X
+#define REPEAT4(X) REPEAT2(X) REPEAT2(X)
+#define REPEAT8(X) REPEAT4(X) REPEAT4(X)
+
 INLINE static void draw_fix_char_ammx(uint32_t tile, uint32_t color, uint16_t *screen) {
 	static uint32_t last_color = -1ul;
 	uint32_t *gfxdata = (uint32_t*)&current_fix[tile << 5];	
@@ -86,31 +90,38 @@ INLINE static void draw_fix_char_ammx(uint32_t tile, uint32_t color, uint16_t *s
 	//do {
 	__asm__ volatile (
 		"lea (%1),A1\n"
-		"moveq #7,d2\n"
-	".loop:\n"
+//		"moveq #7,d2\n"
+
 		"move.w (%0)+,D1 \n" 
 		"move.w (%0)+,D0 \n" 
-
+		
+		REPEAT8(
 		// TRANSi takes 8, 4-bit values from source and uses
 		// words stored in E8 thru E23 to write the dest
 		// since this needs 128-bit, this uses a register pair
-		"dc.w 	0xfe00,0x1803 \n" // TRANSi-LO D0, E0:E1
 		"dc.w 	0xfe01,0x1A03 \n" // TRANSi-LO D1, E2:E3
+		"move.w (%0)+,D1 \n" 
+
+		"dc.w 	0xfe00,0x1803 \n" // TRANSi-LO D0, E0:E1
+		"move.w (%0)+,D0 \n" 
 
 		// VPERM to shuffle the colours to match the fix layer format
-		"dc.w 	0xfe3F,0x9909,0x6745,0x2301 \n" // VPERM #IMMD,E1,E1,E1
 		"dc.w 	0xfe3F,0xBB0B,0x6745,0x2301 \n" // VPERM #IMMD,E3,E3,E1
+		"adda.w #768,A1 \n"  // advance pointer further
+
+		"dc.w 	0xfe3F,0x9909,0x6745,0x2301 \n" // VPERM #IMMD,E1,E1,E1
 
 		// STOREM3 will conditionally store each word
-		"dc.w 	0xFE19,0x9926 \n" // STOREM3.W E1,E1,(A1)+
-		"dc.w 	0xFE19,0xBB26 \n" // STOREM3.W E3,E3,(A1)+
-		"adda.w #768-8-8,A1 \n"  // advance pointer further
+		"dc.w 	0xFE29,0xBB26,0xFD08 \n" // STOREM3.W E3,E3,-760(A1)
+		"dc.w 	0xFE29,0x9926,0xFD00 \n" // STOREM3.W E1,E1,-768(A1)
+		)
+		//".endr \n"
 
-		"dbra d2,.loop\n"
+		//"dbra d2,.loop\n"
 
 		: "+a"(gfxdata)
 		: "a"(screen)
-		: "d0","d1","d2","a0","a1"
+		: "d0","d1","a0","a1"
 	);
 	//} while(--rept);
 

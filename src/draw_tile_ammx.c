@@ -29,8 +29,8 @@ typedef union {
 	uint32_t pixel;
 } packpix_t; 
 
-#undef HONOUR_SPRITE_LIMIT
-//#define HONOUR_SPRITE_LIMIT
+//#undef HONOUR_SPRITE_LIMIT
+#define HONOUR_SPRITE_LIMIT
 
 extern const uint16_t ddaxskip_i[17];
 
@@ -520,7 +520,7 @@ void draw_tiles_ammx(unsigned int tileno,int sx,int sy,int zx,int zy, int color,
 			if (memory.nb_of_tiles > 0x40000 && tileatr & 0x40) tileno += 0x40000;
 
 			/* animation automatique */
-			/*if (tileatr&0x80) printf("PLOP\n");*/
+			/*if (tileatr&0x80) debug("PLOP\n");*/
 			if (tileatr & 0x8) {
 				tileno = (tileno&~7)+((tileno + neogeo_frame_counter)&7);
 			} else {

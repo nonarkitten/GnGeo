@@ -190,7 +190,7 @@ SDL_Surface *load_state_img(char *game,int slot) {
     sprintf(st_name,"%s%s.%03d",gngeo_dir,game,slot);
 
     if ((gzf=gzopen(st_name,"rb"))==NULL) {
-	printf("%s not found\n",st_name);
+	debug("%s not found\n",st_name);
 	return NULL;
     }
 
@@ -198,7 +198,7 @@ SDL_Surface *load_state_img(char *game,int slot) {
     gzread(gzf,string,6);
 
     if (strcmp(string,"GNGST1")) {
-	printf("%s is not a valid gngeo st file\n",st_name);
+	debug("%s is not a valid gngeo st file\n",st_name);
 	gzclose(gzf);
 	return NULL; 
     }
@@ -206,7 +206,7 @@ SDL_Surface *load_state_img(char *game,int slot) {
     gzread(gzf,&endian,1);
 
     if (my_endian!=endian) {
-	printf("This save state comme from a different endian architecture.\n"
+	debug("This save state comme from a different endian architecture.\n"
 	       "This is not currently supported :(\n");
 	return NULL;
     }
@@ -248,7 +248,7 @@ bool load_state(char *game,int slot) {
     sprintf(st_name,"%s%s.%03d",gngeo_dir,game,slot);
 
     if ((gzf=gzopen(st_name,"rb"))==NULL) {
-	printf("%s not found\n",st_name);
+	debug("%s not found\n",st_name);
 	return false;
     }
 
@@ -256,7 +256,7 @@ bool load_state(char *game,int slot) {
     gzread(gzf,string,6);
 
     if (strcmp(string,"GNGST1")) {
-	printf("%s is not a valid gngeo st file\n",st_name);
+	debug("%s is not a valid gngeo st file\n",st_name);
 	gzclose(gzf);
 	return false;
     }
@@ -265,7 +265,7 @@ bool load_state(char *game,int slot) {
     gzread(gzf,&endian,1);
 
     if (my_endian!=endian) {
-	printf("This save state comme from a different endian architecture.\n"
+	debug("This save state comme from a different endian architecture.\n"
 	       "This is not currently supported :(\n");
 	return false;
     }
@@ -351,12 +351,12 @@ bool load_state(char *game,int slot) {
 	    }
 	} else {
 	    /* unknow reg, ignore it*/
-	    printf("skeeping unknow reg %s\n",string);
+	    debug("skeeping unknow reg %s\n",string);
 	    gzseek(gzf,len,SEEK_CUR);
 	}
     
     
-	// /*if (a==ST_68k)*/ printf("LO %02d %20s %02x %08x \n",a,string,num,len/*,*(Uint32*)data*/);
+	// /*if (a==ST_68k)*/ debug("LO %02d %20s %02x %08x \n",a,string,num,len/*,*(Uint32*)data*/);
     }
     gzclose(gzf);
 
@@ -394,7 +394,7 @@ bool save_state(char *game,int slot) {
     sprintf(st_name,"%s%s.%03d",gngeo_dir,game,slot);
 
     if ((gzf=gzopen(st_name,"wb"))==NULL) {
-	printf("can't write to %s\n",st_name);
+	debug("can't write to %s\n",st_name);
 	return false;
     }
 
@@ -412,7 +412,7 @@ bool save_state(char *game,int slot) {
 	ST_REG *t=st_mod[i].reglist;
 	if (st_mod[i].pre_save_state) st_mod[i].pre_save_state();
 	while(t) {
-	    // /*if (i==ST_68k)*/ printf("SV %02d %20s %02x %08x \n",i,t->reg_name,t->num,t->size/*,*(Uint32*)t->data*/);
+	    // /*if (i==ST_68k)*/ debug("SV %02d %20s %02x %08x \n",i,t->reg_name,t->num,t->size/*,*(Uint32*)t->data*/);
 	    
 	    a=strlen(t->reg_name);
 	    gzwrite(gzf,&a,1); /* strlen(regname) */
@@ -451,7 +451,7 @@ static gzFile *open_state(char *game,int slot,int mode) {
     sprintf(st_name,"%s%s.%03d",gngeo_dir,game,slot);
 
 	if ((gzf = gzopen(st_name, m)) == NULL) {
-		printf("%s not found\n", st_name);
+		debug("%s not found\n", st_name);
 		return NULL;
     }
 
@@ -461,7 +461,7 @@ static gzFile *open_state(char *game,int slot,int mode) {
 		gzread(gzf, string, 6);
 
 		if (strcmp(string, "GNGST2")) {
-			printf("%s is not a valid gngeo st file\n", st_name);
+			debug("%s is not a valid gngeo st file\n", st_name);
 			gzclose(gzf);
 			return NULL;
 		}
@@ -469,7 +469,7 @@ static gzFile *open_state(char *game,int slot,int mode) {
 		gzread(gzf, &flags, sizeof (int));
 
 		if (flags != (m68k_flag | z80_flag | endian_flag)) {
-			printf("This save state comme from a different endian architecture.\n"
+			debug("This save state comme from a different endian architecture.\n"
 					"This is not currently supported :(\n");
 			gzclose(gzf);
 			return NULL;
@@ -513,7 +513,7 @@ static void neogeo_pre_save_state(void) {
 
     //st_current_pal=(current_pal==memory.pal1?0:1);
     //st_current_fix=(current_fix==memory.rom.bios_sfix.p?0:1);
-    //printf("%d %d\n",st_current_pal,st_current_fix);
+    //debug("%d %d\n",st_current_pal,st_current_fix);
     
 }
 

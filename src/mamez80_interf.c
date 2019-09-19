@@ -37,7 +37,7 @@ static Z80_STATE z80_st;
 /* Memory and port IO handler */
 void mame_z80_writemem16(Uint16 addr, Uint8 val)
 {
-    //  printf("Writemem %x=%x\n",addr,val);
+    //  debug("Writemem %x=%x\n",addr,val);
     if (addr >= 0xf800)
         memory.z80_ram[addr - 0xf800] = val;
     
@@ -72,13 +72,13 @@ Uint8 mame_z80_readop_arg(Uint16 addr)
 
 void mame_z80_writeport16(Uint16 port, Uint8 value)
 {
-    //printf("Write port %d=%d\n",port,value);
+    //debug("Write port %d=%d\n",port,value);
     z80_port_write(port, value);
 }
 
 Uint8 mame_z80_readport16(Uint16 port)
 {
-    //printf("Read port %d\n",port);
+    //debug("Read port %d\n",port);
     return z80_port_read(port);
 }
 
@@ -254,7 +254,7 @@ void cpu_z80_init(void)
 
 void cpu_z80_run(int nbcycle)
 {
-    //printf("%x\n",z80_get_reg(Z80_PC));
+    //debug("%x\n",z80_get_reg(Z80_PC));
     z80_execute(nbcycle);
 }
 void cpu_z80_nmi(void)

@@ -81,62 +81,6 @@ Uint32 get_ticks(void)
 }    
 #endif
 
-void reset_frame_skip(void) {
-#if defined(HAVE_GETTIMEOFDAY) && !defined(WII)
-    init_tv.tv_usec = 0;
-    init_tv.tv_sec = 0;
-#else
-    init_tv=0;
-#endif
-    skip_next_frame = 0;
-    init_frame_skip = 1;
-    if (arg[OPTION_PAL])
-	CPU_FPS=50;
-    F = (uclock_t) ((double) TICKS_PER_SEC / CPU_FPS);
-}
-
-
-int frame_skip(int init) {
-	static int init_bench = 1;
-    static int f2skip;
-    static uclock_t sec = 0;
-    static uclock_t rfd;
-    static uclock_t target;
-    static int skpFrm = 0;
-    static int count_bench;
-	
-    if (init_frame_skip) {
-		init_frame_skip = 0;
-		target = get_ticks();
-		sec = 0;
-		return 0;
-    }
-    
-    if(count_bench && (--count_bench == 0)) exit(0);
-
-    target += F;
-    if (f2skip > 0 ) {
-		f2skip--;
-		skpFrm++;
-		return 1;
-    } else {
-		skpFrm = 0;
-	}
-
-    rfd = get_ticks();
-
-    if (arg[OPTION_AUTOFRAMESKIP]) {
-		f2skip = (rfd - target) / (double) F;
-		if (f2skip > MAX_FRAMESKIP) {
-			f2skip = MAX_FRAMESKIP;
-			reset_frame_skip();
-		}
-	} else if(arg[OPTION_FRAMESKIP]) {
-    	f2skip = arg[OPTION_FRAMESKIP];
-    }
-
-    return 0;
-}
 
 
 static ULONG basetime = 0;

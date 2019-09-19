@@ -37,14 +37,14 @@ extern int current_line;
 neo_mem memory;
 
 void neogeo_sound_irq(int irq) {
-	//printf("neogeo_sound_irq %d\n",irq);
+	//debug("neogeo_sound_irq %d\n",irq);
 #ifndef ENABLE_940T
 	if (irq) {
 		cpu_z80_raise_irq(0);
 	} else
 	cpu_z80_lower_irq();
 #endif
-	//printf("neogeo_sound_end %d\n",irq);
+	//debug("neogeo_sound_end %d\n",irq);
 }
 
 static __inline__ Uint16 read_neo_control(void) {
@@ -56,7 +56,7 @@ static __inline__ Uint16 read_neo_control(void) {
 #ifdef USE_CYCLONE
 		scan = current_line;
 		/*
-		 printf("%d %d %d\n",current_line,
+		 debug("%d %d %d\n",current_line,
 		 (cpu_68k_getcycle()/3)>>7,
 		 (int)(cpu_68k_getcycle() / 766.28));
 		 */
@@ -102,50 +102,50 @@ __inline__ void write_irq2pos(Uint32 data) {
 /* Z80 IO port handler */
 Uint8 z80_port_read(Uint16 PortNo)
 {
-	//printf("z80_port_read PC=%04x p=%04x ",cpu_z80_get_pc(),PortNo);
-	//printf("z80_port_read p=%04x \n",PortNo);
+	//debug("z80_port_read PC=%04x p=%04x ",cpu_z80_get_pc(),PortNo);
+	//debug("z80_port_read p=%04x \n",PortNo);
 	switch (PortNo & 0xff) {
 		case 0x0:
 		pending_command = 0;
-		//printf("Reseting command. Return sndcode %x\n",sound_code);
+		//debug("Reseting command. Return sndcode %x\n",sound_code);
 		return sound_code;
 		break;
 
 		case 0x4:
-		//printf("v=%02x\n",YM2610_status_port_0_A_r(0));
+		//debug("v=%02x\n",YM2610_status_port_0_A_r(0));
 		return YM2610_status_port_A_r(0);
 		break;
 
 		case 0x5:
-		//printf("v=%02x\n",YM2610_read_port_0_r(0));
+		//debug("v=%02x\n",YM2610_read_port_0_r(0));
 		return YM2610_read_port_r(0);
 		break;
 
 		case 0x6:
-		//printf("v=%02x\n",YM2610_status_port_0_B_r(0));
+		//debug("v=%02x\n",YM2610_status_port_0_B_r(0));
 		return YM2610_status_port_B_r(0);
 		break;
 
 		case 0x08:
-		//printf("v=00 (sb3)\n");
+		//debug("v=00 (sb3)\n");
 		cpu_z80_switchbank(3, PortNo);
 		return 0;
 		break;
 
 		case 0x09:
-		//printf("v=00 (sb2)\n");
+		//debug("v=00 (sb2)\n");
 		cpu_z80_switchbank(2, PortNo);
 		return 0;
 		break;
 
 		case 0x0a:
-		//printf("v=00 (sb1)\n");
+		//debug("v=00 (sb1)\n");
 		cpu_z80_switchbank(1, PortNo);
 		return 0;
 		break;
 
 		case 0x0b:
-		//printf("v=00 (sb0)\n");
+		//debug("v=00 (sb0)\n");
 		cpu_z80_switchbank(0, PortNo);
 		return 0;
 		break;
@@ -157,8 +157,8 @@ Uint8 z80_port_read(Uint16 PortNo)
 void z80_port_write(Uint16 PortNb, Uint8 Value)
 {
 	Uint8 data = Value;
-	//printf("z80_port_write PC=%04x OP=%02x p=%04x v=%02x\n",cpu_z80_get_pc(),memory.rom.cpu_z80.p[cpu_z80_get_pc()],PortNb,Value);
-	//printf("Write port %04x %02x\n",PortNb,Value);
+	//debug("z80_port_write PC=%04x OP=%02x p=%04x v=%02x\n",cpu_z80_get_pc(),memory.rom.cpu_z80.p[cpu_z80_get_pc()],PortNb,Value);
+	//debug("Write port %04x %02x\n",PortNb,Value);
 	switch (PortNb & 0xff) {
 		case 0x4:
 		YM2610_control_port_A_w(0, data);
@@ -177,7 +177,7 @@ void z80_port_write(Uint16 PortNb, Uint8 Value)
 		break;
 
 		case 0xC:
-		//printf("Setting result code to %0x\n",Value);
+		//debug("Setting result code to %0x\n",Value);
 		result_code = Value;
 		break;
 	}
@@ -196,7 +196,7 @@ Uint8 mem68k_fetch_invalid_byte(Uint32 addr) {
 }
 
 Uint16 mem68k_fetch_invalid_word(Uint32 addr) {
-	//printf("mem68k_fetch_invalid_word %08x\n",addr);
+	//debug("mem68k_fetch_invalid_word %08x\n",addr);
 	return 0xF0F0;
 }
 
@@ -206,13 +206,13 @@ Uint32 mem68k_fetch_invalid_long(Uint32 addr) {
 
 /**** RAM FETCHING ****/
 Uint8 mem68k_fetch_ram_byte(Uint32 addr) {
-	//  printf("mem68k_fetch_ram_byte %x\n",addr);
+	//  debug("mem68k_fetch_ram_byte %x\n",addr);
 	addr &= 0xffff;
 	return (READ_BYTE_ROM(memory.ram + addr));
 }
 
 Uint16 mem68k_fetch_ram_word(Uint32 addr) {
-	//printf("mem68k_fetch_ram_word %08x %04x\n",addr,READ_WORD_RAM(memory.ram + (addr&0xffff)));
+	//debug("mem68k_fetch_ram_word %08x %04x\n",addr,READ_WORD_RAM(memory.ram + (addr&0xffff)));
 	addr &= 0xffff;
 	return (READ_WORD_ROM(memory.ram + addr));
 }
@@ -223,7 +223,6 @@ LONG_FETCH(mem68k_fetch_ram)
 /**** CPU ****/
 Uint8 mem68k_fetch_cpu_byte(Uint32 addr) {
 	addr &= 0xFFFFF;
-
 	return (READ_BYTE_ROM(memory.rom.cpu_m68k.p + addr));
 }
 
@@ -231,7 +230,7 @@ Uint16 mem68k_fetch_cpu_word(Uint32 addr) {
 	Uint16 d;
 	addr &= 0xFFFFF;
 	d = (READ_WORD_ROM(memory.rom.cpu_m68k.p + addr));
-	//printf("ROM fetch %08x = %d\n", addr, d);
+	//debug("ROM fetch %08x = %d\n", addr, d);
 	return d;
 }
 
@@ -254,12 +253,14 @@ LONG_FETCH(mem68k_fetch_bios)
 
 /**** SRAM ****/
 Uint8 mem68k_fetch_sram_byte(Uint32 addr) {
-	return memory.sram[addr - 0xd00000];
+	addr -= 0xd00000; addr &= 0xFFFF;
+	return memory.sram[addr];
 }
 
 Uint16 mem68k_fetch_sram_word(Uint32 addr) {
-	addr -= 0xd00000;
-	return (memory.sram[addr] << 8) | (memory.sram[addr + 1] & 0xff);
+	addr -= 0xd00000; addr &= 0xFFFF;
+	return READ_WORD(addr);
+//	return (memory.sram[addr] << 8) | (memory.sram[addr + 1] & 0xff);
 }
 
 LONG_FETCH(mem68k_fetch_sram)
@@ -285,7 +286,7 @@ LONG_FETCH(mem68k_fetch_pal)
 
 /**** VIDEO ****/
 Uint8 mem68k_fetch_video_byte(Uint32 addr) {
-	//printf("mem6k_fetch_video_byte %08x\n",addr);
+	//debug("mem6k_fetch_video_byte %08x\n",addr);
 	if (!(addr&0x1))
 			return mem68k_fetch_video_word(addr)>>8;
 	else {
@@ -310,7 +311,7 @@ Uint8 mem68k_fetch_video_byte(Uint32 addr) {
 }
 
 Uint16 mem68k_fetch_video_word(Uint32 addr) {
-	//printf("mem68k_fetch_video_word %08x\n",addr);
+	//debug("mem68k_fetch_video_word %08x\n",addr);
 	addr &= 0x7;
 	/*
 	 if (addr==0x00)
@@ -345,12 +346,12 @@ Uint8 mem68k_fetch_ctl1_byte(Uint32 addr) {
 }
 
 Uint16 mem68k_fetch_ctl1_word(Uint32 addr) {
-	//  printf("mem68k_fetch_ctl1_word\n");
+	//  debug("mem68k_fetch_ctl1_word\n");
 	return 0;
 }
 
 Uint32 mem68k_fetch_ctl1_long(Uint32 addr) {
-	//  printf("mem68k_fetch_ctl1_long\n");
+	//  debug("mem68k_fetch_ctl1_long\n");
 	return 0;
 }
 
@@ -371,7 +372,7 @@ Uint32 mem68k_fetch_ctl2_long(Uint32 addr) {
 }
 
 Uint8 mem68k_fetch_ctl3_byte(Uint32 addr) {
-	//printf("Fetch ctl3 byte %x\n",addr);
+	//debug("Fetch ctl3 byte %x\n",addr);
 	if ((addr & 0xFFFF) == 0x0)
 		return memory.intern_start;
 	return 0;
@@ -379,11 +380,11 @@ Uint8 mem68k_fetch_ctl3_byte(Uint32 addr) {
 
 Uint16 mem68k_fetch_ctl3_word(Uint32 addr) {
 	/*
-	 printf("Fetch ctl3 word %x\n",addr);
+	 debug("Fetch ctl3 word %x\n",addr); */
 	 if ((addr & 0xFFFF) == 0x0)
 	 return memory.intern_start | 0xFF00;
-	 */
-	return 0;
+	// */
+	//return 0;
 }
 
 Uint32 mem68k_fetch_ctl3_long(Uint32 addr) {
@@ -400,7 +401,7 @@ Uint8 mem68k_fetch_coin_byte(Uint32 addr) {
 	if (addr == 0x0) {
 		int res = 0;
 		if (arg[OPTION_SAMPLERATE]) {
-			//printf("fetch coin byte, rescoe= %x\n",result_code);
+			//debug("fetch coin byte, rescoe= %x\n",result_code);
 #ifdef ENABLE_940T
 
 			res |= shared_ctl->result_code;
@@ -453,17 +454,17 @@ Uint32 mem68k_fetch_memcrd_long(Uint32 addr) {
 void mem68k_store_invalid_byte(Uint32 addr, Uint8 data) {
 	if (addr != 0x300001)
 	;
-		//printf("Invalid write b %x %x \n", addr, data);
+		//debug("Invalid write b %x %x \n", addr, data);
 	else {
 		memory.watchdog = 0;
-		//printf("restet_watchdog\n");
+		//debug("restet_watchdog\n");
 	}
 }
 void mem68k_store_invalid_word(Uint32 addr, Uint16 data) {
-	//printf("Invalid write w %x %x \n", addr, data);
+	//debug("Invalid write w %x %x \n", addr, data);
 }
 void mem68k_store_invalid_long(Uint32 addr, Uint32 data) {
-	//printf("Invalid write l %x %x \n", addr, data);
+	//debug("Invalid write l %x %x \n", addr, data);
 }
 
 /**** RAM ****/
@@ -474,7 +475,7 @@ void mem68k_store_ram_byte(Uint32 addr, Uint8 data) {
 }
 
 void mem68k_store_ram_word(Uint32 addr, Uint16 data) {
-	//printf("Store rom word %08x %04x\n",addr,data);
+	//debug("Store rom word %08x %04x\n",addr,data);
 	addr &= 0xffff;
 	WRITE_WORD_ROM(memory.ram + addr,data);
 	return;
@@ -485,26 +486,32 @@ LONG_STORE(mem68k_store_ram)
 
 /**** SRAM ****/
 void mem68k_store_sram_byte(Uint32 addr, Uint8 data) {
-	if (sram_lock)
+	if (sram_lock) {
+		debug("?");
 		return;
+	}
 	/*
 	 if (addr == 0xd00000 + sram_protection_hack && ((data & 0xff) == 0x01))
 	 return;
 	 */
-	memory.sram[addr - 0xd00000] = data;
+	addr -= 0xd00000; addr &= 0xFFFF;
+	memory.sram[addr] = data;
 }
 
 void mem68k_store_sram_word(Uint32 addr, Uint16 data) {
-	if (sram_lock)
+	if (sram_lock) {
+		debug("?");
 		return;
+	}
 	/*
 	 if (addr == 0xd00000 + sram_protection_hack
 	 && ((data & 0xffff) == 0x01))
 	 return;
 	 */
-	addr -= 0xd00000;
-	memory.sram[addr] = data >> 8;
-	memory.sram[addr + 1] = data & 0xff;
+	addr -= 0xd00000; addr &= 0xFFFF;
+	WRITE_WORD(addr, data);
+	// memory.sram[addr] = data >> 8;
+	// memory.sram[addr + 1] = data & 0xff;
 }
 
 LONG_STORE(mem68k_store_sram)
@@ -577,7 +584,7 @@ void mem68k_store_pal_byte(Uint32 addr, Uint8 data) {
 }
 
 void mem68k_store_pal_word(Uint32 addr, Uint16 data) {
-    //printf("Store pal word @ %08x %08x %04x\n",cpu_68k_getpc(),addr,data);
+    //debug("Store pal word @ %08x %08x %04x\n",cpu_68k_getpc(),addr,data);
     addr &= 0xffff;
     if (addr <= 0x1fff) {
         WRITE_WORD(&current_pal[addr], data);
@@ -597,7 +604,7 @@ LONG_STORE(mem68k_store_pal)
 void mem68k_store_video_byte(Uint32 addr, Uint8 data) {
 	/* garou write at 3c001f, 3c000f, 3c0015 */
 	/* wjammers write, and fetch at 3c0000 .... */
-	//printf("mem68k_store_video_byte %08x %02x @pc=%08x\n",addr,data,cpu_68k_getpc());
+	//debug("mem68k_store_video_byte %08x %02x @pc=%08x\n",addr,data,cpu_68k_getpc());
 	if (!(addr&0x1)) {
 		mem68k_store_video_word(addr,(data<<8)|data);
 	}
@@ -605,7 +612,7 @@ void mem68k_store_video_byte(Uint32 addr, Uint8 data) {
 
 void mem68k_store_video_word(Uint32 addr, Uint16 data) {
     //data&=0xFFFF;
-    //printf("mem68k_store_video_word %08x %04x @pc=%08x\n",addr,data,cpu_68k_getpc());
+    //debug("mem68k_store_video_word %08x %04x @pc=%08x\n",addr,data,cpu_68k_getpc());
 	addr &= 0xF;
 	switch (addr) {
 	case 0x0:
@@ -613,7 +620,7 @@ void mem68k_store_video_word(Uint32 addr, Uint16 data) {
 		memory.vid.rbuf = READ_WORD(&memory.vid.ram[memory.vid.vptr << 1]);
 		break;
 	case 0x2:
-		//printf("Store %04x to video %08x @pc=%08x\n",data,vptr<<1,cpu_68k_getpc());
+		//debug("Store %04x to video %08x @pc=%08x\n",data,vptr<<1,cpu_68k_getpc());
 		WRITE_WORD(&memory.vid.ram[memory.vid.vptr << 1], data);
 		memory.vid.vptr = (memory.vid.vptr & 0x8000) + ((memory.vid.vptr
 				+ memory.vid.modulo) & 0x7fff);
@@ -686,12 +693,12 @@ void mem68k_store_z80_word(Uint32 addr, Uint16 data) {
 }
 void mem68k_store_z80_long(Uint32 addr, Uint32 data) {
 	/* I don't think any game will use long store for sound.... */
-	printf("Z80L %x %04x\n", addr, data);
+	debug("Z80L %x %04x\n", addr, data);
 }
 
 /**** SETTINGS ****/
 void mem68k_store_setting_byte(Uint32 addr, Uint8 data) {
-	//printf("mem68k_store_setting_byte %08x\n",addr);
+	//debug("mem68k_store_setting_byte %08x\n",addr);
 	addr &= 0xFFFF;
 	if (addr == 0x0003) { 
 		memcpy(memory.rom.cpu_m68k.p, memory.rom.bios_m68k.p, 0x80);
@@ -736,13 +743,13 @@ void mem68k_store_setting_byte(Uint32 addr, Uint8 data) {
 		return;
 	}
 	/* garou write 0 to 3a0001 -> enable display, 3a0011 -> disable display */
-	//printf("unknow mem68k_store_setting_byte %x %x\n",addr,data);
+	//debug("unknow mem68k_store_setting_byte %x %x\n",addr,data);
 
 }
 
 void mem68k_store_setting_word(Uint32 addr, Uint16 data) {
 	/* TODO: Some game use it */
-	// printf("mem68k_store_setting_word USED????\n");
+	// debug("mem68k_store_setting_word USED????\n");
 	mem68k_store_setting_byte(addr,data);
 	return;
 	addr &= 0xFFFFFe;
@@ -784,7 +791,7 @@ void mem68k_store_setting_word(Uint32 addr, Uint16 data) {
 }
 
 void mem68k_store_setting_long(Uint32 addr, Uint32 data) {
-	//printf("setting long\n");
+	//debug("setting long\n");
 }
 
 /**** MEMCARD ****/
@@ -820,13 +827,13 @@ Uint8 mem68k_fetch_bk_normal_byte(Uint32 addr) {
     if (memory.bksw_unscramble) { /* SMA prot & random number generator */
         Uint32 a=addr&0xFFFFFE;
 		if (a == 0xfe446) {
-			//printf("Prot reading B %08x\n", addr);
+			//debug("Prot reading B %08x\n", addr);
 			return (addr&0x1?0x9a:0x37);
 		}
 		if (memory.sma_rng_addr && addr>=0x2fff00 &&
             (((a & 0xFF) == (memory.sma_rng_addr & 0xFF)) || 
              ((a & 0xFF) == memory.sma_rng_addr >> 8))) {
-            //printf("SMA_Random B %08x\n",addr);
+            //debug("SMA_Random B %08x\n",addr);
 			return (addr&0x1?sma_random()>>8:sma_random()&0xFF);
         }
 	}
@@ -837,13 +844,13 @@ Uint16 mem68k_fetch_bk_normal_word(Uint32 addr) {
 	addr &= 0xFFFFF;
 	if (memory.bksw_unscramble) { /* SMA prot & random number generator */
 		if (addr == 0xfe446) {
-			//printf("Prot reading W %08x\n", addr);
+			//debug("Prot reading W %08x\n", addr);
 			return 0x9a37;
 		}
 		if (memory.sma_rng_addr && addr>=0x2fff00 &&
             (((addr & 0xFF) == (memory.sma_rng_addr & 0xFF)) || 
              ((addr & 0xFF) == memory.sma_rng_addr >> 8))) {
-            //printf("SMA_Random W %08x\n",addr);
+            //debug("SMA_Random W %08x\n",addr);
 			return sma_random();
         }
 	}
@@ -871,13 +878,13 @@ static void bankswitch(Uint32 address, Uint8 data) {
 
 void mem68k_store_bk_normal_byte(Uint32 addr, Uint8 data) {
 	//if (addr<0x2FFFF0)
-	//printf("bankswitch_b %x %x\n", addr, data);
+	//debug("bankswitch_b %x %x\n", addr, data);
 	bankswitch(addr, data);
 }
 
 void mem68k_store_bk_normal_word(Uint32 addr, Uint16 data) {
 	//if (addr<0x2FFFF0) 
-    //printf("bankswitch_w %x %x\n",addr,data);
+    //debug("bankswitch_w %x %x\n",addr,data);
 	if (memory.bksw_unscramble && (addr & 0xFF) == memory.bksw_unscramble[0]) {
 		/* unscramble bank number */
 		data = 

@@ -27,6 +27,7 @@
 #include "memory.h"
 #include "emu.h"
 #include "messages.h"
+#include "conf.h"
 #include "screen.h"
 #include "frame_skip.h"
 #include "transpack.h"
@@ -143,7 +144,8 @@ extern void draw_fix_char(unsigned char *buf, int start, int end);
 
 extern struct RastPort *theRastPort;
 
-uint8_t line_limit[256] = {0}, *limit;
+uint8_t line_limit[256] = {0xFF}, *limit;
+uint32_t even_odd = 0;
 
 //(palbase, tilepos, gfxdata, rzx, yskip)
 extern void draw_tile_m68k(unsigned int tileno,int sx,int sy,int zx,int zy, int color,int xflip,int yflip,unsigned char *bmp);
@@ -152,10 +154,32 @@ extern void draw_tile_ammx(unsigned int tileno,int sx,int sy,int zx,int zy, int 
 extern int AC68080;
 extern void draw_tiles_m68k(uint16_t *bufferpixels);
 
+//OPTION_INTERLEAVED
+
 void draw_screen(void) { 
  	if(screen_prerender()) { 
-		bzero( line_limit, 256 );		
-		clr_screen_m68k(bufferpixels, current_pc_pal[4095] );
+		if(arg[OPTION_INTERLEAVED]) {
+			uint8_t c = even_odd - 1;
+			uint32_t i, x;
+			uint16_t *clear = (uint16_t*)bufferpixels;
+
+			for(i=0;i<224;i++) {
+				line_limit[i] = c;
+				if(!c) {
+					uint16_t pixel = current_pc_pal[4095];
+					for(x=0;x<320;x++) clear[x] = pixel;
+					c = 255;
+				} else {
+					c = 0;
+				}
+				clear += 384;
+			}
+			even_odd = !even_odd;
+
+		} else {
+			bzero( line_limit, 224 );		
+			clr_screen_m68k(bufferpixels, current_pc_pal[4095] );
+		}
 
 		/* Draw sprites */
 		if(AC68080) 
@@ -170,7 +194,7 @@ void draw_screen(void) {
 		screen_update();
 		
 	} else {
-		printf("Unable to lock screen (%p)\n", bufferpixels);
+		debug("Unable to lock screen (%p)\n", bufferpixels);
 		exit(-1);
 	}
 }

@@ -12,6 +12,7 @@
 
 #if !defined(HAVE_LIBZ) || !defined(HAVE_MMAP)
 
+#include "emu.h"
 #include "stb_zlib.h"
 #ifndef STBI_NO_STDIO
 #include <stdio.h>
@@ -44,7 +45,7 @@ char *stbi_failure_reason(void)
 static int e(char *str)
 {
 	//failure_reason = str;
-	printf("GNZLIB Failure %s\n",str);
+	debug("GNZLIB Failure %s\n",str);
 	exit(1);
 	return 0;
 }
@@ -146,7 +147,7 @@ __forceinline static int zget8(zbuf *z)
 
 static void fill_bits(zbuf *z)
 {
-	//printf("Fillbits\n");
+	//debug("Fillbits\n");
    do {
       assert(z->code_buffer < (1U << z->num_bits));
       z->code_buffer |= zget8(z) << z->num_bits;
@@ -256,7 +257,7 @@ static uint8 default_length[288], default_distance[32];
 static void init_defaults(void)
 {
    int i;   // use <= to match clearly with spec
-   //printf("Init defaults length\n");
+   //debug("Init defaults length\n");
    for (i=0; i <= 143; ++i)     default_length[i]   = 8;
    for (   ; i <= 255; ++i)     default_length[i]   = 9;
    for (   ; i <= 279; ++i)     default_length[i]   = 7;
@@ -267,7 +268,7 @@ static void init_defaults(void)
 
 /* Circular buffer routine */
 static inline void push_cbuf(zbuf *a,uint8 data) {
-	//printf("Push cbuf %d %d\n",a->cb_pos,data);
+	//debug("Push cbuf %d %d\n",a->cb_pos,data);
 	a->cbuf[a->cb_pos++]=data;
 	if (a->cb_pos>=32*1024) a->cb_pos=0;
 }
@@ -281,7 +282,7 @@ static inline uint8 pop_cbuf_from_dist(zbuf *a,int dist) {
 	//uint8 data;
 
 	if (npos<0) npos+=(32*1024);
-	//printf("Pop cbuf %d\n",npos);
+	//debug("Pop cbuf %d\n",npos);
 	return a->cbuf[npos];
 	//if (a->cb_pos>=32*1024) a->cb_pos=0;
 }
@@ -303,9 +304,9 @@ static int parse_zlib_header(zbuf *a)
 static int parse_huffman_block(zbuf *a,int maxlen)
 {
 	int totdec=0;//a->zout-a->zout_start;
-	//printf("TODEC=%d %d\n",totdec,maxlen);
+	//debug("TODEC=%d %d\n",totdec,maxlen);
 	if (a->left>0) {
-		//printf("a->left=%d a->dist=%d\n",a->left,a->dist);
+		//debug("a->left=%d a->dist=%d\n",a->left,a->dist);
 		while (a->left--) {
 			uint8 o=pop_cbuf_from_dist(a,a->dist);
 			push_cbuf(a,o);
@@ -313,35 +314,35 @@ static int parse_huffman_block(zbuf *a,int maxlen)
 			totdec++;
 						
 			if (totdec==maxlen) {
-				//printf("  Dyn block max read reach %d %d %d\n",a->type,a->left,a->dist);
+				//debug("  Dyn block max read reach %d %d %d\n",a->type,a->left,a->dist);
 				return maxlen;
 			}
 		}
 	}
 	for(;;) {
 		int z = zhuffman_decode(a, &a->z_length);
-		//printf("Z=%d\n",z);
+		//debug("Z=%d\n",z);
 		if (z < 256) {
 			if (z < 0) return e("bad huffman code","Corrupt PNG"); // error in huffman codes
-			//printf("z=%d %d %d\n",z,totdec,a->zout-a->zout_start);
+			//debug("z=%d %d %d\n",z,totdec,a->zout-a->zout_start);
 			*a->zout++ = (char) z;
 
 			push_cbuf(a,z);
 			totdec++;
 			if (totdec==maxlen) {
-				//printf("  Dyn block max read reach %d %d\n",a->type,a->left);
+				//debug("  Dyn block max read reach %d %d\n",a->type,a->left);
 				return maxlen;
 			}
 		} else {
 			uint8 *p;
 			int len,dist;
 			if (z == 256) {
-				//printf("End of huffman block\n");
+				//debug("End of huffman block\n");
 				a->type=-1; /* New block ahead */
 				return totdec;
 			}
 			if (a->left<=0) {
-				//printf("Start of dict copy %d\n",a->left);
+				//debug("Start of dict copy %d\n",a->left);
 				z -= 257;
 				len = length_base[z];
 				if (length_extra[z]) len += zreceive(a, length_extra[z]);
@@ -350,13 +351,13 @@ static int parse_huffman_block(zbuf *a,int maxlen)
 				dist = dist_base[z];
 				if (dist_extra[z]) dist += zreceive(a, dist_extra[z]);
 				//if (a->zout - a->zout_start < dist) return e("bad dist","Corrupt PNG");
-				if (dist>32*1024) {printf("Bad dist\n");return 0;}
+				if (dist>32*1024) {debug("Bad dist\n");return 0;}
 				//p = (uint8 *) (a->zout - dist);
 				a->left=len;
 				a->dist=dist;
-				//printf("End of Start of dict copy %d\n",a->left);
+				//debug("End of Start of dict copy %d\n",a->left);
 			}
-			//printf("a->left=%d\n",a->left);
+			//debug("a->left=%d\n",a->left);
 			while (a->left--) {
 				uint8 o=pop_cbuf_from_dist(a,a->dist);
 				push_cbuf(a,o);
@@ -364,7 +365,7 @@ static int parse_huffman_block(zbuf *a,int maxlen)
 				totdec++;
 
 				if (totdec==maxlen) {
-					//printf("  Dyn block max read reach %d %d %d\n",a->type,a->left,a->dist);
+					//debug("  Dyn block max read reach %d %d %d\n",a->type,a->left,a->dist);
 					return maxlen;
 				}
 			}
@@ -377,7 +378,7 @@ static int copy_uncompressed_block(zbuf *a,int maxlen)
 	int len=(a->left>maxlen?maxlen:a->left);
 	int i=len;
 	uint8 data;
-	//printf("BBBBBBBBBBBBb\n");
+	//debug("BBBBBBBBBBBBb\n");
 	while(i) {
 		if (a->zbuffer) { /* Stream from memory */
 			push_cbuf(a,*a->zbuffer);
@@ -399,7 +400,7 @@ static int parse_header(zbuf *a) {
 	int len,nlen,k;
 	switch(a->type) {
 	case 0: 
-		//printf("CCCCCCCCCCCcccccc\n");
+		//debug("CCCCCCCCCCCcccccc\n");
 /* Read uncompressed block header */
 		if (a->num_bits & 7)
 			zreceive(a, a->num_bits & 7); // discard
@@ -416,7 +417,7 @@ static int parse_header(zbuf *a) {
 			header[k++] = (uint8) zget8(a);
 		len  = header[1] * 256 + header[0];
 		nlen = header[3] * 256 + header[2];
-		//printf("len %d nlen %d\n",len,nlen);
+		//debug("len %d nlen %d\n",len,nlen);
 		if (nlen != (len ^ 0xffff)) return e("zlib corrupt (uncompressed block)","Corrupt ZIP");
 		if (a->totread + len > a->totsize) return e("read past buffer","Corrupt ZIP");
 		a->left=len;
@@ -427,7 +428,7 @@ static int parse_header(zbuf *a) {
 		if (!default_distance[31]) init_defaults();
 		if (!zbuild_huffman(&a->z_length  , default_length  , 288)) return 0;
 		if (!zbuild_huffman(&a->z_distance, default_distance,  32)) return 0;
-		//printf("Fixed code length\n");
+		//debug("Fixed code length\n");
 		
 		break;
 	case 2:
@@ -483,11 +484,11 @@ int stbi_zlib_decode_noheader_stream(zbuf *a,char *obuffer, int olen) {
 	
 	if(!a) 
 	{
-        printf("no buffer\n");
+        debug("no buffer\n");
         return -1;
     }
 	
-    //printf("TOTRED %d TOTSIZE %d %d\n",a->totread,a->totsize,a->num_bits);
+    //debug("TOTRED %d TOTSIZE %d %d\n",a->totread,a->totsize,a->num_bits);
 	if (a->totread>=a->totsize) return -1;
 
 	a->zout_start=obuffer;
@@ -497,7 +498,7 @@ int stbi_zlib_decode_noheader_stream(zbuf *a,char *obuffer, int olen) {
 		if (a->type==-1) { /* start */
 			a->final = zreceive(a,1);
 			a->type = zreceive(a,2);
-			//printf("Begining of a block type %d\n",a->type);
+			//debug("Begining of a block type %d\n",a->type);
 			parse_header(a);
 		}
 	
@@ -509,7 +510,7 @@ int stbi_zlib_decode_noheader_stream(zbuf *a,char *obuffer, int olen) {
 			break;
 		case 1: /* Huffman block (fixed) */
 		case 2: /* Huffman block (dyn, calculated in parse_header() ) */
-			//printf(" .Dyn huffman block\n");
+			//debug(" .Dyn huffman block\n");
 			readed=parse_huffman_block(a,todo);
 			totread+=readed;
 			break;
@@ -519,9 +520,9 @@ int stbi_zlib_decode_noheader_stream(zbuf *a,char *obuffer, int olen) {
 		}
 
 		todo-=readed;
-		//printf(".--End one pass readed=%d totread=%d todo=%d type=%d\n",readed,totread,todo,a->type);
+		//debug(".--End one pass readed=%d totread=%d todo=%d type=%d\n",readed,totread,todo,a->type);
 	} while(!a->final && totread<olen);
-	//printf(". End all pass readed=%d olen=%d type=%d\n",readed,olen,a->type);
+	//debug(". End all pass readed=%d olen=%d type=%d\n",readed,olen,a->type);
 	return totread;
 }
 
@@ -531,7 +532,7 @@ char *stbi_zlib_decode_malloc(char const *buffer, int len, int *outlen) {
 	char *buf;
 	int guesssize=len*20;
 
-	//printf("stbi_zlib_decode_malloc %p %d\n",buffer,guesssize);
+	//debug("stbi_zlib_decode_malloc %p %d\n",buffer,guesssize);
 	buf=malloc(guesssize);
 	if (!buf || !z) return NULL;
 
@@ -539,11 +540,11 @@ char *stbi_zlib_decode_malloc(char const *buffer, int len, int *outlen) {
 
 	while((readed=stbi_zlib_decode_noheader_stream(z,buf,guesssize))!=-1) {
 		//readed=stbi_zlib_decode_noheader_stream(z,buf,guesssize);
-		printf("1block %d %d z->num_bits %d\n",totread,readed,z->num_bits);
+		debug("1block %d %d z->num_bits %d\n",totread,readed,z->num_bits);
 		totread+=readed;
 		buf=realloc(buf,guesssize+totread);
 	}
-	printf("Readed %d \n",totread);
+	debug("Readed %d \n",totread);
 	buf=realloc(buf,totread);
 	*outlen=totread;
 	return buf;

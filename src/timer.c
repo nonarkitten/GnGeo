@@ -53,12 +53,12 @@ timer_struct *insert_timer(double duration, int param, void (*func) (int))
 	    timers[i].time = timer_count + duration;
 	    timers[i].param = param;
 	    timers[i].func = func;
-	    //printf("Insert_timer %d duration=%f param=%d\n",i,duration,timers[i].param);
+	    //debug("Insert_timer %d duration=%f param=%d\n",i,duration,timers[i].param);
 	    timers[i].del_it = 0;
 	    return &timers[i];
 	}
     }
-    printf("YM2610: No timer free!\n");
+    debug("YM2610: No timer free!\n");
     return NULL;		/* No timer free */
 }
 
@@ -136,7 +136,7 @@ void my_timer(void)
 
     for (i = 0; i < MAX_TIMER; i++) {
 	if (timer_count >= timers[i].time && timers[i].del_it == 0) {
-	    //printf("Timer_expire %d duration=%f param=%d\n",i,timers[i].time,timers[i].param);
+	    //debug("Timer_expire %d duration=%f param=%d\n",i,timers[i].time,timers[i].param);
 	    if (timers[i].func) timers[i].func(timers[i].param);
 	    timers[i].del_it = 1;
 	}

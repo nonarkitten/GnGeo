@@ -31,7 +31,7 @@ typedef union {
 
 extern const uint16_t ddaxskip_i[17];
 
-extern uint8_t line_limit[256], *limit;
+//extern uint8_t line_limit[256], *limit;
 static uint32_t scalex;
 
 #define DO_NOT_REORDER() asm volatile("": : :"memory")
@@ -43,8 +43,8 @@ INLINE void __attribute__((regparm(4))) draw_tile_m68k_norm (uint32_t*palbase,ui
 	
 	while(y--) {
 		if(scaley & 0x8000) {
-			if(*limit < 96) {
-				*limit += 1; 
+//			if(*limit < 96) {
+//				*limit += 1; 
 
                 if((pixels0.pixel = gfxdata[0])) {                 pixel1 = pixels0.p.p0; DO_NOT_REORDER();
                                                                    pixel2 = pixels0.p.p1; DO_NOT_REORDER();
@@ -71,8 +71,8 @@ INLINE void __attribute__((regparm(4))) draw_tile_m68k_norm (uint32_t*palbase,ui
                 }
 			}
 			screen += PITCH / 2;
-			limit++;
-		}
+//			limit++;
+//		}
 		scaley <<= 1;
 		gfxdata += 2;
 	}
@@ -84,8 +84,8 @@ INLINE void __attribute__((regparm(4))) draw_tile_m68k_xflip_norm (uint32_t*palb
 	
 	while(y--) {
 		if(scaley & 0x8000) {
-			if(*limit < 96) {
-				*limit += 1; 
+			// if(*limit < 96) {
+			// 	*limit += 1; 
 
                 if((pixels0.pixel = gfxdata[1])) {                 pixel1 = pixels0.p.p7; DO_NOT_REORDER();
                                                                    pixel2 = pixels0.p.p6; DO_NOT_REORDER();
@@ -112,8 +112,8 @@ INLINE void __attribute__((regparm(4))) draw_tile_m68k_xflip_norm (uint32_t*palb
                 }
 			}
 			screen += PITCH / 2;
-			limit++;
-		}
+		// 	limit++;
+		// }
 		scaley <<= 1;
 		gfxdata += 2;
 	}
@@ -126,8 +126,8 @@ INLINE void __attribute__((regparm(4))) draw_tile_m68k_yflip_norm  (uint32_t*pal
 	gfxdata += 30;
 	while(y--) {
 		if(scaley & 0x8000) {
-			if(*limit < 96) {
-				*limit += 1; 
+			// if(*limit < 96) {
+			// 	*limit += 1; 
 				
                 if((pixels0.pixel = gfxdata[0])) {                 pixel1 = pixels0.p.p0; DO_NOT_REORDER();
                                                                    pixel2 = pixels0.p.p1; DO_NOT_REORDER();
@@ -155,8 +155,8 @@ INLINE void __attribute__((regparm(4))) draw_tile_m68k_yflip_norm  (uint32_t*pal
 							
 			}
 			screen += PITCH / 2;
-			limit++;
-		}
+		// 	limit++;
+		// }
 		scaley <<= 1;
 		gfxdata -= 2;
 	}
@@ -169,8 +169,8 @@ INLINE void __attribute__((regparm(4))) draw_tile_m68k_xyflip_norm (uint32_t*pal
 	gfxdata += 30;
 	while(y--) {
 		if(scaley & 0x8000) {
-			if(*limit < 96) {
-				*limit += 1; 
+			// if(*limit < 96) {
+			// 	*limit += 1; 
 
                 if((pixels0.pixel = gfxdata[1])) {                 pixel1 = pixels0.p.p7; DO_NOT_REORDER();
                                                                    pixel2 = pixels0.p.p6; DO_NOT_REORDER();
@@ -197,8 +197,8 @@ INLINE void __attribute__((regparm(4))) draw_tile_m68k_xyflip_norm (uint32_t*pal
                 }
 			}
 			screen += PITCH / 2;
-			limit++;
-		}
+		// 	limit++;
+		// }
 		scaley <<= 1;
 		gfxdata -= 2;
 	}
@@ -211,8 +211,8 @@ INLINE void __attribute__((regparm(4))) draw_tile_m68k_xzoom (uint32_t*palbase,u
 	for(;;) {
 		tilepos = org_tilepos;
 		if(scaley & 0x8000) {
-			if(*limit < 96) {
-				*limit += 1;
+			// if(*limit < 96) {
+			// 	*limit += 1;
 			
 				pixeldata.pixel = gfxdata[0]; 
 				if(scalex & 0x8000) { if(pixeldata.p.p0) *tilepos = (uint16_t)palbase[pixeldata.p.p0]; tilepos++; }
@@ -236,11 +236,12 @@ INLINE void __attribute__((regparm(4))) draw_tile_m68k_xzoom (uint32_t*palbase,u
 			
 			}
 			org_tilepos += PITCH / 2;
-			limit++;
-		}
+		// 	limit++;
+		// }
 		if(!y) break;
 		scaley <<= 1;
 		gfxdata += 2;
+		
 		y -= 1;
 	}
 }
@@ -251,8 +252,8 @@ INLINE void __attribute__((regparm(4))) draw_tile_m68k_xzoomX  (uint32_t*palbase
 	for(;;) {
 		tilepos = org_tilepos;
 		if(scaley & 0x8000) {
-			if(*limit < 96) {
-				*limit += 1;
+			// if(*limit < 96) {
+			// 	*limit += 1;
 			
 				pixeldata.pixel = gfxdata[1];
 				if(scalex & 0x0001) { if(pixeldata.p.p7) *tilepos = (uint16_t)palbase[pixeldata.p.p7]; tilepos++; }
@@ -276,8 +277,8 @@ INLINE void __attribute__((regparm(4))) draw_tile_m68k_xzoomX  (uint32_t*palbase
 			}
 			
 			org_tilepos += PITCH / 2;
-			limit++;
-		}
+		// 	limit++;
+		// }
 		if(!y) break;
 		scaley <<= 1;
 		gfxdata += 2;
@@ -293,8 +294,8 @@ INLINE void __attribute__((regparm(4))) draw_tile_m68k_xzoomY  (uint32_t*palbase
 	for(;;) {
 		tilepos = org_tilepos;
 		if(scaley & 0x8000) {
-			if(*limit < 96) {
-				*limit += 1;
+			// if(*limit < 96) {
+			// 	*limit += 1;
 						
 				pixeldata.pixel = gfxdata[0]; 
 				if(scalex & 0x8000) { if(pixeldata.p.p0) *tilepos = (uint16_t)palbase[pixeldata.p.p0]; tilepos++; }
@@ -318,8 +319,8 @@ INLINE void __attribute__((regparm(4))) draw_tile_m68k_xzoomY  (uint32_t*palbase
 			}
 			
 			org_tilepos += PITCH / 2;
-			limit++;
-		}
+		// 	limit++;
+		// }
 		if(!y) break;
 		scaley <<= 1;
 		gfxdata -= 2;
@@ -335,8 +336,8 @@ INLINE void __attribute__((regparm(4))) draw_tile_m68k_xzoomXY (uint32_t*palbase
 	for(;;) {
 		tilepos = org_tilepos;
 		if(scaley & 0x8000) {
-			if(*limit < 96) {
-				*limit += 1;
+			// if(*limit < 96) {
+			// 	*limit += 1;
 						
 				pixeldata.pixel = gfxdata[1];
 				if(scalex & 0x0001) { if(pixeldata.p.p7) *tilepos = (uint16_t)palbase[pixeldata.p.p7]; tilepos++; }
@@ -359,8 +360,8 @@ INLINE void __attribute__((regparm(4))) draw_tile_m68k_xzoomXY (uint32_t*palbase
 				if(scalex & 0x8000) { if(pixeldata.p.p0) *tilepos = (uint16_t)palbase[pixeldata.p.p0]; tilepos++; }
 			}
 			org_tilepos += PITCH / 2;
-			limit++;
-		}
+		// 	limit++;
+		// }
 		if(!y) break;
 		scaley <<= 1;
 		gfxdata -= 2;
@@ -461,7 +462,7 @@ void draw_tiles_m68k(uint16_t *bufferpixels) {
 			if (memory.nb_of_tiles > 0x40000 && tileatr & 0x40) tileno += 0x40000;
 
 			/* animation automatique */
-			/*if (tileatr&0x80) printf("PLOP\n");*/
+			/*if (tileatr&0x80) debug("PLOP\n");*/
 			if (tileatr & 0x8) {
 				tileno = (tileno&~7)+((tileno + neogeo_frame_counter)&7);
 			} else {
@@ -502,7 +503,11 @@ void draw_tiles_m68k(uint16_t *bufferpixels) {
 					uint16_t scaley = ddaxskip_i[yskip];
 					const int pitch = PITCH / 2;
 	
-					limit = &line_limit[sy];
+//					limit = &line_limit[sy];
+					if(sy < 16) {
+						gfxdata += (16 - sy) * 2;
+						sy = 16;
+					}
 	
 					if (rzx==16) {
 						if (tileatr & 0x01) {

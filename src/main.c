@@ -47,6 +47,7 @@
 
 #include <graphics/gfx.h>
 #include <graphics/gfxbase.h>
+#include <proto/lowlevel.h>
 
 #ifdef USE_GUI
 #include "gui_interf.h"
@@ -89,25 +90,38 @@ void sdl_set_title(char *name) { }
 
 void init_sdl(void /*char *rom_name*/) {
     if (screen_init() == FALSE) {
-		printf("Screen initialization failed.\n");
+		debug("Screen initialization failed.\n");
 		exit(-1);
     }
-    calculate_hotkey_bitmasks();   
-	init_event();
+    //calculate_hotkey_bitmasks();   
+	//init_event();
+}
+
+static void suspend_os(void) {
+	struct TagItem suspend_tags = { SCON_TakeOverSys, 1, TAG_END };
+	SystemControlA( &suspend_tags );
+}
+
+static void resume_os(void) {
+	struct TagItem resume_tags = { SCON_TakeOverSys, 0, TAG_END };
+	SystemControlA( &resume_tags );
 }
 
 static void cleanup(void) {
+	resume_os();
 	close_audio();
 	screen_close();
     close_game();
+	//CloseLibrary("lowlevel.library");
 }
 
 // static void catch_me(int signo) {
-// 	printf("Catch a sigsegv\n");
+// 	debug("Catch a sigsegv\n");
 // 	//SDL_Quit();
 // 	exit(-1);
 // }
 static struct GfxBase *GfxBase;
+extern struct Library *LowLevelBase;
 
 int HostCpuClock = 0;
 int HostPAL = 0;
@@ -122,6 +136,9 @@ int main(int argc, char *argv[]) {
     BPTR file_lock;
     int bench = 0;
     ULONG initStart;
+
+    if(!LowLevelBase) LowLevelBase = (struct Library *) OpenLibrary("lowlevel.library",0);
+	if(!LowLevelBase) exit(-1);
     
 	if(NULL != (GfxBase = (struct GfxBase *)OpenLibrary("graphics.library",0L))) {
 		HostCpuClock = (GfxBase->DisplayFlags & PAL) ? 3546895L : 3579545L;
@@ -134,31 +151,30 @@ int main(int argc, char *argv[]) {
 	real_AC68080 = AC68080;
 		
 	ParseArguments(argc, argv);
-
+	
 	file_lock = GetProgramDir();
 	SetProgramDir(file_lock);
 	
 	rom_name = arg[OPTION_FILE];
 	if (!rom_name) {
-		printf("No file specified\n");
-		exit(1);
+		error("No file specified\n");
 	}
 
 	atexit(cleanup);
 
     I_InitTimer();
-	reset_frame_skip();
+	//reset_frame_skip();
 
 	initStart = getMilliseconds();
 	if (init_game(rom_name)!=TRUE) {
-		printf("Can't init %s...\n",rom_name);
-		exit(1);
+		error("Can't init %s...\n",rom_name);
 	}
 
 	//convert_audio_rom();
 	init_sdl();
 	
-	printf("Startup took %u ms, ", (ULONG)((int)getMilliseconds() - (int)initStart));
+	debug("Startup took %u ms, ", (ULONG)((int)getMilliseconds() - (int)initStart));
+	suspend_os();
 	main_loop();
 
     return 0;

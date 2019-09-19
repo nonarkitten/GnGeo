@@ -102,7 +102,7 @@ void list_foreach(LIST *l,void (*func)(void *data)) {
 
 void print_data(void *data) {
     char *name=data;
-    printf("DATA: %s\n",name);
+    debug("DATA: %s\n",name);
 }
 
 int main(void) {

@@ -967,7 +967,7 @@ void neogeo_cmc50_m1_decrypt(running_machine *machine)
 
 	/* TODO don't open it 2 times... */
 	load_cmc50_table();
-	//printf("key %04x\n",key);
+	//debug("key %04x\n",key);
 
 	for (i=0; i<rom_size; i++)
 	{

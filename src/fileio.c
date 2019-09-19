@@ -66,10 +66,10 @@ void chomp(char *str) {
 	int i = 0;
 	if (str) {
 		while (str[i] != 0) {
-			printf(" %d ", str[i]);
+			debug(" %d ", str[i]);
 			i++;
 		}
-		printf(" \n");
+		debug(" \n");
 		if (str[i - 1] == 0x0A || str[i - 1] == 0x0D) str[i - 1] = 0;
 		if (str[i - 2] == 0x0A || str[i - 2] == 0x0D) str[i - 2] = 0;
 
@@ -127,7 +127,7 @@ char *get_gngeo_dir(void) {
 #endif
 	}
 	check_dir(filename);
-	//printf("get_gngeo_dir %s\n",filename);
+	//debug("get_gngeo_dir %s\n",filename);
 	return filename;
 }
 #endif
@@ -135,96 +135,117 @@ char *get_gngeo_dir(void) {
 void open_nvram(char *name) {
 	char *filename;
 	size_t totread = 0;
-#ifdef EMBEDDED_FS
-	const char *gngeo_dir = ROOTPATH"save/";
-#elif defined(__AMIGA__)
-	const char *gngeo_dir = "save/";
-#else
-	const char *gngeo_dir = get_gngeo_dir();
-#endif
-	FILE *f;
-	int len = strlen(name) + strlen(gngeo_dir) + 4; /* ".nv\0" => 4 */
-
-	filename = (char *) alloca(len);
-	sprintf(filename, "%s%s.nv", gngeo_dir, name);
-
-	if ((f = fopen(filename, "rb")) == 0)
-		return;
-	totread = fread(memory.sram, 1, 0x10000, f);
-	fclose(f);
-
-}
-
-/* TODO: multiple memcard */
-void open_memcard(char *name) {
-	char *filename;
-	size_t totread = 0;
-#ifdef EMBEDDED_FS
-	const char *gngeo_dir = ROOTPATH"save/";
-#elif defined(__AMIGA__)
-	const char *gngeo_dir = "save/";
-#else
-	const char *gngeo_dir = get_gngeo_dir();
-#endif
-	FILE *f;
-	int len = strlen("memcard") + strlen(gngeo_dir) + 1; /* ".nv\0" => 4 */
-
-	filename = (char *) alloca(len);
-	sprintf(filename, "%s%s", gngeo_dir, "memcard");
-
-	if ((f = fopen(filename, "rb")) == 0)
-		return;
-	totread = fread(memory.memcard, 1, 0x800, f);
-	fclose(f);
-}
-
-void save_nvram(char *name) {
-	char *filename;
-#ifdef EMBEDDED_FS
-	const char *gngeo_dir = ROOTPATH"save/";
-#elif defined(__AMIGA__)
-	const char *gngeo_dir = strdup("save/");
-#else
-	const char *gngeo_dir = get_gngeo_dir();
-#endif
-	FILE *f;
-	int len = strlen(name) + strlen(gngeo_dir) + 4; /* ".nv\0" => 4 */
-
-	//strlen(name) + strlen(getenv("HOME")) + strlen("/.gngeo/") + 4;
+	uint32_t checksum = 0;
 	int i;
-	//    printf("Save nvram %s\n",name);
-	for (i = 0xffff; i >= 0; i--) {
-		if (memory.sram[i] != 0)
-			break;
-	}
+#ifdef EMBEDDED_FS
+	const char *gngeo_dir = ROOTPATH"save/";
+#elif defined(__AMIGA__)
+	const char *gngeo_dir = "save/";
+#else
+	const char *gngeo_dir = get_gngeo_dir();
+#endif
+	FILE *f;
+	int len = strlen(name) + strlen(gngeo_dir) + 4; /* ".nv\0" => 4 */
 
 	filename = (char *) alloca(len);
-
 	sprintf(filename, "%s%s.nv", gngeo_dir, name);
 
-	if ((f = fopen(filename, "wb")) != NULL) {
-		fwrite(memory.sram, 1, 0x10000, f);
+	if ((f = fopen(filename, "rb")) == 0) {
+		debug("Error pening nvram %s\n", filename);
+		return;
+	} else {
+		totread = fread(memory.sram, 1, 0x10000, f);
+		for(i=0; i<65536; i++) checksum = (checksum << 1) ^ memory.sram[i];
+		debug("Opened nvram %s, read %d bytes; checksum: %08X\n", filename, totread, checksum);
 		fclose(f);
 	}
 }
 
-void save_memcard(char *name) {
-	char *filename;
-#ifdef EMBEDDED_FS
-	const char *gngeo_dir = ROOTPATH"save/";
-#elif defined(__AMIGA__)
-	const char *gngeo_dir = strdup("save/");
-#else
-	const char *gngeo_dir = get_gngeo_dir();
-#endif
+/* TODO: multiple memcard */
+void open_memcard(char *name) {
+//	char *filename;
+	size_t totread = 0;
+	uint32_t checksum = 0;
+	int i;
+// #ifdef EMBEDDED_FS
+// 	const char *gngeo_dir = ROOTPATH"save/";
+// #elif defined(__AMIGA__)
+	const char *gngeo_dir = "save/";
+// #else
+// 	const char *gngeo_dir = get_gngeo_dir();
+// #endif
 	FILE *f;
-	int len = strlen("memcard") + strlen(gngeo_dir) + 1; /* ".nv\0" => 4 */
+//	int len = strlen("memcard") + strlen(gngeo_dir) + 1; /* ".nv\0" => 4 */
 
-	filename = (char *) alloca(len);
-	sprintf(filename, "%s%s", gngeo_dir, "memcard");
+//	filename = (char *) alloca(len);
+//	sprintf(filename, "%s%s", gngeo_dir, "memcard");
+
+	if ((f = fopen("save/memcard", "rb")) == 0) {
+		debug("Error reading memcard.");
+	} else {
+		totread = fread(memory.memcard, 1, 0x800, f);
+		for(i=0; i<0x800; i++) checksum = (checksum << 1) ^ memory.memcard[i];
+		debug("Opened memcard and read %d bytes, checksum %08X.\n", totread, checksum);
+		fclose(f);
+	}
+}
+
+void save_nvram(char *name) {
+	char filename[256];
+	uint32_t checksum = 0;
+// #ifdef EMBEDDED_FS
+// 	const char *gngeo_dir = ROOTPATH"save/";
+// #elif defined(__AMIGA__)
+//	const char *gngeo_dir = strdup("save/");
+// #else
+// 	const char *gngeo_dir = get_gngeo_dir();
+// #endif
+	FILE *f;
+	//int len = strlen(name) + strlen(gngeo_dir) + 4; /* ".nv\0" => 4 */
+	//strlen(name) + strlen(getenv("HOME")) + strlen("/.gngeo/") + 4;
+	int i;
+
+	sprintf(filename, "save/%s.nv", name);
+	//debug("Save nvram %s\n",filename);
+	// for (i = 0xffff; i >= 0; i--) {
+	// 	if (memory.sram[i] != 0)
+	// 		break;
+	// }
+
+	//filename = (char *) alloca(len);
+	//sprintf(filename, "%s%s.nv", gngeo_dir, name);
 
 	if ((f = fopen(filename, "wb")) != NULL) {
+		int totlen = fwrite(memory.sram, 1, 0x10000, f);
+		for(i=0; i<65536; i++) checksum = (checksum << 1) ^ memory.sram[i];
+		debug("Saved nvram %s; checksum: %08X\n", filename, checksum);
+		fclose(f);
+	} else {
+		debug("Failed to save %s.\n", filename);
+	}
+}
+
+void save_memcard(char *name) {
+	uint32_t checksum = 0;
+	int i;
+//	char filename[256];
+// #ifdef EMBEDDED_FS
+// 	const char *gngeo_dir = ROOTPATH"save/";
+// #elif defined(__AMIGA__)
+//	const char *gngeo_dir = strdup("save/");
+// #else
+// 	const char *gngeo_dir = get_gngeo_dir();
+// #endif
+	FILE *f;
+//	int len = strlen("memcard") + strlen(gngeo_dir) + 1; /* ".nv\0" => 4 */
+
+//	filename = (char *) alloca(len);
+//	sprintf(filename, "%s", gngeo_dir, "memcard");
+
+	if ((f = fopen("save/memcard", "wb")) != NULL) {
 		fwrite(memory.memcard, 1, 0x800, f);
+		for(i=0; i<0x800; i++) checksum = (checksum << 1) ^ memory.memcard[i];
+		debug("Saved memcard, checksum %08X.\n", checksum);
 		fclose(f);
 	}
 }
@@ -235,7 +256,7 @@ int close_game(void) {
 	save_memcard(arg[OPTION_FILE]);
 
 	dr_free_roms(&memory.rom);
-	trans_pack_free();
+	//trans_pack_free();
 
 	return true;
 }
@@ -254,11 +275,11 @@ int load_game_config(char *rom_name) {
 		if (strstr(rom_name,".gno")!=NULL) {
 			char *name=dr_gno_romname(rom_name);
 			if (name) {
-				printf("Tring to load a gno file %s %s\n",rom_name,name);
+				debug("Tring to load a gno file %s %s\n",rom_name,name);
 				drconf=(char *)alloca(strlen(gpath)+strlen(name)+strlen(".cf")+1);
 				sprintf(drconf,"%s%s.cf",gpath,name);
 			} else {
-				printf("Error while loading %s\n",rom_name);
+				debug("Error while loading %s\n",rom_name);
 				return false;
 			}
 		} else {
@@ -271,14 +292,14 @@ int load_game_config(char *rom_name) {
 }
 
 int init_game(char *rom_name) {
-	//printf("AAA Blitter %s effect %s\n",CF_STR(cf_get_item_by_name("blitter")),CF_STR(cf_get_item_by_name("effect")));
+	//debug("AAA Blitter %s effect %s\n",CF_STR(cf_get_item_by_name("blitter")),CF_STR(cf_get_item_by_name("effect")));
 
 	load_game_config(rom_name);
 	/* reinit screen if necessary */
 	//screen_change_blitter_and_effect(NULL,NULL);
-	reset_frame_skip();
+	//reset_frame_skip();
 	screen_reinit();
-	//printf("BBB Blitter %s effect %s\n",CF_STR(cf_get_item_by_name("blitter")),CF_STR(cf_get_item_by_name("effect")));
+	//debug("BBB Blitter %s effect %s\n",CF_STR(cf_get_item_by_name("blitter")),CF_STR(cf_get_item_by_name("effect")));
 	/* open transpack if need */
 	//trans_pack_open(CF_STR(cf_get_item_by_name("transpack")));
 
@@ -289,7 +310,7 @@ int init_game(char *rom_name) {
 
 		//open_rom(rom_name);
 		if (dr_load_game(rom_name) == false) {
-			//printf("Can't load %s\n", rom_name);
+			//debug("Can't load %s\n", rom_name);
 			return false;
 		}
 	}

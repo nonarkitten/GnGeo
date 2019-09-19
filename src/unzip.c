@@ -11,6 +11,7 @@
 #endif
 
 #include "lz4w.h"
+#include "emu.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -36,7 +37,7 @@ ZFILE *gn_unzip_fopen(PKZIP *zf, char *filename, uint32_t file_crc) {
 //		return NULL;
 		
 	sprintf( name, "%s/%s", (char*)zf, filename );
-	printf("Decompressing '%s'\n", name);
+	debug("Decompressing '%s'\n", name);
 
 	if(!(fh = Open(name, MODE_OLDFILE)))
 		return NULL;
@@ -47,16 +48,16 @@ ZFILE *gn_unzip_fopen(PKZIP *zf, char *filename, uint32_t file_crc) {
 		FreeDosObject(DOS_FIB, fib);
 	} else return NULL;
 		
-	//printf("Attempting to allocate %d bytes\n", size);
+	//debug("Attempting to allocate %d bytes\n", size);
 	if(!(mem = AllocVec(size, MEMF_FAST)))
 		return NULL;
 		
-	//printf("Reading file... ");
+	//debug("Reading file... ");
 	Read(fh, mem, size);
 	Close(fh);
 	
 	size = lz4w_length(mem);
-	//printf("Attempting to allocate %d more bytes\n", size);
+	//debug("Attempting to allocate %d more bytes\n", size);
 	if((mem2 = AllocVec(size, MEMF_FAST))) {
 		if((zfile = AllocVec(sizeof(struct ZFILE), MEMF_FAST))) {
 			lz4w_unpack(mem, mem2);

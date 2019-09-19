@@ -25,7 +25,7 @@
 #include "screen.h"
 #include "event.h"
 #include "memory.h"
-
+#include "conf.h"
 
 struct Library *LowLevelBase = NULL;
 
@@ -46,7 +46,7 @@ struct GamePortTrigger gameport_gpt = {
 
 
 static GNGEO_BUTTON get_mapid(char *butid) {
-    printf("Get mapid %s\n",butid);
+    debug("Get mapid %s\n",butid);
     if (!strcmp(butid,"A")) return GN_A;
     if (!strcmp(butid,"B")) return GN_B;
     if (!strcmp(butid,"C")) return GN_C;
@@ -81,23 +81,21 @@ bool create_joymap_from_string(int player,char *jconf) {
 
 extern int neo_emu_done;
 
-bool init_event(void) {
-    int i;
+// bool init_event(void) {
+//     int i;
 
-    if(!LowLevelBase) LowLevelBase = (struct Library *) OpenLibrary((UBYTE *)"lowlevel.library",0);
-	if(!LowLevelBase) exit(-1);
 	
-//     jmap = calloc(sizeof(JOYMAP),1);
-// 
-//     create_joymap_from_string(1,CF_STR(cf_get_item_by_name("p1control")));
-//     create_joymap_from_string(2,CF_STR(cf_get_item_by_name("p2control")));
-// 
-//     jmap->jbutton = calloc(conf.nb_joy,sizeof(struct BUT_MAP*));
-//     jmap->jaxe =  calloc(conf.nb_joy,sizeof(struct BUT_MAPJAXIS*));
-//     jmap->jhat =  calloc(conf.nb_joy,sizeof(struct BUT_MAP*));
+// //     jmap = calloc(sizeof(JOYMAP),1);
+// // 
+// //     create_joymap_from_string(1,CF_STR(cf_get_item_by_name("p1control")));
+// //     create_joymap_from_string(2,CF_STR(cf_get_item_by_name("p2control")));
+// // 
+// //     jmap->jbutton = calloc(conf.nb_joy,sizeof(struct BUT_MAP*));
+// //     jmap->jaxe =  calloc(conf.nb_joy,sizeof(struct BUT_MAPJAXIS*));
+// //     jmap->jhat =  calloc(conf.nb_joy,sizeof(struct BUT_MAP*));
 
-    return true;
-}
+//     return true;
+// }
 
 int handle_pdep_event(void *event) {
     return 0;
@@ -106,100 +104,128 @@ int handle_pdep_event(void *event) {
 #define EVGAME 1
 #define EVMENU 2
 
-// WASD default
-int KB_JOY_LEFT = 0x20;
-int KB_JOY_RIGHT = 0x22;
-int KB_JOY_UP = 0x11;
-int KB_JOY_DOWN = 0x21;
+typedef enum {
+	P1_UP,
+	P1_LEFT,
+	P1_DOWN,
+	P1_RIGHT,
+	P1_RED,
+	P1_BLUE,
+	P1_GREEN,
+	P1_YELLOW,
+	P1_COINSELECT,
+	P1_START,
 
-int KB_BUTTON_RED = 0x27; // K
-int KB_BUTTON_BLUE = 0x28; // L
-int KB_BUTTON_GREEN = 0x18; // O
-int KB_BUTTON_YELLOW = 0x19; // P
+	P2_UP,
+	P2_LEFT,
+	P2_DOWN,
+	P2_RIGHT,
+	P2_RED,
+	P2_BLUE,
+	P2_GREEN,
+	P2_YELLOW,
+	P2_COINSELECT,
+	P2_START,
+	
+	EXIT_GNGEO,
+	PAUSE_GNGEO,
 
-int KB_P1_START = 0x40;
-int KB_P1_SELECT = 0x50;
-int KB_P1_COIN = 0x50;
+	KEY_COUNT
+	
+} keys_t;
 
-//int KB_P2_START = ;
-int KB_P2_SELECT = 0x51;
-int KB_P2_COIN = 0x51;
-
-#define KEY_COUNT 15
 static struct KeyQuery keys[KEY_COUNT] = {
-	{ 0x11, 0 }, { 0x20, 0 }, { 0x21, 0 }, { 0x22, 0 }, // ULDR - WASD
-	{ 0x27, 0 }, { 0x28, 0 }, { 0x18, 0 }, { 0x19, 0 }, // RBGY - KLOP
-	{ 0x40, 0 }, { 0x50, 0 }, { 0x50, 0 },				// P1 Start Select Coin
-				 { 0x51, 0 }, { 0x51, 0 }, 				// P2       Select Coin
-	{ 0x45, 0 },										// Quit
-	{ 0x42, 0 }                                         // Pause
+	{ 0x11, 0 }, { 0x20, 0 }, { 0x21, 0 }, { 0x22, 0 }, // P1 ULDR - WASD
+	{ 0x23, 0 }, { 0x24, 0 }, { 0x14, 0 }, { 0x15, 0 }, // P1 RBGY - FGTY
+	{ 0x50, 0 }, { 0x52, 0 },                           // P1 Select/Coin, Start - F1 F3
+
+	{ 0x4C, 0 }, { 0x4F, 0 }, { 0x4D, 0 }, { 0x4C, 0 }, // P2 ULDR - Cursors
+	{ 0x2D, 0 }, { 0x2E, 0 }, { 0x3E, 0 }, { 0x3F, 0 }, // P2 RBGY - Num 4589
+	{ 0x51, 0 }, { 0x53, 0 },                           // P2 Select/Coin, Start - F2 F4
+
+	{ 0x45, 0 },										// Quit - Esc
+	{ 0x40, 0 }                                         // Pause - Space
 };
 
 int handle_event(void) {
     static ULONG previous = 0;
 	UBYTE waspaused;
-	ULONG getkey, joypos;
+	ULONG getkey, joypos0, joypos1;
 	UBYTE port;
+	UBYTE fire1p1, fire2p1;
+	UBYTE fire1p2, fire2p2;
 	
     /* CD32 joypad handler code supplied by Gabry (ggreco@iol.it) */
 
     if (!LowLevelBase) return 0;
 
 	//getkey = GetKey();
-	waspaused = keys[14].kq_Pressed;
+	waspaused = keys[PAUSE_GNGEO].kq_Pressed;
 
 	QueryKeys(&keys, KEY_COUNT);
-	joypos = ReadJoyPort (1);
 
-	if(keys[13].kq_Pressed) exit(0);
-
-	if(!waspaused && keys[14].kq_Pressed) paused ^= 1;
+	if(keys[EXIT_GNGEO].kq_Pressed) exit(0);
+	if(!waspaused && keys[PAUSE_GNGEO].kq_Pressed) paused ^= 1;
 
 	// Controler bits: D C B A Right Left Down Up
 	/* Update P1 */
+	if(arg[OPTION_P1JOY] || arg[OPTION_P13BUTTON]) {
+		joypos1 = ReadJoyPort(1);
+		if(arg[OPTION_P13BUTTON]) {
+			fire1p1 = (fire1p1 << 1) | !!(*(volatile uint16_t*)0xDFF016 & 0x0100);
+			fire2p1 = (fire2p1 << 1) | !!(*(volatile uint16_t*)0xDFF016 & 0x0400);
+			if (fire1p1 & 3 == 2) joypos1 |= JPF_BUTTON_BLUE;
+			if (fire2p1 & 3 == 2) joypos1 |= JPF_BUTTON_YELLOW;
+		}
+	} else {
+		joypos1 = 0;
+	}
+	
 	port = 0xFF;
-	if((joypos & JPF_JOY_UP) || (keys[0].kq_Pressed)) port &= 0xFE;
-	if((joypos & JPF_JOY_LEFT) || (keys[1].kq_Pressed)) port &= 0xFB;
-	if((joypos & JPF_JOY_DOWN) || (keys[2].kq_Pressed)) port &= 0xFD;
-	if((joypos & JPF_JOY_RIGHT) || (keys[3].kq_Pressed)) port &= 0xF7;
+	if((joypos1 & JPF_JOY_DOWN) || (keys[P1_DOWN].kq_Pressed)) port &= 0xFD;
+	else if((joypos1 & JPF_JOY_UP) || (keys[P1_UP].kq_Pressed)) port &= 0xFE;
+	if((joypos1 & JPF_JOY_RIGHT) || (keys[P1_RIGHT].kq_Pressed)) port &= 0xF7;
+	else if((joypos1 & JPF_JOY_LEFT) || (keys[P1_LEFT].kq_Pressed)) port &= 0xFB;
 
-	if((joypos & JPF_BUTTON_RED) || (keys[4].kq_Pressed)) port &= 0xEF;
-	if((joypos & JPF_BUTTON_BLUE) || (keys[5].kq_Pressed)) port &= 0xDF;
-	if((joypos & JPF_BUTTON_GREEN) || (keys[6].kq_Pressed)) port &= 0xBF;
-	if((joypos & JPF_BUTTON_YELLOW) || (keys[7].kq_Pressed)) port &= 0x7F;
+	if((joypos1 & JPF_BUTTON_RED) || (keys[P1_RED].kq_Pressed)) port &= 0xEF;
+	if((joypos1 & JPF_BUTTON_BLUE) || (keys[P1_BLUE].kq_Pressed)) port &= 0xDF;
+	if((joypos1 & JPF_BUTTON_GREEN) || (keys[P1_GREEN].kq_Pressed)) port &= 0xBF;
+	if((joypos1 & JPF_BUTTON_YELLOW) || (keys[P1_YELLOW].kq_Pressed)) port &= 0x7F;
 	memory.intern_p1 = port;
-	
-	if((joypos & JPF_BUTTON_PLAY) || (keys[8].kq_Pressed)) memory.intern_start &= 0xFE;
-	else memory.intern_start |= 1;
-	
-	if((keys[9].kq_Pressed)) memory.intern_start &= 0xFD;
-	else memory.intern_start |= 2;
-	
-	if((keys[10].kq_Pressed)) memory.intern_coin &= 0xFE;
-	else memory.intern_coin |= 1;
-	
-	/* Update P2 */
+
+	joypos0 = arg[OPTION_P2JOY] ? ReadJoyPort (0) : 0;
+	if(arg[OPTION_P2JOY] || arg[OPTION_P23BUTTON]) {
+		joypos0 = ReadJoyPort(0);
+		if(arg[OPTION_P23BUTTON]) {
+			fire1p2 = (fire1p2 << 1) | !!(*(volatile uint16_t*)0xDFF016 & 0x0100);
+			fire2p2 = (fire2p2 << 1) | !!(*(volatile uint16_t*)0xDFF016 & 0x0400);
+			if (fire1p2 & 3 == 2) joypos0 |= JPF_BUTTON_BLUE;
+			if (fire2p2 & 3 == 2) joypos0 |= JPF_BUTTON_YELLOW;
+		}
+	} else {
+		joypos0 = 0;
+	}
 	port = 0xFF;
-	joypos = ReadJoyPort (0);
-	if((joypos & JPF_JOY_UP)) port &= 0xFE;
-	if((joypos & JPF_JOY_DOWN)) port &= 0xFD;
-	if((joypos & JPF_JOY_LEFT)) port &= 0xFB;
-	if((joypos & JPF_JOY_RIGHT)) port &= 0xF7;
+	if((joypos0 & JPF_JOY_DOWN) || (keys[P2_DOWN].kq_Pressed)) port &= 0xFD;
+	else if((joypos0 & JPF_JOY_UP) || (keys[P2_UP].kq_Pressed)) port &= 0xFE;
+	if((joypos0 & JPF_JOY_RIGHT) || (keys[P2_RIGHT].kq_Pressed)) port &= 0xF7;
+	else if((joypos0 & JPF_JOY_LEFT) || (keys[P2_LEFT].kq_Pressed)) port &= 0xFB;
 
-	if((joypos & JPF_BUTTON_RED)) port &= 0xEF;
-	if((joypos & JPF_BUTTON_BLUE)) port &= 0xDF;
-	if((joypos & JPF_BUTTON_GREEN)) port &= 0xBF;
-	if((joypos & JPF_BUTTON_YELLOW)) port &= 0x7F;
+	if((joypos0 & JPF_BUTTON_RED) || (keys[P2_RED].kq_Pressed)) port &= 0xEF;
+	if((joypos0 & JPF_BUTTON_BLUE) || (keys[P2_BLUE].kq_Pressed)) port &= 0xDF;
+	if((joypos0 & JPF_BUTTON_GREEN) || (keys[P2_GREEN].kq_Pressed)) port &= 0xBF;
+	if((joypos0 & JPF_BUTTON_YELLOW) || (keys[P2_YELLOW].kq_Pressed)) port &= 0x7F;
 	memory.intern_p2 = port;
-			
-	if((joypos & JPF_BUTTON_PLAY)) memory.intern_start &= 0xFB;
-	else memory.intern_start |= 4;
 
-	if((keys[11].kq_Pressed)) memory.intern_start &= 0xF7;
-	else memory.intern_start |= 8;
-	
-	if((keys[12].kq_Pressed)) memory.intern_coin &= 0xFD;
-	else memory.intern_coin |= 2;
+	port = 0x8F;
+	if((joypos1 & JPF_BUTTON_PLAY) || (keys[P1_START].kq_Pressed)) port &= 0xFE;
+	if((joypos0 & JPF_BUTTON_PLAY) || (keys[P2_START].kq_Pressed)) port &= 0xFB;
+	memory.intern_start = port;
+
+	port = 0x07;
+	if(keys[P1_COINSELECT].kq_Pressed) port &= 0x06;
+	if(keys[P2_COINSELECT].kq_Pressed) port &= 0x05;
+	memory.intern_coin = port;
 
     return 0;
 }
