@@ -5,14 +5,14 @@
 
 #define PITCH 768
 
-static __inline__ void RENAME(draw)(unsigned int tileno,int sx,int sy,int zx,int zy,
-					 int color,int xflip,int yflip,unsigned char *bmp)
+static __inline__ void RENAME(draw)(uint32_t tileno,int sx,int sy,int zx,int zy,
+					 int color,int xflip,int yflip,uint8_t *bmp)
 {
-    unsigned int *gfxdata,myword;
+    uint32_t *gfxdata,myword;
     int y;
-    unsigned char col;
-    unsigned short *br;
-    unsigned int *paldata=(unsigned int *)&current_pc_pal[16*color];
+    uint8_t col;
+    uint16_t *br;
+    uint32_t *paldata=(uint32_t *)&current_pc_pal[16*color];
     char *l_y_skip;
     int l; // Line skipping counter
 #ifdef DEBUG_VIDEO
@@ -27,7 +27,7 @@ static __inline__ void RENAME(draw)(unsigned int tileno,int sx,int sy,int zx,int
 #endif
     tileno=tileno%memory.nb_of_tiles;
    
-    gfxdata = (unsigned int *)&memory.rom.tiles.p[ tileno<<7];
+    gfxdata = (uint32_t *)&memory.rom.tiles.p[ tileno<<7];
 
     /* y zoom table */
     if(zy==16)
@@ -40,9 +40,9 @@ static __inline__ void RENAME(draw)(unsigned int tileno,int sx,int sy,int zx,int
             l=0;
             if (yflip) {
 #ifdef DEBUG_VIDEO
-                br= (unsigned short *)bmp+((zy-1)+sy)*544+sx;
+                br= (uint16_t *)bmp+((zy-1)+sy)*544+sx;
 #else
-				br = (unsigned short *)bmp + ((zy - 1) + sy)*(PITCH >> 1) + sx;
+				br = (uint16_t *)bmp + ((zy - 1) + sy)*(PITCH >> 1) + sx;
 #endif
                 for(y=0;y<zy;y++) {
                     gfxdata+=l_y_skip[l]<<1;
@@ -75,9 +75,9 @@ static __inline__ void RENAME(draw)(unsigned int tileno,int sx,int sy,int zx,int
                 }
             } else {
 #ifdef DEBUG_VIDEO
-                br= (unsigned short *)bmp+(sy)*544+sx;
+                br= (uint16_t *)bmp+(sy)*544+sx;
 #else
-				br= (unsigned short *)bmp + (sy)*(PITCH >> 1) + sx;
+				br= (uint16_t *)bmp + (sy)*(PITCH >> 1) + sx;
 #endif
                 for(y=0;y<zy;y++) {
                     
@@ -115,9 +115,9 @@ static __inline__ void RENAME(draw)(unsigned int tileno,int sx,int sy,int zx,int
             l=0;
             if (yflip) {
 #ifdef DEBUG_VIDEO
-                br= (unsigned short *)bmp+((zy-1)+sy)*544+sx;
+                br= (uint16_t *)bmp+((zy-1)+sy)*544+sx;
 #else
-                br= (unsigned short *)bmp+((zy-1)+sy)*(PITCH>>1)+sx;
+                br= (uint16_t *)bmp+((zy-1)+sy)*(PITCH>>1)+sx;
 #endif
                 for(y=0;y<zy;y++) {
                     gfxdata+=l_y_skip[l]<<1;
@@ -151,9 +151,9 @@ static __inline__ void RENAME(draw)(unsigned int tileno,int sx,int sy,int zx,int
                 }
             } else {
 #ifdef DEBUG_VIDEO
-                br= (unsigned short *)bmp+(sy)*544+sx;
+                br= (uint16_t *)bmp+(sy)*544+sx;
 #else
-				br =(unsigned short *)bmp + (sy)*(PITCH >> 1) + sx;
+				br =(uint16_t *)bmp + (sy)*(PITCH >> 1) + sx;
 #endif
                 for(y=0;y<zy;y++) {
                     gfxdata+=l_y_skip[l]<<1;
@@ -192,9 +192,9 @@ static __inline__ void RENAME(draw)(unsigned int tileno,int sx,int sy,int zx,int
             l=0;
             if (yflip) {
 #ifdef DEBUG_VIDEO
-                br= (unsigned short *)bmp+((zy-1)+sy)*544+sx;
+                br= (uint16_t *)bmp+((zy-1)+sy)*544+sx;
 #else
-				br= (unsigned short *)bmp + ((zy - 1) + sy)*(PITCH >> 1) + sx;
+				br= (uint16_t *)bmp + ((zy - 1) + sy)*(PITCH >> 1) + sx;
 #endif
                 for(y=0;y<zy;y++) {
                     gfxdata+=l_y_skip[l]<<1;
@@ -222,9 +222,9 @@ static __inline__ void RENAME(draw)(unsigned int tileno,int sx,int sy,int zx,int
                 }
             } else {
 #ifdef DEBUG_VIDEO
-                br= (unsigned short *)bmp+(sy)*544+sx;
+                br= (uint16_t *)bmp+(sy)*544+sx;
 #else
-			    br = (unsigned short *)bmp + (sy)*(PITCH >> 1) + sx;
+			    br = (uint16_t *)bmp + (sy)*(PITCH >> 1) + sx;
 #endif
                 for(y=0;y<zy;y++) {
                     gfxdata+=l_y_skip[l]<<1;
@@ -256,9 +256,9 @@ static __inline__ void RENAME(draw)(unsigned int tileno,int sx,int sy,int zx,int
             l=0;
             if (yflip) {
 #ifdef DEBUG_VIDEO
-                br= (unsigned short *)bmp+((zy-1)+sy)*544+sx;
+                br= (uint16_t *)bmp+((zy-1)+sy)*544+sx;
 #else
-				br= (unsigned short *)bmp + ((zy - 1) + sy)*(PITCH >> 1) + sx;
+				br= (uint16_t *)bmp + ((zy - 1) + sy)*(PITCH >> 1) + sx;
 #endif
                 for(y=0;y<zy;y++) {
 
@@ -287,9 +287,9 @@ static __inline__ void RENAME(draw)(unsigned int tileno,int sx,int sy,int zx,int
                 }
             } else {
 #ifdef DEBUG_VIDEO
-                br= (unsigned short *)bmp+(sy)*544+sx;
+                br= (uint16_t *)bmp+(sy)*544+sx;
 #else
-				br= (unsigned short *)bmp + (sy)*(PITCH >> 1) + sx;
+				br= (uint16_t *)bmp + (sy)*(PITCH >> 1) + sx;
 #endif
                 for(y=0;y<zy;y++) {
 

@@ -60,7 +60,7 @@ int bankoffset_kof99[64] = {
 	/* rest not used? */
 };
 /* addr,uncramblecode,.... */
-Uint8 scramblecode_kof99[7] = {0xF0, 14, 6, 8, 10, 12, 5,};
+uint8_t scramblecode_kof99[7] = {0xF0, 14, 6, 8, 10, 12, 5,};
 
 int bankoffset_garou[64] = {
 	0x000000, 0x100000, 0x200000, 0x300000, // 00
@@ -78,7 +78,7 @@ int bankoffset_garou[64] = {
 	0x5d0000, 0x5d8000, 0x5e0000, 0x5e8000, // 48
 	0x5f0000, 0x5f8000, 0x600000, /* rest not used? */
 };
-Uint8 scramblecode_garou[7] = {0xC0, 5, 9, 7, 6, 14, 12,};
+uint8_t scramblecode_garou[7] = {0xC0, 5, 9, 7, 6, 14, 12,};
 int bankoffset_garouo[64] = {
 	0x000000, 0x100000, 0x200000, 0x300000, // 00
 	0x280000, 0x380000, 0x2d0000, 0x3d0000, // 04
@@ -97,7 +97,7 @@ int bankoffset_garouo[64] = {
 	0x000000, 0x000000, 0x000000, 0x000000, // 56
 	0x000000, 0x000000, 0x000000, 0x000000, // 60
 };
-Uint8 scramblecode_garouo[7] = {0xC0, 4, 8, 14, 2, 11, 13,};
+uint8_t scramblecode_garouo[7] = {0xC0, 4, 8, 14, 2, 11, 13,};
 
 int bankoffset_mslug3[64] = {
 	0x000000, 0x020000, 0x040000, 0x060000, // 00
@@ -114,7 +114,7 @@ int bankoffset_mslug3[64] = {
 	0x460000, 0x470000, 0x4a0000, 0x4b0000, // 44
 	0x4c0000, /* rest not used? */
 };
-Uint8 scramblecode_mslug3[7] = {0xE4, 14, 12, 15, 6, 3, 9,};
+uint8_t scramblecode_mslug3[7] = {0xE4, 14, 12, 15, 6, 3, 9,};
 int bankoffset_kof2000[64] = {
 	0x000000, 0x100000, 0x200000, 0x300000, // 00
 	0x3f7800, 0x4f7800, 0x3ff800, 0x4ff800, // 04
@@ -126,10 +126,10 @@ int bankoffset_kof2000[64] = {
 	0x52d000, 0x62d000, 0x52e800, 0x62e800, // 28
 	0x618000, 0x619000, 0x61a000, 0x61a800, // 32
 };
-Uint8 scramblecode_kof2000[7] = {0xEC, 15, 14, 7, 3, 10, 5,};
+uint8_t scramblecode_kof2000[7] = {0xEC, 15, 14, 7, 3, 10, 5,};
 
 #define LOAD_BUF_SIZE (128*1024)
-static Uint8* iloadbuf = NULL;
+static uint8_t* iloadbuf = NULL;
 
 char romerror[1024];
 
@@ -152,8 +152,8 @@ char romerror[1024];
  */
 
 int init_mslugx(GAME_ROMS *r) {
-	unsigned int i;
-	Uint8 *RAM = r->cpu_m68k.p;
+	uint32_t i;
+	uint8_t *RAM = r->cpu_m68k.p;
 	if (need_decrypt) {
 		for (i = 0; i < r->cpu_m68k.size; i += 2) {
 			if ((READ_WORD_ROM(&RAM[i + 0]) == 0x0243)
@@ -674,7 +674,7 @@ static DRIVER_INIT(kf2k3pcb) {
 	 incorrect */
 	{
 		int i;
-		UINT8* rom = memory_region(machine, "audiocpu");
+		uint8_t* rom = memory_region(machine, "audiocpu");
 		for (i = 0; i < 0x90000; i++) {
 			rom[i] = BITSWAP8(rom[i], 5, 6, 1, 4, 3, 0, 7, 2);
 		}
@@ -748,14 +748,14 @@ static DRIVER_INIT(samsh5sp) {
 }
 
 static DRIVER_INIT(jockeygp) {
-	UINT16* extra_ram;
+	uint16_t* extra_ram;
 
 	neogeo_fixed_layer_bank_type = 1;
 	neogeo_cmc50_m1_decrypt(machine);
 	kof2000_neogeo_gfx_decrypt(machine, 0xac);
 
 	/* install some extra RAM */
-	extra_ram = auto_alloc_array(machine, UINT16, 0x2000 / 2);
+	extra_ram = auto_alloc_array(machine, uint16_t, 0x2000 / 2);
 	state_save_register_global_pointer(machine, extra_ram, 0x2000 / 2);
 
 	memory_install_readwrite16_handler(cputag_get_address_space(machine, "maincpu",
@@ -772,10 +772,10 @@ static DRIVER_INIT(jockeygp) {
 }
 
 static DRIVER_INIT(vliner) {
-	UINT16* extra_ram;
+	uint16_t* extra_ram;
 
 	/* install some extra RAM */
-	extra_ram = auto_alloc_array(machine, UINT16, 0x2000 / 2);
+	extra_ram = auto_alloc_array(machine, uint16_t, 0x2000 / 2);
 	state_save_register_global_pointer(machine, extra_ram, 0x2000 / 2);
 
 	memory_install_readwrite16_handler(cputag_get_address_space(machine, "maincpu",
@@ -854,7 +854,7 @@ struct roms_init_func {
 	{ NULL, NULL}
 };
 
-static int allocate_region(ROM_REGION *r, Uint32 size, int region) {
+static int allocate_region(ROM_REGION *r, uint32_t size, int region) {
 	DEBUG_LOG("Allocating 0x%08x byte for Region %d\n", size, region);
 	if (size != 0) {
 		r->p = malloc(size);
@@ -881,12 +881,12 @@ static void free_region(ROM_REGION *r) {
 	r->p = NULL;
 }
 
-static int zip_seek_current_file(ZFILE *gz, Uint32 offset) {
+static int zip_seek_current_file(ZFILE *gz, uint32_t offset) {
 	if(offset > gz->len) offset = gz->len;
 	gz->pos = offset;
 	return 0;
-// 	Uint8 *buf;
-// 	Uint32 s = 4096, c;
+// 	uint8_t *buf;
+// 	uint32_t s = 4096, c;
 // 	buf = malloc(s);
 // 	if (!buf)
 // 		return -1;
@@ -908,10 +908,10 @@ static int zip_seek_current_file(ZFILE *gz, Uint32 offset) {
 
 static int read_counter;
 
-static int read_data_i(ZFILE *gz, ROM_REGION *r, Uint32 dest, Uint32 size) {
-	//Uint8 *buf;
-	Uint8 *p = r->p + dest;
-	Uint32 s = LOAD_BUF_SIZE, c, i;
+static int read_data_i(ZFILE *gz, ROM_REGION *r, uint32_t dest, uint32_t size) {
+	//uint8_t *buf;
+	uint8_t *p = r->p + dest;
+	uint32_t s = LOAD_BUF_SIZE, c, i;
 	if (r->p == NULL || r->size < (dest & ~0x1) + (size * 2)) {
 		debug("I-Region not allocated or not big enough %08x %08x\n", r->size,
 				dest + (size * 2));
@@ -947,8 +947,8 @@ static int read_data_i(ZFILE *gz, ROM_REGION *r, Uint32 dest, Uint32 size) {
 	return 0;
 }
 
-static int read_data_p(ZFILE *gz, ROM_REGION *r, Uint32 dest, Uint32 size) {
-	Uint32 s = LOAD_BUF_SIZE, c, i = 0;
+static int read_data_p(ZFILE *gz, ROM_REGION *r, uint32_t dest, uint32_t size) {
+	uint32_t s = LOAD_BUF_SIZE, c, i = 0;
 	if (r->p == NULL || r->size < dest + size) {
 		debug("P-Region not allocated or not big enough\n");
 		return -1;
@@ -972,8 +972,8 @@ static int read_data_p(ZFILE *gz, ROM_REGION *r, Uint32 dest, Uint32 size) {
 	return 0;
 }
 
-static int load_region(PKZIP *pz, GAME_ROMS *r, int region, Uint32 src,
-		Uint32 dest, Uint32 size, Uint32 crc, char *filename) {
+static int load_region(PKZIP *pz, GAME_ROMS *r, int region, uint32_t src,
+		uint32_t dest, uint32_t size, uint32_t crc, char *filename) {
 	int rc;
 	int badcrc = 0;
 	ZFILE *gz;
@@ -1064,18 +1064,18 @@ static PKZIP *open_rom_zip(char *rom_path, char *name) {
 	return gz;
 }
 
-static int convert_roms_tile(Uint8 *g, int tileno) {
-	unsigned char swap[128];
-	unsigned int *gfxdata;
+static int convert_roms_tile(uint8_t *g, int tileno) {
+	uint8_t swap[128];
+	uint32_t *gfxdata;
 	int x, y;
-	unsigned int pen, usage = 0;
-	gfxdata = (Uint32*) & g[tileno << 7];
+	uint32_t pen, usage = 0;
+	gfxdata = (uint32_t*) & g[tileno << 7];
 
 	memcpy(swap, gfxdata, 128);
 
 	//filed=1;
 	for (y = 0; y < 16; y++) {
-		unsigned int dw;
+		uint32_t dw;
 
 		dw = 0;
 		for (x = 0; x < 8; x++) {
@@ -1114,23 +1114,23 @@ static int convert_roms_tile(Uint8 *g, int tileno) {
 }
 
 void convert_all_tile(GAME_ROMS *r) {
-	Uint32 i;
-	allocate_region(&r->spr_usage, (r->tiles.size >> 11) * sizeof (Uint32), REGION_SPR_USAGE);
+	uint32_t i;
+	allocate_region(&r->spr_usage, (r->tiles.size >> 11) * sizeof (uint32_t), REGION_SPR_USAGE);
 	memset(r->spr_usage.p, 0, r->spr_usage.size);
 	for (i = 0; i < r->tiles.size >> 7; i++) {
-		((Uint32*) r->spr_usage.p)[i >> 4] |= convert_roms_tile(r->tiles.p, i);
+		((uint32_t*) r->spr_usage.p)[i >> 4] |= convert_roms_tile(r->tiles.p, i);
 	}
 }
 
-void convert_all_char(Uint8 *Ptr, int Taille,
-		Uint8 *usage_ptr) {
+void convert_all_char(uint8_t *Ptr, int Taille,
+		uint8_t *usage_ptr) {
 	int i, j;
-	unsigned char usage;
+	uint8_t usage;
 
-	Uint8 *Src;
-	Uint8 *sav_src;
+	uint8_t *Src;
+	uint8_t *sav_src;
 
-	Src = (Uint8*) malloc(Taille);
+	Src = (uint8_t*) malloc(Taille);
 	if (!Src) {
 		debug("Not enought memory!!\n");
 		return;
@@ -1198,7 +1198,7 @@ int dr_load_bios(GAME_ROMS *r) {
 	PKZIP *pz;
 	ZFILE *z;
 	size_t totread = 0;
-	unsigned int size;
+	uint32_t size;
 	char *rpath = (char*)arg[OPTION_BIOSPATH];
 	char *fpath;
 	char *romfile;
@@ -1454,9 +1454,9 @@ int dr_load_roms(GAME_ROMS *r, char *rom_path, char *name) {
 	}
 
 	memory.fix_game_usage = r->gfix_usage.p; //malloc(r->game_sfix.size >> 5);
-	/*	memory.pen_usage = malloc((r->tiles.size >> 11) * sizeof(Uint32));
+	/*	memory.pen_usage = malloc((r->tiles.size >> 11) * sizeof(uint32_t));
 	CHECK_ALLOC(memory.pen_usage);
-	memset(memory.pen_usage, 0, (r->tiles.size >> 11) * sizeof(Uint32));
+	memset(memory.pen_usage, 0, (r->tiles.size >> 11) * sizeof(uint32_t));
 	 */
 	memory.nb_of_tiles = r->tiles.size >> 7;
 
@@ -1512,36 +1512,36 @@ int dr_load_game(char *name) {
 
 #if defined(HAVE_LIBZ)//&& defined (HAVE_MMAP)
 
-static int dump_region(FILE *gno, ROM_REGION *rom, Uint8 id, Uint8 type,
-		Uint32 block_size) {
+static int dump_region(FILE *gno, ROM_REGION *rom, uint8_t id, uint8_t type,
+		uint32_t block_size) {
 	if (rom->p == NULL)
 		return FALSE;
-	fwrite(&rom->size, sizeof (Uint32), 1, gno);
-	fwrite(&id, sizeof (Uint8), 1, gno);
-	fwrite(&type, sizeof (Uint8), 1, gno);
+	fwrite(&rom->size, sizeof (uint32_t), 1, gno);
+	fwrite(&id, sizeof (uint8_t), 1, gno);
+	fwrite(&type, sizeof (uint8_t), 1, gno);
 	if (type == 0) {
 		debug("Dump %d %08x\n", id, rom->size);
 		fwrite(rom->p, rom->size, 1, gno);
 	} else {
-		Uint32 nb_block = rom->size / block_size;
-		Uint32 *block_offset;
-		Uint32 cur_offset = 0;
+		uint32_t nb_block = rom->size / block_size;
+		uint32_t *block_offset;
+		uint32_t cur_offset = 0;
 		long offset_pos;
-		Uint32 i;
-		Uint8 *inbuf = rom->p;
-		Uint8 *outbuf;
+		uint32_t i;
+		uint8_t *inbuf = rom->p;
+		uint8_t *outbuf;
 		uLongf outbuf_len;
 		uLongf outlen;
-		Uint32 outlen32;
-		Uint32 cmpsize = 0;
+		uint32_t outlen32;
+		uint32_t cmpsize = 0;
 		int rc;
 		debug("nb_block=%d\n", nb_block);
-		fwrite(&block_size, sizeof (Uint32), 1, gno);
+		fwrite(&block_size, sizeof (uint32_t), 1, gno);
 		if ((rom->size & (block_size - 1)) != 0) {
 			debug("Waring: Block_size and totsize not compatible %x %x\n",
 					rom->size, block_size);
 		}
-		block_offset = malloc(nb_block * sizeof (Uint32));
+		block_offset = malloc(nb_block * sizeof (uint32_t));
 		/* Zlib compress output buffer need to be at least the size
 		 of inbuf + 0.1% + 12 byte */
 		outbuf_len = compressBound(block_size);
@@ -1559,15 +1559,15 @@ static int dump_region(FILE *gno, ROM_REGION *rom, Uint8 id, Uint8 type,
 			cmpsize += outlen;
 			debug("cmpsize=%d %ld\n", cmpsize, sizeof (uLongf));
 			inbuf += block_size;
-			outlen32 = (Uint32) outlen;
-			fwrite(&outlen32, sizeof (Uint32), 1, gno);
+			outlen32 = (uint32_t) outlen;
+			fwrite(&outlen32, sizeof (uint32_t), 1, gno);
 			debug("bank %d outlen=%d offset=%d\n", i, outlen32, cur_offset);
 			fwrite(outbuf, outlen, 1, gno);
 		}
 		/* Now, write the offset table */
 		fseek(gno, offset_pos, SEEK_SET);
-		fwrite(block_offset, sizeof (Uint32), nb_block, gno);
-		fwrite(&cmpsize, sizeof (Uint32), 1, gno);
+		fwrite(block_offset, sizeof (uint32_t), nb_block, gno);
+		fwrite(&cmpsize, sizeof (uint32_t), 1, gno);
 		debug("cmpsize=%d\n", cmpsize);
 		fseek(gno, 0, SEEK_END);
 		offset_pos = ftell(gno);
@@ -1580,7 +1580,7 @@ int dr_save_gno(GAME_ROMS *r, char *filename) {
 	FILE *gno;
 	char *fid = "gnodmpv1";
 	char fname[9];
-	Uint8 nb_sec = 0;
+	uint8_t nb_sec = 0;
 	int i;
 
 	gno = fopen(filename, "wb");
@@ -1620,8 +1620,8 @@ int dr_save_gno(GAME_ROMS *r, char *filename) {
 	fwrite(fid, 8, 1, gno);
 	snprintf(fname, 9, "%-8s", r->info.name);
 	fwrite(fname, 8, 1, gno);
-	fwrite(&r->info.flags, sizeof (Uint32), 1, gno);
-	fwrite(&nb_sec, sizeof (Uint8), 1, gno);
+	fwrite(&r->info.flags, sizeof (uint32_t), 1, gno);
+	fwrite(&nb_sec, sizeof (uint8_t), 1, gno);
 
 	/* Now each section */
 	dump_region(gno, &r->cpu_m68k, REGION_MAIN_CPU_CARTRIDGE, 0, 0);
@@ -1648,17 +1648,17 @@ int dr_save_gno(GAME_ROMS *r, char *filename) {
 }
 #else
 int read_region(FILE *gno, GAME_ROMS *roms) {
-	Uint32 size;
-	Uint8 lid, type;
+	uint32_t size;
+	uint8_t lid, type;
 	ROM_REGION *r = NULL;
 	size_t totread = 0;
-	Uint32 cache_size[] = {64, 32, 24, 16, 8, 6, 4, 2, 1, 0};
+	uint32_t cache_size[] = {64, 32, 24, 16, 8, 6, 4, 2, 1, 0};
 	int i = 0;
 
 	/* Read region header */
-	totread = fread(&size, sizeof (Uint32), 1, gno);
-	totread += fread(&lid, sizeof (Uint8), 1, gno);
-	totread += fread(&type, sizeof (Uint8), 1, gno);
+	totread = fread(&size, sizeof (uint32_t), 1, gno);
+	totread += fread(&lid, sizeof (uint8_t), 1, gno);
+	totread += fread(&type, sizeof (uint8_t), 1, gno);
 
 	switch (lid) {
 		case REGION_MAIN_CPU_CARTRIDGE:
@@ -1702,20 +1702,20 @@ int read_region(FILE *gno, GAME_ROMS *roms) {
 		debug("Load %d %08x\n", lid, r->size);
 		totread += fread(r->p, r->size, 1, gno);
 	} else {
-		Uint32 nb_block, block_size;
-		Uint32 cmp_size;
-		totread += fread(&block_size, sizeof (Uint32), 1, gno);
+		uint32_t nb_block, block_size;
+		uint32_t cmp_size;
+		totread += fread(&block_size, sizeof (uint32_t), 1, gno);
 		nb_block = size / block_size;
 
 		debug("Region size=%08X\n", size);
 		r->size = size;
 
 
-		memory.vid.spr_cache.offset = malloc(sizeof (Uint32) * nb_block);
-		totread += fread(memory.vid.spr_cache.offset, sizeof (Uint32), nb_block, gno);
+		memory.vid.spr_cache.offset = malloc(sizeof (uint32_t) * nb_block);
+		totread += fread(memory.vid.spr_cache.offset, sizeof (uint32_t), nb_block, gno);
 		memory.vid.spr_cache.gno = gno;
 
-		totread += fread(&cmp_size, sizeof (Uint32), 1, gno);
+		totread += fread(&cmp_size, sizeof (uint32_t), 1, gno);
 
 		fseek(gno, cmp_size, SEEK_CUR);
 
@@ -1735,7 +1735,7 @@ int dr_open_gno(char *filename) {
 	char fid[9]; // = "gnodmpv1";
 	char name[9] = {0,};
 	GAME_ROMS *r = &memory.rom;
-	Uint8 nb_sec;
+	uint8_t nb_sec;
 	int i;
 	char *a;
 	size_t totread = 0;
@@ -1760,8 +1760,8 @@ int dr_open_gno(char *filename) {
 	if (a) a[0] = 0;
 	r->info.name = strdup(name);
 
-	totread += fread(&r->info.flags, sizeof (Uint32), 1, gno);
-	totread += fread(&nb_sec, sizeof (Uint8), 1, gno);
+	totread += fread(&r->info.flags, sizeof (uint32_t), 1, gno);
+	totread += fread(&nb_sec, sizeof (uint8_t), 1, gno);
 
 //	gn_init_pbar("Loading", nb_sec);
 	for (i = 0; i < nb_sec; i++) {
@@ -1777,9 +1777,9 @@ int dr_open_gno(char *filename) {
 	//fclose(gno);
 
 	memory.fix_game_usage = r->gfix_usage.p;
-	/*	memory.pen_usage = malloc((r->tiles.size >> 11) * sizeof(Uint32));
+	/*	memory.pen_usage = malloc((r->tiles.size >> 11) * sizeof(uint32_t));
 	CHECK_ALLOC(memory.pen_usage);
-	memset(memory.pen_usage, 0, (r->tiles.size >> 11) * sizeof(Uint32));*/
+	memset(memory.pen_usage, 0, (r->tiles.size >> 11) * sizeof(uint32_t));*/
 	memory.nb_of_tiles = r->tiles.size >> 7;
 
 	/* Init rom and bios */
@@ -1821,7 +1821,7 @@ char *dr_gno_romname(char *filename) {
 
 
 
-static int dump_region(FILE *gno, ROM_REGION *rom, Uint8 id, Uint8 type, Uint32 block_size) {
+static int dump_region(FILE *gno, ROM_REGION *rom, uint8_t id, uint8_t type, uint32_t block_size) {
 	return TRUE;
 }
 

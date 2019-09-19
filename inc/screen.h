@@ -17,14 +17,14 @@
 
 // typedef struct RGB2YUV
 // {
-//   Uint16 y;
-//   Uint8  u;
-//   Uint8  v;
-//   Uint32 yuy2;
+//   uint16_t y;
+//   uint8_t  u;
+//   uint8_t  v;
+//   uint32_t yuy2;
 // }RGB2YUV;
 
 //extern RGB2YUV rgb2yuv[65536];
-extern BYTE* bufferpixels;
+extern uint8_t* bufferpixels;
 //void init_rgb2yuv_table(void);
  
 //SDL_Surface *screen;
@@ -35,14 +35,14 @@ Rect visible_area;
  
 int yscreenpadding;
 
-Uint8 interpolation;
-Uint8 nblitter; 
-Uint8 neffect;
-Uint8 scale;
-Uint8 fullscreen;
+uint8_t interpolation;
+uint8_t nblitter; 
+uint8_t neffect;
+uint8_t scale;
+uint8_t fullscreen;
 
-Uint8 get_effect_by_name(char *name);
-Uint8 get_blitter_by_name(char *name);
+uint8_t get_effect_by_name(char *name);
+uint8_t get_blitter_by_name(char *name);
 void print_blitter_list(void);
 void print_effect_list(void);
 //void screen_change_blitter_and_effect(char *bname,char *ename);

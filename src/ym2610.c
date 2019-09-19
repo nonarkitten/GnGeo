@@ -170,7 +170,7 @@
 #define ENV_QUIET		(TL_TAB_LEN>>3)
 
 /* sin waveform table in 'decibel' scale */
-//static unsigned int ALIGN_DATA sin_tab[SIN_LEN];
+//static uint32_t ALIGN_DATA sin_tab[SIN_LEN];
 
 /* sustain level table (3dB per step) */
 /* bit0, bit1, bit2, bit3, bit4, bit5, bit6 */
@@ -554,7 +554,7 @@ typedef struct {
 	FM_ST ST; /* general state */
 	FM_3SLOT SL3; /* 3 slot mode state */
 	//FM_CH P_CH[6]; /* pointer of CH */
-	//unsigned int pan[6 * 2]; /* fm channels output masks (0xffffffff = enable) */
+	//uint32_t pan[6 * 2]; /* fm channels output masks (0xffffffff = enable) */
 	u32 eg_cnt; /* global envelope generator counter */
 	u32 eg_timer; /* global envelope generator counter works at frequency = chipclock/64/3 */
 	u32 eg_timer_add; /* step of eg_timer */
@@ -1062,9 +1062,9 @@ INLINE void advance_lfo(void) {
 }
 
 INLINE void advance_eg_channel(FM_SLOT *SLOT) {
-	unsigned int out;
-	unsigned int swap_flag = 0;
-	unsigned int i = 4; /* four operators per channel */
+	uint32_t out;
+	uint32_t swap_flag = 0;
+	uint32_t i = 4; /* four operators per channel */
 
 	do {	switch (SLOT->state) {
 		case EG_ATT: /* attack phase */
@@ -1179,7 +1179,7 @@ INLINE void advance_eg_channel(FM_SLOT *SLOT) {
 #define volume_calc(OP) ((OP)->vol_out + (AM & (OP)->AMmask))
 
 INLINE void chan_calc(FM_CH *CH) {
-	unsigned int eg_out;
+	uint32_t eg_out;
 
 	u32 AM = LFO_AM >> CH->ams;
 
@@ -2055,7 +2055,7 @@ static void OPNB_ADPCMA_init_table(void) {
 // 	/* YM2610 checks lower 20 bits only, the 4 MSB bits are sample bank */
 // 	/* Here we use 1<<21 to compensate for nibble calculations */
 // 	register int32_t acc, decstep, a, b;
-// 	register uint8_t data0, data1;
+// 	register uint8_t_t data0, data1;
 // 
 // 	data0 = pcmbufA[YM2610.adpcma[c].now_addr++];
 // 	data1 = data0; data0 >>= 4; data1 &= 0xF;
@@ -2088,20 +2088,20 @@ static void OPNB_ADPCMA_init_table(void) {
 // 	YM2610.adpcma[c].adpcma_out = acc;
 // }
 
-static uint8_t patchA_map[8192] = { 0 };
+static uint8_t_t patchA_map[8192] = { 0 };
 static int16_t *pcmbufA_ = NULL;
 
 static int bufferA_patched(int c) {
 	int patch_idx = YM2610.adpcma[c].start >> 11;
-	uint8_t patch_mask = 1 << ((YM2610.adpcma[c].start >> 8) & 7);
+	uint8_t_t patch_mask = 1 << ((YM2610.adpcma[c].start >> 8) & 7);
 
 	if(patchA_map[patch_idx] & patch_mask) return 1;
 	patchA_map[patch_idx] |= patch_mask;
 	return 0;
 }
 
-typedef union { struct { int8_t h; uint8_t l; } part; int16_t s; } int16_bytes_t;
-typedef union { struct { int8_t a; uint8_t b; int8_t c; uint8_t d; } part; int32_t s; } int32_bytes_t;
+typedef union { struct { int8_t h; uint8_t_t l; } part; int16_t s; } int16_bytes_t;
+typedef union { struct { int8_t a; uint8_t_t b; int8_t c; uint8_t_t d; } part; int32_t s; } int32_bytes_t;
 typedef union { struct { int16_t a; int16_t b; } part; int32_t s; } int32_words_t;
 
 #define DO_ADPCM(OUT,SAMPLE) { \
@@ -2111,25 +2111,25 @@ typedef union { struct { int16_t a; int16_t b; } part; int32_t s; } int32_words_
 	if(decstep > 768) decstep = 768; \
 	else if(decstep < 0) decstep = 0; \
     /* sign-extend 12 to 16 bits */ \
-    /* acc = ((int16_t)(((uint16_t)acc) << 4)) >> 4; */\
+    /* acc = ((int16_t)(((uint16_t_t)acc) << 4)) >> 4; */\
 	if(acc & 0x800) acc |= 0xF000; else acc &= 0x7FFF; \
     /* write out our 16-bit value to memory */ \
     OUT = acc; }
 
-static void decode_bufferA(uint32_t *pi, int32_t *po, uint32_t length) {
+static void decode_bufferA(uint32_t_t *pi, int32_t *po, uint32_t_t length) {
     // fast extract nibbles using bitfields
     union { 
         struct { 
-            uint32_t a:4; 
-            uint32_t b:4; 
-            uint32_t c:4; 
-            uint32_t d:4;
-            uint32_t e:4; 
-            uint32_t f:4; 
-            uint32_t g:4; 
-            uint32_t h:4; 
+            uint32_t_t a:4; 
+            uint32_t_t b:4; 
+            uint32_t_t c:4; 
+            uint32_t_t d:4;
+            uint32_t_t e:4; 
+            uint32_t_t f:4; 
+            uint32_t_t g:4; 
+            uint32_t_t h:4; 
         } part; 
-        uint32_t s; 
+        uint32_t_t s; 
     } sample;
     int32_words_t out;
     int16_t acc = 0;
@@ -2163,9 +2163,9 @@ static void decode_bufferA(uint32_t *pi, int32_t *po, uint32_t length) {
 }
 
 static void patch_bufferA(int c) {
-	register uint8_t *pi; 
+	register uint8_t_t *pi; 
 	register int16_t *po;
-	register uint32_t length;
+	register uint32_t_t length;
 	
 	pi = &pcmbufA[YM2610.adpcma[c].start];
 	po = &pcmbufA_[YM2610.adpcma[c].start];
@@ -2323,12 +2323,12 @@ static const s32 adpcmb_decode_table2[16] = {
 /* 0-DRAM x1, 1-ROM, 2-DRAM x8, 3-ROM (3 is bad setting - not allowed by the manual) */
 static u8 dram_rightshift[4] = { 3, 0, 0, 0 };
 
-static uint8_t patchB_map[8192] = { 0 };
+static uint8_t_t patchB_map[8192] = { 0 };
 static int16_t *pcmbufB_ = NULL;
 
 static int bufferB_patched(void) {
 	int patch_idx = YM2610.adpcmb.start >> 11;
-	uint8_t patch_mask = 1 << ((YM2610.adpcmb.start >> 8) & 7);
+	uint8_t_t patch_mask = 1 << ((YM2610.adpcmb.start >> 8) & 7);
 
 	if(patchB_map[patch_idx] & patch_mask) return 1;
 	patchB_map[patch_idx] |= patch_mask;
@@ -2337,10 +2337,10 @@ static int bufferB_patched(void) {
 
 static void patch_bufferB(void) {
 	register int32_t acc = 0, decstep = 0;
-	register uint8_t data0, data1;
-	register uint8_t *pi; 
+	register uint8_t_t data0, data1;
+	register uint8_t_t *pi; 
 	register int16_t *po;
-	register uint32_t length;
+	register uint32_t_t length;
 	register int32_t a, b;
 	
 	pi = &pcmbufB[YM2610.adpcmb.start];
@@ -2557,7 +2557,7 @@ static void OPNB_ADPCMB_write(ADPCMB *adpcmb, int r, int v) {
 	}
 }
 
-// INLINE void adpcmb_decode(uint8_t code) {
+// INLINE void adpcmb_decode(uint8_t_t code) {
 // 	acc += adpcmb_decode_table1[ code ] * decstep / 8;
 // 	decstep = decstep * adpcmb_decode_table2[ code ] / 64;
 // 
@@ -2568,7 +2568,7 @@ static void OPNB_ADPCMB_write(ADPCMB *adpcmb, int r, int v) {
 // 	// this is called by the main loop ONLY when we need a new sample; note that
 // 	// since the Amiga samples at 27Khz we have to also down-sample 2:1
 // 	register int32_t acc, decstep, a, b;
-// 	register uint8_t data0, data1;
+// 	register uint8_t_t data0, data1;
 // 
 // 	// Get next chunk
 // 	data0 = pcmbufB[YM2610.adpcmb.now_addr++];
@@ -2677,7 +2677,7 @@ void YM2610Init(int clock, int rate, void *pcmroma, int pcmsizea, void *pcmromb,
 static int max_vol[14] = { 0 };
 #define SETMAX(ch,a) max_vol[ch] = (max_vol[ch]<(a)) ? a : max_vol[ch];
 
-static uint16_t gain = 256;
+static uint16_t_t gain = 256;
 static int32_t max_sample = 32767;
 
 void YM2610ChangeSamplerate(int rate) {
@@ -2935,8 +2935,8 @@ int YM2610TimerOver(int ch) {
 
 #define LENGTH 256
 
-//extern volatile uint8_t *lHBuffer, *rHBuffer;
-//extern volatile uint8_t *lLBuffer, *rLBuffer;
+//extern volatile uint8_t_t *lHBuffer, *rHBuffer;
+//extern volatile uint8_t_t *lLBuffer, *rLBuffer;
 
 int16_t L_Mix[LENGTH];
 int16_t R_Mix[LENGTH];
@@ -2966,7 +2966,7 @@ static int chA = 0;
 #define mixChannel(P,O) do { int16_t __o = (O); lt += P[0] & __o; rt += P[1] & __o; ct += P[2] & __o; } while(0)
 	
 // INLINE void mixChannel(s32 pan[3], int out) {
-// //	uint16_t l = pan[0], r = pan[1];
+// //	uint16_t_t l = pan[0], r = pan[1];
 // //	if(l == r) out >> 1;
 // 	lt += pan[0] & out;
 // 	rt += pan[1] & out;
@@ -2978,17 +2978,17 @@ static FM_CH *const cch[6] = {
 	&YM2610.CH[4], &YM2610.CH[5]
 };
 
-static uint8_t this_fmCh = 0;
-static const uint8_t next_chA[] = { 1, 2, 3, 4, 5, 0 };
-uint8_t looper = 0;
+static uint8_t_t this_fmCh = 0;
+static const uint8_t_t next_chA[] = { 1, 2, 3, 4, 5, 0 };
+uint8_t_t looper = 0;
 
 void YM2610Update(void) {
 	int last_fm[6];
 	register int32_t lt = 0, rt = 0, ct = 0;
 	int i, j, outn, c;
-	uint32_t lh_out, ll_out, rh_out, rl_out;
+	uint32_t_t lh_out, ll_out, rh_out, rl_out;
  	int16_t outp;
- 	uint8_t outlr;
+ 	uint8_t_t outlr;
  	static int check_adpcma = 0;
 
 	//int enable_fm = YM2610.OPN.ST.rate & 1;
@@ -3174,7 +3174,7 @@ STATE_SAVE( ym2610 )
 
 	state_save_byte(YM2610.regs, 512);
 
-	state_save_double(&YM2610.OPN.ST.BusyExpire, 1);
+	state_save_long(&YM2610.OPN.ST.BusyExpire, 1);
 	state_save_byte(&YM2610.OPN.ST.address, 1);
 	state_save_byte(&YM2610.OPN.ST.irq, 1);
 	state_save_byte(&YM2610.OPN.ST.irqmask, 1);
@@ -3237,7 +3237,7 @@ STATE_LOAD( ym2610 )
 
 	state_load_byte(YM2610.regs, 512);
 
-	state_load_double(&YM2610.OPN.ST.BusyExpire, 1);
+	state_load_long(&YM2610.OPN.ST.BusyExpire, 1);
 	state_load_byte(&YM2610.OPN.ST.address, 1);
 	state_load_byte(&YM2610.OPN.ST.irq, 1);
 	state_load_byte(&YM2610.OPN.ST.irqmask, 1);

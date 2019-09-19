@@ -2,12 +2,12 @@
 #define FONT_H_
 
 typedef struct {
-	unsigned char_width;
-	unsigned char_height;
+	uint8_t_width;
+	uint8_t_height;
 	const char * font_name;
-	unsigned char first_char;
-	unsigned char last_char;
-	unsigned char * font_bitmap;
+	uint8_t first_char;
+	uint8_t last_char;
+	uint8_t * font_bitmap;
 } font_t;
 
 extern const font_t font_6x8;

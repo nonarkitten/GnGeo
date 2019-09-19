@@ -16,10 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
  */
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
-
 #include <signal.h>
 
 //#include "SDL.h"
@@ -124,7 +121,7 @@ int main(int argc, char *argv[]) {
     char *rom_name;
     BPTR file_lock;
     int bench = 0;
-    ULONG initStart;
+    uint32_t initStart;
 
     if(!LowLevelBase) LowLevelBase = (struct Library *) OpenLibrary("lowlevel.library",0);
 	if(!LowLevelBase) exit(-1);
@@ -162,7 +159,7 @@ int main(int argc, char *argv[]) {
 	//convert_audio_rom();
 	init_sdl();
 	
-	debug("Startup took %u ms, ", (ULONG)((int)getMilliseconds() - (int)initStart));
+	debug("Startup took %u ms, ", (uint32_t)((int)getMilliseconds() - (int)initStart));
 	suspend_os();
 	main_loop();
 

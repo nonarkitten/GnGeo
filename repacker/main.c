@@ -27,25 +27,25 @@
 extern struct DosLibrary *DOSBase;
 
 typedef struct {
-	unsigned int file_sig : 32;
+	uint32_t file_sig : 32;
 	
-	unsigned int version : 16;
-	unsigned int gp_flags : 16;
-	unsigned int comp_method : 16;
-	unsigned int file_mod_time : 16;
-	unsigned int file_mod_date : 16;
+	uint32_t version : 16;
+	uint32_t gp_flags : 16;
+	uint32_t comp_method : 16;
+	uint32_t file_mod_time : 16;
+	uint32_t file_mod_date : 16;
 	
-	unsigned int file_crc32 : 32;
-	unsigned int compressed_size : 32;
-	unsigned int uncompressed_size : 32;	
+	uint32_t file_crc32 : 32;
+	uint32_t compressed_size : 32;
+	uint32_t uncompressed_size : 32;	
 	
-	unsigned int filename_length : 16;
-	unsigned int extra_field_length : 16;
+	uint32_t filename_length : 16;
+	uint32_t extra_field_length : 16;
 	// filename
 	// extra field
 } ZipFILE;
 
-const uint8_t ZipFILE_scatter[] = {
+const uint8_t_t ZipFILE_scatter[] = {
 	3,2,1,0,
 	
 	5,4,
@@ -62,18 +62,18 @@ const uint8_t ZipFILE_scatter[] = {
 	29,28
 };
 
-static void Scatter(uint8_t *data, uint8_t *scatter, int len) {
+static void Scatter(uint8_t_t *data, uint8_t_t *scatter, int len) {
 	int i;
-	uint8_t t;
+	uint8_t_t t;
 	
 	for(i=0; i<len; i++) if(scatter[i] > i) { t = data[i]; data[i] = data[scatter[i]]; data[scatter[i]] = t; } 
 }
 
 struct Library *TimerBase;
 
-static ULONG E_Freq;
+static uint32_t E_Freq;
 
-static ULONG getTicks(){
+static uint32_t getTicks(){
 	static struct EClockVal startTime;
 	static int init = 0;
 	
@@ -86,7 +86,7 @@ static ULONG getTicks(){
 		return 0;
 		
 	} else {
-		ULONG diff;
+		uint32_t diff;
 		ReadEClock( &endTime );
 		diff = (int)endTime.ev_lo - (int)startTime.ev_lo;
 		startTime.ev_lo = endTime.ev_lo;
@@ -110,7 +110,7 @@ static int IsFile(char *filename) {
 	return r;
 }
 
-static __inline unsigned int __bswap_32 (unsigned int __bsx) {
+static __inline uint32_t __bswap_32 (uint32_t __bsx) {
   __asm__ __volatile__ (
   	"ror%.w %#8, %0;"
 	"swap %0;"
@@ -119,7 +119,7 @@ static __inline unsigned int __bswap_32 (unsigned int __bsx) {
   return __bsx;
 }
 
-static __inline unsigned short __bswap_16 (unsigned short __bsx) {
+static __inline uint16_t __bswap_16 (uint16_t __bsx) {
   __asm__ __volatile__ ( "ror%.w %#8, %0;" : "+d" (__bsx) );
   return __bsx;
 }
@@ -175,8 +175,8 @@ error:
 }
 
 static int processZip(FILE* zip, ZipFILE* zf, const char *filename) {
-	unsigned char *out = AllocVec(zf->uncompressed_size, MEMF_CLEAR);
-	unsigned char *lz4w;
+	uint8_t *out = AllocVec(zf->uncompressed_size, MEMF_CLEAR);
+	uint8_t *lz4w;
     int ret = Z_OK;
     int resize = 0;
     FILE* file;
@@ -187,7 +187,7 @@ static int processZip(FILE* zip, ZipFILE* zf, const char *filename) {
     
     if(zf->comp_method == 8) {
 		/* allocate inflate state */
-		unsigned char *in = AllocVec(zf->compressed_size, MEMF_CLEAR);
+		uint8_t *in = AllocVec(zf->compressed_size, MEMF_CLEAR);
 	    z_stream strm = { 0 };
 
 	    int percent = 0;

@@ -15,16 +15,16 @@
 
 typedef union {
 	struct {
-		uint32_t p0 : 4;
-		uint32_t p1 : 4;
-		uint32_t p2 : 4;
-		uint32_t p3 : 4;
-		uint32_t p4 : 4;
-		uint32_t p5 : 4;
-		uint32_t p6 : 4;
-		uint32_t p7 : 4;
+		uint32_t_t p0 : 4;
+		uint32_t_t p1 : 4;
+		uint32_t_t p2 : 4;
+		uint32_t_t p3 : 4;
+		uint32_t_t p4 : 4;
+		uint32_t_t p5 : 4;
+		uint32_t_t p6 : 4;
+		uint32_t_t p7 : 4;
 	} packed;
-	uint32_t pixels;
+	uint32_t_t pixels;
 } packpix_t; 
 
 extern int AC68080;
@@ -39,14 +39,14 @@ extern int neogeo_fix_bank_type;
 #define REPEAT4(X) REPEAT2(X) REPEAT2(X)
 #define REPEAT8(X) REPEAT4(X) REPEAT4(X)
 
-INLINE static void draw_fix_char_ammx(uint32_t tile, uint32_t color, uint16_t *screen) {
-	static uint32_t last_color = -1ul;
-	uint32_t *gfxdata = (uint32_t*)&current_fix[tile << 5];	
+INLINE static void draw_fix_char_ammx(uint32_t_t tile, uint32_t_t color, uint16_t_t *screen) {
+	static uint32_t_t last_color = -1ul;
+	uint32_t_t *gfxdata = (uint32_t_t*)&current_fix[tile << 5];	
 	//int16_t rept = 8;
 
 	// Load palette contents into E8-E23
 	if(color != last_color) {
-		uint32_t *palette = (uint32_t *)&current_pc_pal[color * 16];
+		uint32_t_t *palette = (uint32_t_t *)&current_pc_pal[color * 16];
 		last_color = color;
 		__asm__ volatile (
 			"dc.w    0x7102\n" // E8...
@@ -129,11 +129,11 @@ INLINE static void draw_fix_char_ammx(uint32_t tile, uint32_t color, uint16_t *s
 
 #define DO_NOT_REORDER() asm volatile("": : :"memory")
 
-INLINE static void draw_fix_char_m68k(uint32_t tile, uint32_t color, uint16_t *screen) {
-	uint32_t *palbase = (uint32_t *)&current_pc_pal[color * 16];
-    uint32_t *gfxdata = (uint32_t*)&current_fix[tile << 5];	
+INLINE static void draw_fix_char_m68k(uint32_t_t tile, uint32_t_t color, uint16_t_t *screen) {
+	uint32_t_t *palbase = (uint32_t_t *)&current_pc_pal[color * 16];
+    uint32_t_t *gfxdata = (uint32_t_t*)&current_fix[tile << 5];	
 	packpix_t pixels0;
-	uint16_t pixel1,pixel2;
+	uint16_t_t pixel1,pixel2;
 	int32_t y = 8;
 	
 	while(y--) {
@@ -154,13 +154,13 @@ INLINE static void draw_fix_char_m68k(uint32_t tile, uint32_t color, uint16_t *s
 
 #define fix_add(x, y) ((((READ_WORD(memory.vid.ram + 0xEA00 + (((y-1)&31)*2 + 64 * (x/6))) >> (5-(x%6))*2) & 3) ^ 3))
 
-void draw_fix_char(unsigned char *buf, int start, int end) {
-	unsigned int *gfxdata, myword;
+void draw_fix_char(uint8_t *buf, int start, int end) {
+	uint32_t *gfxdata, myword;
 	int x, y, yy;
-	unsigned char col;
-	unsigned short *br;
-	unsigned int *paldata;
-	unsigned int byte1, byte2;
+	uint8_t col;
+	uint16_t *br;
+	uint32_t *paldata;
+	uint32_t byte1, byte2;
 	int banked, garouoffsets[32];
 	Rect clip;
 	const int ystart = 2, yend = 32;
@@ -202,7 +202,7 @@ void draw_fix_char(unsigned char *buf, int start, int end) {
 
 				if ((byte1 >= (memory.rom.game_sfix.size >> 5)) || (fix_usage[byte1] == 0x00)) continue;
 		
-				br = (unsigned short*)buf + ((y << 3)) * (PITCH >> 1) + (x << 3);// + 16;
+				br = (uint16_t*)buf + ((y << 3)) * (PITCH >> 1) + (x << 3);// + 16;
 				draw_fix_char_ammx(byte1, byte2, br);
 			}
 		}
@@ -223,7 +223,7 @@ void draw_fix_char(unsigned char *buf, int start, int end) {
 
 				if ((byte1 >= (memory.rom.game_sfix.size >> 5)) || (fix_usage[byte1] == 0x00)) continue;
 		
-				br = (unsigned short*)buf + ((y << 3)) * (PITCH >> 1) + (x << 3);// + 16;
+				br = (uint16_t*)buf + ((y << 3)) * (PITCH >> 1) + (x << 3);// + 16;
 				draw_fix_char_m68k(byte1, byte2, br);
 			}
 		}

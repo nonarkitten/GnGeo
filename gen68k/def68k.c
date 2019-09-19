@@ -166,7 +166,7 @@ void procline(char *line, int lineno, FILE *outiibs, FILE *outfuncs,
 
   /* parameters to fill in about instruction */
   int mnemonic_num;
-  uint16 mask = 0, bits = 0;        /* see struct t_iib for details on */
+  uint16_t mask = 0, bits = 0;        /* see struct t_iib for details on */
   int priv = 0, endblk = 0;         /* these variables */
   int imm_notzero = 0;
   int used = 0, set = 0;

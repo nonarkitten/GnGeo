@@ -15,23 +15,23 @@ int diss68k_gettext(t_ipc * ipc, char *text);
 
 /*** externed variables ***/
 
-uint8 *cpu68k_rom = NULL;
-unsigned int cpu68k_romlen = 0;
-uint8 *cpu68k_ram = NULL;
+uint8_t *cpu68k_rom = NULL;
+uint32_t cpu68k_romlen = 0;
+uint8_t *cpu68k_ram = NULL;
 t_iib *cpu68k_iibtable[65536];
 void (*cpu68k_functable[65536 * 2]) (t_ipc * ipc);
 int cpu68k_totalinstr;
 int cpu68k_totalfuncs;
 
-unsigned int cpu68k_clocks;
-unsigned int cpu68k_frames;
-unsigned int cpu68k_frozen;     /* cpu frozen, do not interrupt, make pending */
+uint32_t cpu68k_clocks;
+uint32_t cpu68k_frames;
+uint32_t cpu68k_frozen;     /* cpu frozen, do not interrupt, make pending */
 t_regs regs;
-uint8 movem_bit[256];
+uint8_t movem_bit[256];
 t_ipclist *ipclist[LEN_IPCLISTTABLE];
 
-//extern uint8 current_cpu_bank;
-extern uint32 bankaddress;
+//extern uint8_t current_cpu_bank;
+extern uint32_t bankaddress;
 
 /*** global variables ***/
 
@@ -42,7 +42,7 @@ void cpu68k_reset(void);
 int cpu68k_init(void)
 {
   t_iib *iib;
-  uint16 bitmap;
+  uint16_t bitmap;
   int i, j, sbit, dbit, sbits, dbits;
 
   memset(cpu68k_iibtable, 0, sizeof(cpu68k_iibtable));
@@ -195,12 +195,12 @@ void cpu68k_printipc(t_ipc * ipc)
 
 /* fill in ipc */
 
-void cpu68k_ipc(uint32 addr68k, uint8 *addr, t_iib * iib, t_ipc * ipc)
+void cpu68k_ipc(uint32_t addr68k, uint8_t *addr, t_iib * iib, t_ipc * ipc)
 {
   t_type type;
-  uint32 *p;
+  uint32_t *p;
 
-  ipc->opcode = LOCENDIAN16(*(uint16 *)addr);
+  ipc->opcode = LOCENDIAN16(*(uint16_t *)addr);
   ipc->wordlen = 1;
   if (!iib) {
     /* illegal instruction, no further details (wordlen must be set to 1) */
@@ -215,7 +215,7 @@ void cpu68k_ipc(uint32 addr68k, uint8 *addr, t_iib * iib, t_ipc * ipc)
     /* low 8 bits of current instruction are addr+1 */
     ipc->src = (sint32)(*(sint8 *)(addr + 1));
     if (ipc->src == 0) {
-      ipc->src = (sint32)(sint16)LOCENDIAN16(*(uint16 *)(addr + 2));
+      ipc->src = (sint32)(sint16)LOCENDIAN16(*(uint16_t *)(addr + 2));
       ipc->wordlen++;
     }
     ipc->src += addr68k + 2;    /* add PC of next instruction */
@@ -223,7 +223,7 @@ void cpu68k_ipc(uint32 addr68k, uint8 *addr, t_iib * iib, t_ipc * ipc)
   }
   if (iib->mnemonic == i_DBcc || iib->mnemonic == i_DBRA) {
     /* special case - we can calculate the offset now */
-    ipc->src = (sint32)(sint16)LOCENDIAN16(*(uint16 *)(addr + 2));
+    ipc->src = (sint32)(sint16)LOCENDIAN16(*(uint16_t *)(addr + 2));
     ipc->src += addr68k + 2;    /* add PC of next instruction */
     ipc->wordlen++;
     return;
@@ -240,7 +240,7 @@ void cpu68k_ipc(uint32 addr68k, uint8 *addr, t_iib * iib, t_ipc * ipc)
 
     switch (type == tp_src ? iib->stype : iib->dtype) {
     case dt_Adis:
-      *p = (sint32)(sint16)LOCENDIAN16(*(uint16 *)addr);
+      *p = (sint32)(sint16)LOCENDIAN16(*(uint16_t *)addr);
       ipc->wordlen++;
       addr += 2;
       addr68k += 2;
@@ -253,20 +253,20 @@ void cpu68k_ipc(uint32 addr68k, uint8 *addr, t_iib * iib, t_ipc * ipc)
       addr68k += 2;
       break;
     case dt_AbsW:
-      *p = (sint32)(sint16)LOCENDIAN16(*(uint16 *)addr);
+      *p = (sint32)(sint16)LOCENDIAN16(*(uint16_t *)addr);
       ipc->wordlen++;
       addr += 2;
       addr68k += 2;
       break;
     case dt_AbsL:
-      *p = (uint32)((LOCENDIAN16(*(uint16 *)addr) << 16) +
-                    LOCENDIAN16(*(uint16 *)(addr + 2)));
+      *p = (uint32_t)((LOCENDIAN16(*(uint16_t *)addr) << 16) +
+                    LOCENDIAN16(*(uint16_t *)(addr + 2)));
       ipc->wordlen += 2;
       addr += 4;
       addr68k += 4;
       break;
     case dt_Pdis:
-      *p = (sint32)(sint16)LOCENDIAN16(*(uint16 *)addr);
+      *p = (sint32)(sint16)LOCENDIAN16(*(uint16_t *)addr);
       *p += addr68k;            /* add PC of extension word (this word) */
       ipc->wordlen++;
       addr += 2;
@@ -281,20 +281,20 @@ void cpu68k_ipc(uint32 addr68k, uint8 *addr, t_iib * iib, t_ipc * ipc)
       break;
     case dt_ImmB:
       /* low 8 bits of next 16 bit word is addr+1 */
-      *p = (uint32)(*(uint8 *)(addr + 1));
+      *p = (uint32_t)(*(uint8_t *)(addr + 1));
       ipc->wordlen++;
       addr += 2;
       addr68k += 2;
       break;
     case dt_ImmW:
-      *p = (uint32)LOCENDIAN16(*(uint16 *)addr);
+      *p = (uint32_t)LOCENDIAN16(*(uint16_t *)addr);
       ipc->wordlen++;
       addr += 2;
       addr68k += 2;
       break;
     case dt_ImmL:
-      *p = (uint32)((LOCENDIAN16(*(uint16 *)addr) << 16) +
-                    LOCENDIAN16(*(uint16 *)(addr + 2)));
+      *p = (uint32_t)((LOCENDIAN16(*(uint16_t *)addr) << 16) +
+                    LOCENDIAN16(*(uint16_t *)(addr + 2)));
       ipc->wordlen += 2;
       addr += 4;
       addr68k += 4;
@@ -329,14 +329,14 @@ void cpu68k_ipc(uint32 addr68k, uint8 *addr, t_iib * iib, t_ipc * ipc)
   }
 }
 
-t_ipclist *cpu68k_makeipclist(uint32 pc)
+t_ipclist *cpu68k_makeipclist(uint32_t pc)
 {
   int size = 16;
   t_ipclist *list = malloc(sizeof(t_ipclist) + 16 * sizeof(t_ipc) + 8);
   t_ipc *ipc = (t_ipc *) (list + 1);
   t_iib *iib;
   int instrs = 0;
-  uint16 required;
+  uint16_t required;
   int i;
 
   if (list == NULL) {

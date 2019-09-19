@@ -1,7 +1,4 @@
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
- 
+#include <config.h> 
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
@@ -52,7 +49,7 @@ void cpu_z80_mkstate(gzFile *gzf,int mode);
 void ym2610_mkstate(gzFile *gzf,int mode);
 
 void create_state_register(ST_MODULE_TYPE module,const char *reg_name,
-			   Uint8 num,void *data,int size,ST_DATA_TYPE type) {
+			   uint8_t num,void *data,int size,ST_DATA_TYPE type) {
     ST_REG *t=(ST_REG*)calloc(1,sizeof(ST_REG));
     t->next=st_mod[module].reglist;
     st_mod[module].reglist=t;
@@ -71,7 +68,7 @@ void set_post_load_function(ST_MODULE_TYPE module,void (*func)(void)) {
     st_mod[module].post_load_state=func;
 }
 
-static void *find_data_by_name(ST_MODULE_TYPE module,Uint8 num,char *name) {
+static void *find_data_by_name(ST_MODULE_TYPE module,uint8_t num,char *name) {
     ST_REG *t=st_mod[module].reglist;
     while(t) {
 	if ((!strcmp(name,t->reg_name)) && (t->num==num)) {
@@ -88,26 +85,26 @@ static void *find_data_by_name(ST_MODULE_TYPE module,Uint8 num,char *name) {
 
 static int sizeof_st_type(ST_DATA_TYPE type) {
     switch (type) {
-    case REG_UINT8:
+    case REG_uint8_t:
     case REG_INT8:
 	return 1;
-    case REG_UINT16:
+    case REG_uint16_t:
     case REG_INT16:
 	return 2;
-    case REG_UINT32:
+    case REG_uint32_t:
     case REG_INT32:
 	return 4;
     }
     return 0; /* never go here */
 }
 
-void swap_buf16_if_need(Uint8 src_endian,Uint16* buf,Uint32 size)
+void swap_buf16_if_need(uint8_t src_endian,uint16_t* buf,uint32_t size)
 {
     int i;
 #ifdef WORDS_BIGENDIAN
-    Uint8  my_endian=1;
+    uint8_t  my_endian=1;
 #else
-    Uint8  my_endian=0;
+    uint8_t  my_endian=0;
 #endif
     if (my_endian!=src_endian) {
 	for (i=0;i<size;i++)
@@ -115,13 +112,13 @@ void swap_buf16_if_need(Uint8 src_endian,Uint16* buf,Uint32 size)
     }
 }
 
-void swap_buf32_if_need(Uint8 src_endian,Uint32* buf,Uint32 size)
+void swap_buf32_if_need(uint8_t src_endian,uint32_t* buf,uint32_t size)
 {
     int i;
 #ifdef WORDS_BIGENDIAN
-    Uint8  my_endian=1;
+    uint8_t  my_endian=1;
 #else
-    Uint8  my_endian=0;
+    uint8_t  my_endian=0;
 #endif
     if (my_endian!=src_endian) {
 	for (i=0;i<size;i++)
@@ -129,7 +126,7 @@ void swap_buf32_if_need(Uint8 src_endian,Uint32* buf,Uint32 size)
     }
 }
 
-Uint32 how_many_slot(char *game) {
+uint32_t how_many_slot(char *game) {
 	char *st_name;
 	FILE *f;
 //    char *st_name_len;
@@ -138,7 +135,7 @@ Uint32 how_many_slot(char *game) {
 #else
 	char *gngeo_dir=get_gngeo_dir();
 #endif
-	Uint32 slot=0;
+	uint32_t slot=0;
 	st_name=(char*)alloca(strlen(gngeo_dir)+strlen(game)+5);
 	while (1) {
 		sprintf(st_name,"%s%s.%03d",gngeo_dir,game,slot);
@@ -162,7 +159,7 @@ static gzFile *open_state(char *game,int slot,int mode) {
 	char *m=(mode==STWRITE?"wb":"rb");
 	gzFile *gzf;
 	int  flags;
-	Uint32 rate;
+	uint32_t rate;
 
     st_name=(char*)alloca(strlen(gngeo_dir)+strlen(game)+5);
     sprintf(st_name,"%s%s.%03d",gngeo_dir,game,slot);
@@ -223,7 +220,7 @@ int load_state(char *game,int slot) {
 
 
 /* neogeo state register */ 
-static Uint8 st_current_pal,st_current_fix;
+static uint8_t st_current_pal,st_current_fix;
 
 static void neogeo_pre_save_state(void) {
 

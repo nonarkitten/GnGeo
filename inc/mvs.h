@@ -9,17 +9,17 @@
 #define s16 signed short
 #define s32 signed long
 
-#define u8  unsigned char
-#define u16 unsigned short
+#define u8  uint8_t
+#define u16 uint16_t
 #define u32 unsigned long
 */
 #define s8  Sint8
 #define s16 Sint16
 #define s32 Sint32
 
-#define u8  Uint8
-#define u16 Uint16
-#define u32 Uint32
+#define u8  uint8_t
+#define u16 uint16_t
+#define u32 uint32_t
 
 #define ALIGN_DATA
 #ifndef INLINE

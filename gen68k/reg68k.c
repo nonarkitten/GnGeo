@@ -24,13 +24,13 @@
 //#endif
 
 
-//extern uint8 current_cpu_bank;
-extern uint32 bankaddress;
+//extern uint8_t current_cpu_bank;
+extern uint32_t bankaddress;
 
 /*** forward references ***/
 
 void reg68k_printstat(void) {
-    unsigned int i;
+    uint32_t i;
     t_ipclist *list;
     for (i=0;i<LEN_IPCLISTTABLE;i++) {
 	list = ipclist[i];
@@ -46,11 +46,11 @@ void reg68k_printstat(void) {
 /*** reg68k_external_step - execute one instruction ***/
 
 
-unsigned int reg68k_external_step(void)
+uint32_t reg68k_external_step(void)
 {
   static t_ipc ipc;
   static t_iib *piib;
-  static unsigned int clks;
+  static uint32_t clks;
 
   /* !!! entering global register usage area !!! */
 
@@ -75,14 +75,14 @@ unsigned int reg68k_external_step(void)
 /*** reg68k_external_execute - execute at least given number of clocks,
      and return number of clocks executed too much ***/
 
-unsigned int reg68k_external_execute(unsigned int clocks)
+uint32_t reg68k_external_execute(uint32_t clocks)
 {
-  unsigned int index;
+  uint32_t index;
   t_ipclist *list;
   t_ipc *ipc;
-  uint32 pc24;
+  uint32_t pc24;
 
-  uint32 bank;
+  uint32_t bank;
   static t_ipc step_ipc;
   static t_iib *step_piib;
   static int clks;
@@ -190,7 +190,7 @@ void reg68k_external_autovector(int avno)
 void reg68k_internal_autovector(int avno)
 {
   int curlevel = (regs.sr.sr_int >> 8) & 7;
-  uint32 tmpaddr;
+  uint32_t tmpaddr;
 
   if ((curlevel < avno || avno == 7) && !cpu68k_frozen) {
     if (regs.stop) {
@@ -226,7 +226,7 @@ void reg68k_internal_autovector(int avno)
 /*** reg68k_internal_vector - go to vector - this call assumes global
      registers are already setup ***/
 
-void reg68k_internal_vector(int vno, uint32 oldpc)
+void reg68k_internal_vector(int vno, uint32_t oldpc)
 {
   if (!regs.sr.sr_struct.s) {
     regs.regs[15] ^= regs.sp; /* swap A7 and SP */

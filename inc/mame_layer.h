@@ -13,21 +13,21 @@
 #define INT16 Sint16
 #define INT32 Sint32
 
-#define UINT8  Uint8
-#define UINT16 Uint16
-#define UINT32 Uint32
+#define uint8_t  uint8_t
+#define uint16_t uint16_t
+#define uint32_t uint32_t
 
 /* macros for accessing bytes and words within larger chunks */
 #ifndef BIGENDIAN
 
-#define BYTE_XOR_BE(a)  				((a) ^ 1)		/* read/write a byte to a 16-bit space */
-#define BYTE_XOR_LE(a)  				(a)
-#define BYTE4_XOR_BE(a) 				((a) ^ 3)		/* read/write a byte to a 32-bit space */
-#define BYTE4_XOR_LE(a) 				(a)
+#define uint8_t_XOR_BE(a)  				((a) ^ 1)		/* read/write a byte to a 16-bit space */
+#define uint8_t_XOR_LE(a)  				(a)
+#define uint8_t4_XOR_BE(a) 				((a) ^ 3)		/* read/write a byte to a 32-bit space */
+#define uint8_t4_XOR_LE(a) 				(a)
 #define WORD_XOR_BE(a)  				((a) ^ 2)		/* read/write a word to a 32-bit space */
 #define WORD_XOR_LE(a)  				(a)
-#define BYTE8_XOR_BE(a) 				((a) ^ 7)		/* read/write a byte to a 64-bit space */
-#define BYTE8_XOR_LE(a) 				(a)
+#define uint8_t8_XOR_BE(a) 				((a) ^ 7)		/* read/write a byte to a 64-bit space */
+#define uint8_t8_XOR_LE(a) 				(a)
 #define WORD2_XOR_BE(a)  				((a) ^ 6)		/* read/write a word to a 64-bit space */
 #define WORD2_XOR_LE(a)  				(a)
 #define DWORD_XOR_BE(a)  				((a) ^ 4)		/* read/write a dword to a 64-bit space */
@@ -35,14 +35,14 @@
 
 #else
 
-#define BYTE_XOR_BE(a)  				(a)
-#define BYTE_XOR_LE(a)  				((a) ^ 1)		/* read/write a byte to a 16-bit space */
-#define BYTE4_XOR_BE(a) 				(a)
-#define BYTE4_XOR_LE(a) 				((a) ^ 3)		/* read/write a byte to a 32-bit space */
+#define uint8_t_XOR_BE(a)  				(a)
+#define uint8_t_XOR_LE(a)  				((a) ^ 1)		/* read/write a byte to a 16-bit space */
+#define uint8_t4_XOR_BE(a) 				(a)
+#define uint8_t4_XOR_LE(a) 				((a) ^ 3)		/* read/write a byte to a 32-bit space */
 #define WORD_XOR_BE(a)  				(a)
 #define WORD_XOR_LE(a)  				((a) ^ 2)		/* read/write a word to a 32-bit space */
-#define BYTE8_XOR_BE(a) 				(a)
-#define BYTE8_XOR_LE(a) 				((a) ^ 7)		/* read/write a byte to a 64-bit space */
+#define uint8_t8_XOR_BE(a) 				(a)
+#define uint8_t8_XOR_LE(a) 				((a) ^ 7)		/* read/write a byte to a 64-bit space */
 #define WORD2_XOR_BE(a)  				(a)
 #define WORD2_XOR_LE(a)  				((a) ^ 6)		/* read/write a word to a 64-bit space */
 #define DWORD_XOR_BE(a)  				(a)
@@ -147,8 +147,8 @@
 
 //#define malloc_or_die(b) malloc(b)
 #define alloc_array_or_die(type,size) ((type*)malloc_or_die(sizeof(type)*size))
-UINT32 memory_region_length( GAME_ROMS *r, char *region );
-UINT8 *memory_region( GAME_ROMS *r, char *region );
-void *malloc_or_die(UINT32 b);
+uint32_t memory_region_length( GAME_ROMS *r, char *region );
+uint8_t *memory_region( GAME_ROMS *r, char *region );
+void *malloc_or_die(uint32_t b);
 
 #endif

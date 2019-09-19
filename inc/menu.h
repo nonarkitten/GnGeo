@@ -19,10 +19,7 @@
 #ifndef _MENU_H_
 #define _MENU_H_
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
-
 //#include "SDL.h"
 #include "list.h"
 
@@ -33,7 +30,7 @@
 
 typedef struct GN_MENU_ITEM {
     char *name;
-    Uint32 type; /* ACTION, CHECK */
+    uint32_t type; /* ACTION, CHECK */
     int enabled;
         int val;
         char **lval;
@@ -60,13 +57,13 @@ typedef struct GN_MENU {
 #define MENU_TXT_Y 62
 
 
-GN_MENU_ITEM* gn_menu_create_item(char *name,Uint32 type,
+GN_MENU_ITEM* gn_menu_create_item(char *name,uint32_t type,
 				  int (*action)(GN_MENU_ITEM *self,void *param),void *param);
 int gn_menu_delete_item(GN_MENU_ITEM *menu);
 
 int gn_init_skin(void);
 int gn_loop_menu(GN_MENU *m);
-Uint32 run_menu(void);
+uint32_t run_menu(void);
 void gn_reset_pbar(void);
 void gn_init_pbar(char *name,int size);
 void gn_update_pbar(int pos);

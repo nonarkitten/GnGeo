@@ -70,7 +70,7 @@ int diss68k_gettext(t_ipc * ipc, char *text)
 void diss68k_getoperand(char *text, t_ipc * ipc, t_iib * iib, t_type type)
 {
   int bitpos;
-  uint32 val;
+  uint32_t val;
 
   if (type == tp_src) {
     bitpos = iib->sbitpos;
@@ -97,10 +97,10 @@ void diss68k_getoperand(char *text, t_ipc * ipc, t_iib * iib, t_type type)
     sprintf(text, "-(A%d)", (ipc->opcode >> bitpos) & 7);
     break;
   case dt_Adis:
-    sprintf(text, "$%04x(A%d)", (uint16)val, (ipc->opcode >> bitpos) & 7);
+    sprintf(text, "$%04x(A%d)", (uint16_t)val, (ipc->opcode >> bitpos) & 7);
     break;
   case dt_Aidx:
-    sprintf(text, "$%02x(A%d,Rx.X)", (uint8)val, (ipc->opcode >> bitpos) & 7);
+    sprintf(text, "$%02x(A%d,Rx.X)", (uint8_t)val, (ipc->opcode >> bitpos) & 7);
     break;
   case dt_AbsW:
     sprintf(text, "$%08x", (unsigned)val);
@@ -144,15 +144,15 @@ void diss68k_getoperand(char *text, t_ipc * ipc, t_iib * iib, t_type type)
   }
 }
 
-int diss68k_getdumpline(uint32 addr68k, uint8 *addr, char *dumpline)
+int diss68k_getdumpline(uint32_t addr68k, uint8_t *addr, char *dumpline)
 {
   t_ipc ipc;
-  t_iib *iibp = cpu68k_iibtable[LOCENDIAN16(*(uint16 *)addr)];
+  t_iib *iibp = cpu68k_iibtable[LOCENDIAN16(*(uint16_t *)addr)];
   int words, i;
   char dissline[64], *p;
 
   if (addr68k < 256) {
-    sprintf(dissline, "dc.l $%08x", (unsigned)LOCENDIAN32(*(uint32 *)addr));
+    sprintf(dissline, "dc.l $%08x", (unsigned)LOCENDIAN32(*(uint32_t *)addr));
     words = 2;
   } else {
     cpu68k_ipc(addr68k, addr, iibp, &ipc);

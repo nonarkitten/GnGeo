@@ -2,10 +2,7 @@
 #ifndef _BLITTER_H_
 #define _BLITTER_H_
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
-
  
 
 typedef struct {

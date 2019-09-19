@@ -16,10 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
  */  
     
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
-
 #include <string.h>
 #include <time.h>
 #include <stdio.h>
@@ -80,9 +77,9 @@ extern int enable16;
 
 static int enablePAM;
 
-volatile struct Custom* const custom = (APTR)0xdff000;
-volatile struct CIA* const ciaa = (APTR)0xbfe001;
-volatile struct CIA* const ciab = (APTR)0xbfd000;
+volatile struct Custom* const custom = (void *)0xdff000;
+volatile struct CIA* const ciaa = (void *)0xbfe001;
+volatile struct CIA* const ciab = (void *)0xbfd000;
 
 typedef enum { CMP_LT = -1, CMP_EQ = 0, CMP_GT = 1 } CmpT;
 typedef void* PtrT;
@@ -137,7 +134,7 @@ static int InitAudio() {
 
 		{
 			IOAudioT *ioReq = (IOAudioT *)audio->ioReq;
-			uint8_t channels[] = { 15 };
+			uint8_t_t channels[] = { 15 };
 
 			ioReq->ioa_Request.io_Message.mn_ReplyPort = audio->msgPort;
 			ioReq->ioa_Request.io_Message.mn_Node.ln_Pri = ADALLOC_MAXPREC;
@@ -157,8 +154,8 @@ static int InitAudio() {
 				audioInt->is_Node.ln_Type = NT_INTERRUPT;
 				audioInt->is_Node.ln_Pri = 127;
 				audioInt->is_Node.ln_Name = "AudioServer";
-				audioInt->is_Data = (APTR)i;
-				audioInt->is_Code = (APTR)AudioServer;
+				audioInt->is_Data = (void *)i;
+				audioInt->is_Code = (void *)AudioServer;
 
 				audio->audioInt[i].oldServer = SetIntVector(INTB_AUD0 + i, audioInt);
 			}
@@ -194,23 +191,23 @@ static int AudioFilter(int on) {
 
 	return old;
 }
-static void AudioSetVolume(ChanT num, uint8_t level) {
-  custom->aud[num].ac_vol = (uint16_t)level;
+static void AudioSetVolume(ChanT num, uint8_t_t level) {
+  custom->aud[num].ac_vol = (uint16_t_t)level;
 }
-static void AudioSetPeriod(ChanT num, uint16_t period) {
+static void AudioSetPeriod(ChanT num, uint16_t_t period) {
   custom->aud[num].ac_per = period;
 }
-static void AudioSetSampleRate(ChanT num, uint32_t rate) {
-  custom->aud[num].ac_per = (uint16_t)(CpuClock / rate);
+static void AudioSetSampleRate(ChanT num, uint32_t_t rate) {
+  custom->aud[num].ac_per = (uint16_t_t)(CpuClock / rate);
 }
-static void AudioAttachSamples(ChanT num, uint16_t *data, uint32_t length) {
+static void AudioAttachSamples(ChanT num, uint16_t_t *data, uint32_t_t length) {
   custom->aud[num].ac_ptr = data;
-  custom->aud[num].ac_len = (uint16_t)(length >> 1);
+  custom->aud[num].ac_len = (uint16_t_t)(length >> 1);
 }
-static uint16_t *AllocAudioData(size_t length) {
+static uint16_t_t *AllocAudioData(size_t length) {
   return AllocVec((length + 1) % ~1, MEMF_CHIP | MEMF_CLEAR);
 }
-static void FreeAudioData(uint16_t *data) {
+static void FreeAudioData(uint16_t_t *data) {
   FreeVec(data);
 }
 
@@ -224,18 +221,18 @@ static void FreeAudioData(uint16_t *data) {
 #define BUFFER_LEN 256
 #define PLAYBACK_RATE 27778
 
-uint8_t *lHBuffer, *rHBuffer;
-uint8_t *lLBuffer, *rLBuffer;
-uint8_t *_lHBuffer, *_rHBuffer;
-uint8_t *_lLBuffer, *_rLBuffer;
+uint8_t_t *lHBuffer, *rHBuffer;
+uint8_t_t *lLBuffer, *rLBuffer;
+uint8_t_t *_lHBuffer, *_rHBuffer;
+uint8_t_t *_lLBuffer, *_rLBuffer;
 
 extern int16_t L_Mix[BUFFER_LEN];
 extern int16_t R_Mix[BUFFER_LEN];
 
 void RemixAmiga14bit(void) {
-	uint32_t i;
-	uint16_t lt, rt;
-	uint32_t lh_out, rh_out, ll_out, rl_out;
+	uint32_t_t i;
+	uint16_t_t lt, rt;
+	uint32_t_t lh_out, rh_out, ll_out, rl_out;
 
 	for(i=0; i<BUFFER_LEN; i++) {
 		lt = L_Mix[i]; rt = R_Mix[i];
@@ -244,19 +241,19 @@ void RemixAmiga14bit(void) {
 		lh_out <<= 8; rh_out <<= 8; 
 
 		/* Or in the low 8-bits from each of our accumulators */
-		lh_out |= (uint8_t)(lt >> 8);  
-		rh_out |= (uint8_t)(rt >> 8);
+		lh_out |= (uint8_t_t)(lt >> 8);  
+		rh_out |= (uint8_t_t)(rt >> 8);
 
 		if(enable16) {
 			ll_out <<= 8; rl_out <<= 8;
-			ll_out |= (uint8_t)(lt & 255); 
-			rl_out |= (uint8_t)(rt & 255);
+			ll_out |= (uint8_t_t)(lt & 255); 
+			rl_out |= (uint8_t_t)(rt & 255);
 		}
 
  		if((i & 3) == 3) {
  			/* Write out the high bytes as one 32-bit op */
- 			*(uint32_t*)&lHBuffer[i - 3] = lh_out;
- 			*(uint32_t*)&rHBuffer[i - 3] = rh_out;
+ 			*(uint32_t_t*)&lHBuffer[i - 3] = lh_out;
+ 			*(uint32_t_t*)&rHBuffer[i - 3] = rh_out;
  			
  			if(enable16) {
 				/* Parallel sign extend each byte with a 2-bit right shift */
@@ -264,8 +261,8 @@ void RemixAmiga14bit(void) {
 				rl_out = ((rl_out & 0xFCFCFCFC ) >> 2) | (((rl_out & 0x80808080) >> 1) * 3);
 			
 				/* And write out the low bytes as one 32-bit op */
-				*(uint32_t*)&lLBuffer[i - 3] = ll_out;
-				*(uint32_t*)&rLBuffer[i - 3] = rl_out;
+				*(uint32_t_t*)&lLBuffer[i - 3] = ll_out;
+				*(uint32_t_t*)&rLBuffer[i - 3] = rl_out;
  			}
  		}
 	}
@@ -279,8 +276,8 @@ void RemixAmigaAmmx(void) {
 
 __saveds __interrupt static int AudioServer(ChanT num asm("a1")) {
 	extern void YM2610Update_Amiga(void);
-	extern  ULONG timerSound;
-	ULONG timerTemp;
+	extern  uint32_t timerSound;
+	uint32_t timerTemp;
 	void *temp;
 	
 	if(!paused) {
@@ -314,7 +311,7 @@ __saveds __interrupt static int AudioServer(ChanT num asm("a1")) {
 			temp = lLBuffer; lLBuffer = _lLBuffer; _lLBuffer = temp;
 		}
 
-		if(arg[OPTION_BENCH]) timerSound += (ULONG)((int)getMilliseconds() - (int)timerTemp);
+		if(arg[OPTION_BENCH]) timerSound += (uint32_t)((int)getMilliseconds() - (int)timerTemp);
 	}
 	custom->intreq = 1 << INTB_AUD0;
 	return 0;
@@ -370,7 +367,7 @@ struct MsgPort *TimerMP;      // Message port pointer
 struct Timerequest *TimerIO;  // I/O structure pointer
 #include "conf.h"
 static int initd = 0;
-static uint16_t oldPamelaState = 0;
+static uint16_t_t oldPamelaState = 0;
 
 int init_audio(void) { 
 	int samplerate = arg[OPTION_SAMPLERATE];
@@ -392,8 +389,8 @@ int init_audio(void) {
 		_rHBuffer = AllocAudioData(BUFFER_LEN * 2);
 
 		// enable 16-bit on channels 0-3
-		oldPamelaState = *((volatile uint16_t*)0xDFF29E);
-		*((volatile uint16_t*)0xDFF29E) = 0x800F; 
+		oldPamelaState = *((volatile uint16_t_t*)0xDFF29E);
+		*((volatile uint16_t_t*)0xDFF29E) = 0x800F; 
 
 	} else {
 		// RLLR
@@ -441,8 +438,8 @@ void close_audio(void) {
 	FreeAudioData(_lHBuffer); _lHBuffer = 0;
 	FreeAudioData(_rHBuffer); _rHBuffer = 0;
 	if(enablePAM) {
-		*((volatile uint16_t*)0xDFF29E) = ~oldPamelaState;
-		*((volatile uint16_t*)0xDFF29E) = 0x8000 | oldPamelaState;
+		*((volatile uint16_t_t*)0xDFF29E) = ~oldPamelaState;
+		*((volatile uint16_t_t*)0xDFF29E) = 0x8000 | oldPamelaState;
 	} else {
 		FreeAudioData(lLBuffer); lLBuffer = 0;
 		FreeAudioData(rLBuffer); rLBuffer = 0;

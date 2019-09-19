@@ -180,7 +180,7 @@ void generate(FILE *output, int topnibble)
 		
 		generate_ea(output, iib, tp_src, 1);
 		generate_eaval(output, iib, tp_src);
-		OUT("  unsigned int sr = regs.sr.sr_struct.s;\n");
+		OUT("  uint32_t sr = regs.sr.sr_struct.s;\n");
 		OUT("\n");
 		if (DEBUG_SR)
 		    fputs("  debug(\"SR: %08X %04X\\n\", PC, regs.sr.sr_int);\n",
@@ -209,7 +209,7 @@ void generate(FILE *output, int topnibble)
 		    OUT("ERROR\n");
 		    break;
 		}
-		OUT("  if (sr != (uint8)regs.sr.sr_struct.s) {\n");
+		OUT("  if (sr != (uint8_t)regs.sr.sr_struct.s) {\n");
 		OUT("    /* mode change, swap SP and A7 */\n");
 		OUT("    ADDRREG(7)^= SP; SP^= ADDRREG(7); ADDRREG(7)^= SP;\n");
 		OUT("  }\n");
@@ -260,16 +260,16 @@ void generate(FILE *output, int topnibble)
 		generate_ea(output, iib, tp_src, 1);
 		generate_eaval(output, iib, tp_src);
 		generate_ea(output, iib, tp_dst, 1);
-		OUT("  uint32 dstdata = ADDRREG(dstreg);\n");
+		OUT("  uint32_t dstdata = ADDRREG(dstreg);\n");
 		switch (iib->size) {
 		case sz_byte:
-		    OUT("  uint32 outdata = (sint32)dstdata - (sint8)srcdata;\n");
+		    OUT("  uint32_t outdata = (sint32)dstdata - (sint8)srcdata;\n");
 		    break;
 		case sz_word:
-		    OUT("  uint32 outdata = (sint32)dstdata - (sint16)srcdata;\n");
+		    OUT("  uint32_t outdata = (sint32)dstdata - (sint16)srcdata;\n");
 		    break;
 		case sz_long:
-		    OUT("  uint32 outdata = (sint32)dstdata - (sint32)srcdata;\n");
+		    OUT("  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;\n");
 		    break;
 		default:
 		    OUT("ERROR size\n");
@@ -359,16 +359,16 @@ void generate(FILE *output, int topnibble)
 		generate_ea(output, iib, tp_src, 1);
 		generate_eaval(output, iib, tp_src);
 		generate_ea(output, iib, tp_dst, 1);
-		OUT("  uint32 dstdata = ADDRREG(dstreg);\n");
+		OUT("  uint32_t dstdata = ADDRREG(dstreg);\n");
 		switch (iib->size) {
 		case sz_byte:
-		    OUT("  uint32 outdata = (sint32)dstdata + (sint8)srcdata;\n");
+		    OUT("  uint32_t outdata = (sint32)dstdata + (sint8)srcdata;\n");
 		    break;
 		case sz_word:
-		    OUT("  uint32 outdata = (sint32)dstdata + (sint16)srcdata;\n");
+		    OUT("  uint32_t outdata = (sint32)dstdata + (sint16)srcdata;\n");
 		    break;
 		case sz_long:
-		    OUT("  uint32 outdata = (sint32)dstdata + (sint32)srcdata;\n");
+		    OUT("  uint32_t outdata = (sint32)dstdata + (sint32)srcdata;\n");
 		    break;
 		default:
 		    OUT("ERROR size\n");
@@ -423,7 +423,7 @@ void generate(FILE *output, int topnibble)
 		generate_ea(output, iib, tp_dst, 1);
 		generate_eaval(output, iib, tp_dst);
 		OUT("\n");
-		OUT("  uint32 outdata = (uint32)srcdata * (uint32)dstdata;\n");
+		OUT("  uint32_t outdata = (uint32_t)srcdata * (uint32_t)dstdata;\n");
 		if (iib->dtype != dt_Dreg)
 		    OUT("ERROR dtype\n");
 		OUT("  DATAREG(dstreg) = outdata;\n");
@@ -446,7 +446,7 @@ void generate(FILE *output, int topnibble)
 		generate_ea(output, iib, tp_dst, 1);
 		generate_eaval(output, iib, tp_dst);
 		OUT("\n");
-		OUT("  uint32 outdata = (sint32)(sint16)srcdata * "
+		OUT("  uint32_t outdata = (sint32)(sint16)srcdata * "
 		    "(sint32)(sint16)dstdata;\n");
 		if (iib->dtype != dt_Dreg)
 		    OUT("ERROR dtype\n");
@@ -504,7 +504,7 @@ void generate(FILE *output, int topnibble)
 		iib->size = sz_long;
 		generate_ea(output, iib, tp_dst, 1);
 		generate_eaval(output, iib, tp_dst);
-		OUT("  uint32 outdata = (sint32)dstdata - (sint32)(sint16)srcdata;\n");
+		OUT("  uint32_t outdata = (sint32)dstdata - (sint32)(sint16)srcdata;\n");
 		if (flags)
 		    OUT("\n");
 		if (flags && iib->flags.set & IIB_FLAG_V)
@@ -529,10 +529,10 @@ void generate(FILE *output, int topnibble)
 		generate_eaval(output, iib, tp_dst);
 		switch (iib->size) {
 		case sz_byte:
-		    OUT("  uint32 bitpos = 1<<(srcdata & 7);");
+		    OUT("  uint32_t bitpos = 1<<(srcdata & 7);");
 		    break;
 		case sz_long:
-		    OUT("  uint32 bitpos = 1<<(srcdata & 31);");
+		    OUT("  uint32_t bitpos = 1<<(srcdata & 31);");
 		    break;
 		default:
 		    OUT("ERROR size\n");
@@ -653,7 +653,7 @@ void generate(FILE *output, int topnibble)
 		
 		generate_ea(output, iib, tp_src, 1);
 		generate_eaval(output, iib, tp_src);
-		OUT("  unsigned int sr = regs.sr.sr_struct.s;\n");
+		OUT("  uint32_t sr = regs.sr.sr_struct.s;\n");
 		OUT("\n");
 		if (DEBUG_SR)
 		    fputs("  debug(\"SR: %08X %04X\\n\", PC, regs.sr.sr_int);\n",
@@ -673,7 +673,7 @@ void generate(FILE *output, int topnibble)
 		    OUT("ERROR size\n");
 		    break;
 		}
-		OUT("  if (sr != (uint8)regs.sr.sr_struct.s) {\n");
+		OUT("  if (sr != (uint8_t)regs.sr.sr_struct.s) {\n");
 		OUT("    /* mode change, swap SP and A7 */\n");
 		OUT("    ADDRREG(7)^= SP; SP^= ADDRREG(7); ADDRREG(7)^= SP;\n");
 		OUT("  }\n");
@@ -688,8 +688,8 @@ void generate(FILE *output, int topnibble)
 		generate_eaval(output, iib, tp_src);
 		generate_ea(output, iib, tp_dst, 0);
 		if (iib->dtype == dt_Adec) {
-		    OUT("  uint8 datamask = (srcdata & 0xFF00) >> 8;\n");
-		    OUT("  uint8 addrmask = srcdata & 0xFF;");
+		    OUT("  uint8_t datamask = (srcdata & 0xFF00) >> 8;\n");
+		    OUT("  uint8_t addrmask = srcdata & 0xFF;");
 		    OUT("\n");
 		    switch(iib->size) {
 		    case sz_word:
@@ -723,8 +723,8 @@ void generate(FILE *output, int topnibble)
 		    }
 		    OUT("  ADDRREG(dstreg) = dstaddr;");
 		} else {
-		    OUT("  uint8 addrmask = (srcdata & 0xFF00) >> 8;\n");
-		    OUT("  uint8 datamask = srcdata & 0xFF;");
+		    OUT("  uint8_t addrmask = (srcdata & 0xFF00) >> 8;\n");
+		    OUT("  uint8_t datamask = srcdata & 0xFF;");
 		    OUT("\n");
 		    switch(iib->size) {
 		    case sz_word:
@@ -767,8 +767,8 @@ void generate(FILE *output, int topnibble)
 		generate_ea(output, iib, tp_src, 1);
 		generate_eaval(output, iib, tp_src);
 		generate_ea(output, iib, tp_dst, 0);
-		OUT("  uint8 addrmask = (srcdata & 0xFF00) >> 8;\n");
-		OUT("  uint8 datamask = srcdata & 0xFF;");
+		OUT("  uint8_t addrmask = (srcdata & 0xFF00) >> 8;\n");
+		OUT("  uint8_t datamask = srcdata & 0xFF;");
 		OUT("\n");
 		switch(iib->size) {
 		case sz_word:
@@ -824,7 +824,7 @@ void generate(FILE *output, int topnibble)
 	    case i_MOVEFUSP:
 		
 		generate_ea(output, iib, tp_src, 1);
-		OUT("  uint32 outdata;\n");
+		OUT("  uint32_t outdata;\n");
 		OUT("\n");
 		OUT("  if (!SFLAG)\n");
 		fprintf(output, "    reg68k_internal_vector(V_PRIVILEGE, PC+%d);\n",
@@ -944,10 +944,10 @@ void generate(FILE *output, int topnibble)
 		generate_eaval(output, iib, tp_dst);
 		generate_outdata(output, iib, NULL);
 		OUT("\n");
-		OUT("  uint8 outdata_low = (dstdata & 0xF) + (srcdata & 0xF) ");
+		OUT("  uint8_t outdata_low = (dstdata & 0xF) + (srcdata & 0xF) ");
 		OUT("+ XFLAG;\n");
-		OUT("  uint16 precalc = dstdata + srcdata + XFLAG;\n");
-		OUT("  uint16 outdata_tmp = precalc;\n");
+		OUT("  uint16_t precalc = dstdata + srcdata + XFLAG;\n");
+		OUT("  uint16_t outdata_tmp = precalc;\n");
 		OUT("\n");
 		OUT("  if (outdata_low > 0x09)\n");
 		OUT("    outdata_tmp+= 0x06;\n");
@@ -1346,7 +1346,7 @@ void generate(FILE *output, int topnibble)
 	    case i_Scc:
 		generate_ea(output, iib, tp_src, 1);
 		generate_cc(output, iib);
-		generate_outdata(output, iib, "cc ? (uint8)(-1) : 0");
+		generate_outdata(output, iib, "cc ? (uint8_t)(-1) : 0");
 		OUT("\n");
 		generate_eastore(output, iib, tp_src);
 		break;
@@ -1360,7 +1360,7 @@ void generate(FILE *output, int topnibble)
 
 	    case i_DBcc:
 		/* special case where ipc holds the already PC-relative value */
-		fprintf(output, "  uint32 srcdata = ipc->src;\n");
+		fprintf(output, "  uint32_t srcdata = ipc->src;\n");
 		generate_ea(output, iib, tp_dst, 1);
 		generate_eaval(output, iib, tp_dst);
 		generate_cc(output, iib);
@@ -1383,7 +1383,7 @@ void generate(FILE *output, int topnibble)
 
 	    case i_DBRA:
 		/* special case where ipc holds the already PC-relative value */
-		fprintf(output, "  uint32 srcdata = ipc->src;\n");
+		fprintf(output, "  uint32_t srcdata = ipc->src;\n");
 		generate_ea(output, iib, tp_dst, 1);
 		generate_eaval(output, iib, tp_dst);
 		OUT("\n");
@@ -1402,7 +1402,7 @@ void generate(FILE *output, int topnibble)
 
 	    case i_Bcc:
 		/* special case where ipc holds the already PC-relative value */
-		OUT("  uint32 srcdata = ipc->src;\n");
+		OUT("  uint32_t srcdata = ipc->src;\n");
 		generate_cc(output, iib);
 		OUT("\n");
 		if (DEBUG_BRANCH)
@@ -1418,7 +1418,7 @@ void generate(FILE *output, int topnibble)
 
 	    case i_BSR:
 		/* special case where ipc holds the already PC-relative value */
-		OUT("  uint32 srcdata = ipc->src;\n");
+		OUT("  uint32_t srcdata = ipc->src;\n");
 		OUT("\n");
 		if (DEBUG_BRANCH)
 		    fputs("  debug(\"BSR: 0x%X\\n\", PC);\n", output);
@@ -1438,8 +1438,8 @@ void generate(FILE *output, int topnibble)
 		generate_ea(output, iib, tp_src, 1);
 		generate_eaval(output, iib, tp_src); /* 16bit EA */
 		generate_ea(output, iib, tp_dst, 1); /* 32bit Dn */
-		OUT("  uint32 dstdata = DATAREG(dstreg);\n");
-		OUT("  uint32 quotient;\n");
+		OUT("  uint32_t dstdata = DATAREG(dstreg);\n");
+		OUT("  uint32_t quotient;\n");
 		OUT("\n");
 		OUT("  if (srcdata == 0) {\n");
 		fprintf(output, "    reg68k_internal_vector(V_ZERO, PC+%d);\n",
@@ -1449,13 +1449,13 @@ void generate(FILE *output, int topnibble)
 		OUT("  quotient = dstdata / srcdata;\n");
 		OUT("  if ((quotient & 0xffff0000) == 0) {\n");
 		OUT("    DATAREG(dstreg) = quotient | ");
-		OUT("(((uint16)(dstdata % srcdata))<<16);\n");
+		OUT("(((uint16_t)(dstdata % srcdata))<<16);\n");
 		if (flags && iib->flags.set & IIB_FLAG_V)
 		    OUT("    VFLAG = 0;\n");
 		if (flags && iib->flags.set & IIB_FLAG_N)
 		    OUT("    NFLAG = ((sint16)quotient) < 0;\n");
 		if (flags && iib->flags.set & IIB_FLAG_Z)
-		    OUT("  ZFLAG = !((uint16)quotient);\n");
+		    OUT("  ZFLAG = !((uint16_t)quotient);\n");
 		if (flags && (iib->flags.set & IIB_FLAG_V ||
 			      iib->flags.set & IIB_FLAG_N)) {
 		    OUT("  } else {\n");
@@ -1499,14 +1499,14 @@ void generate(FILE *output, int topnibble)
 		OUT("    if (((sint32)dstdata < 0) != (remainder < 0))\n");
 
 		OUT("      remainder = -remainder;\n");
-		OUT("    DATAREG(dstreg) = ((uint16)quotient) | ");
-		OUT("(((uint16)(remainder))<<16);\n");
+		OUT("    DATAREG(dstreg) = ((uint16_t)quotient) | ");
+		OUT("(((uint16_t)(remainder))<<16);\n");
 		if (flags && iib->flags.set & IIB_FLAG_V)
 		    OUT("    VFLAG = 0;\n");
 		if (flags && iib->flags.set & IIB_FLAG_N)
 		    OUT("    NFLAG = ((sint16)quotient) < 0;\n");
 		if (flags && iib->flags.set & IIB_FLAG_Z)
-		    OUT("    ZFLAG = !((uint16)quotient);\n");
+		    OUT("    ZFLAG = !((uint16_t)quotient);\n");
 		if (flags && (iib->flags.set & IIB_FLAG_V ||
 			      iib->flags.set & IIB_FLAG_N)) {
 		    OUT("  } else {\n");
@@ -1526,7 +1526,7 @@ void generate(FILE *output, int topnibble)
 		generate_ea(output, iib, tp_dst, 1);
 		generate_eaval(output, iib, tp_dst);
 		generate_bits(output, iib);
-		OUT("  uint8 count = srcdata & 63;\n");
+		OUT("  uint8_t count = srcdata & 63;\n");
 		switch (iib->size) {
 		case sz_byte:
 		    generate_outdata(output, iib, "((sint8)dstdata) >> "
@@ -1577,7 +1577,7 @@ void generate(FILE *output, int topnibble)
 		generate_ea(output, iib, tp_dst, 1);
 		generate_eaval(output, iib, tp_dst);
 		generate_bits(output, iib);
-		OUT("  uint8 count = srcdata & 63;\n");
+		OUT("  uint8_t count = srcdata & 63;\n");
 		generate_outdata(output, iib,
 				 "dstdata >> (count > (bits-1) ? (bits-1) : count)");
 		OUT("\n");
@@ -1613,7 +1613,7 @@ void generate(FILE *output, int topnibble)
 		generate_ea(output, iib, tp_dst, 1);
 		generate_eaval(output, iib, tp_dst);
 		generate_bits(output, iib);
-		OUT("  uint8 count = srcdata & 63;\n");
+		OUT("  uint8_t count = srcdata & 63;\n");
 		generate_outdata(output, iib,
 				 "count >= bits ? 0 : (dstdata << count)");
 		OUT("\n");
@@ -1639,13 +1639,13 @@ void generate(FILE *output, int topnibble)
 			OUT("    {\n");
 			switch (iib->size) {
 			case sz_byte:
-			    OUT("      uint8 mask = 0xff << (7-count);\n")
+			    OUT("      uint8_t mask = 0xff << (7-count);\n")
 				break;
 			case sz_word:
-			    OUT("      uint16 mask = 0xffff << (15-count);\n");
+			    OUT("      uint16_t mask = 0xffff << (15-count);\n");
 			    break;
 			case sz_long:
-			    OUT("      uint32 mask = 0xffffffff <<(31-count);\n");
+			    OUT("      uint32_t mask = 0xffffffff <<(31-count);\n");
 			    break;
 			default:
 			    OUT("ERROR size\n");
@@ -1669,7 +1669,7 @@ void generate(FILE *output, int topnibble)
 		generate_ea(output, iib, tp_dst, 1);
 		generate_eaval(output, iib, tp_dst);
 		generate_bits(output, iib);
-		OUT("  uint8 count = srcdata & 63;\n");
+		OUT("  uint8_t count = srcdata & 63;\n");
 		generate_outdata(output, iib,
 				 "count >= bits ? 0 : (dstdata << count)");
 		OUT("\n");
@@ -1708,9 +1708,9 @@ void generate(FILE *output, int topnibble)
 		generate_ea(output, iib, tp_dst, 1);
 		generate_eaval(output, iib, tp_dst);
 		generate_bits(output, iib);
-		OUT("  uint8 loop = srcdata & 63;\n");
-		OUT("  uint8 cflag = CFLAG;\n");
-		OUT("  uint8 xflag = XFLAG;\n");
+		OUT("  uint8_t loop = srcdata & 63;\n");
+		OUT("  uint8_t cflag = CFLAG;\n");
+		OUT("  uint8_t xflag = XFLAG;\n");
 		generate_outdata(output, iib, "dstdata");
 		OUT("\n");
 		if (iib->mnemonic == i_ROXR) {
@@ -1753,8 +1753,8 @@ void generate(FILE *output, int topnibble)
 		generate_ea(output, iib, tp_dst, 1);
 		generate_eaval(output, iib, tp_dst);
 		generate_bits(output, iib);
-		OUT("  uint8 loop = srcdata & 63;\n");
-		OUT("  uint8 cflag = 0;\n");
+		OUT("  uint8_t loop = srcdata & 63;\n");
+		OUT("  uint8_t cflag = 0;\n");
 		generate_outdata(output, iib, "dstdata");
 		OUT("\n");
 		if (iib->mnemonic == i_ROR) {
@@ -1844,29 +1844,29 @@ void generate_ea(FILE *o, t_iib *iib, t_type type, int update)
     switch(iib->size) {
     case sz_byte:
       if (type == tp_src) {
-	fprintf(o, "  uint32 srcaddr = ADDRREG(srcreg);\n");
-	fprintf(o, "  uint32 srcaddr_tmp = (ADDRREG(srcreg)+= "
+	fprintf(o, "  uint32_t srcaddr = ADDRREG(srcreg);\n");
+	fprintf(o, "  uint32_t srcaddr_tmp = (ADDRREG(srcreg)+= "
 		"(srcreg == 7 ? 2 : 1), 0);\n");
       } else {
-	fprintf(o, "  uint32 dstaddr = ADDRREG(dstreg);\n");
-	fprintf(o, "  uint32 dstaddr_tmp = (ADDRREG(dstreg)+= "
+	fprintf(o, "  uint32_t dstaddr = ADDRREG(dstreg);\n");
+	fprintf(o, "  uint32_t dstaddr_tmp = (ADDRREG(dstreg)+= "
 		"(dstreg == 7 ? 2 : 1), 0);\n");
       }
       break;
     case sz_word:
       if (type == tp_src)
-	fprintf(o, "  uint32 srcaddr = (ADDRREG(srcreg)+=2, "
+	fprintf(o, "  uint32_t srcaddr = (ADDRREG(srcreg)+=2, "
 		"ADDRREG(srcreg)-2);\n");
       else
-	fprintf(o, "  uint32 dstaddr = (ADDRREG(dstreg)+=2, "
+	fprintf(o, "  uint32_t dstaddr = (ADDRREG(dstreg)+=2, "
 		"ADDRREG(dstreg)-2);\n");
       break;
     case sz_long:
       if (type == tp_src)
-	fprintf(o, "  uint32 srcaddr = (ADDRREG(srcreg)+=4, "
+	fprintf(o, "  uint32_t srcaddr = (ADDRREG(srcreg)+=4, "
 		"ADDRREG(srcreg)-4);\n");
       else
-	fprintf(o, "  uint32 dstaddr = (ADDRREG(dstreg)+=4, "
+	fprintf(o, "  uint32_t dstaddr = (ADDRREG(dstreg)+=4, "
 		"ADDRREG(dstreg)-4);\n");
       break;
     default:
@@ -1881,24 +1881,24 @@ void generate_ea(FILE *o, t_iib *iib, t_type type, int update)
     switch(iib->size) {
     case sz_byte:
       if (type == tp_src) {
-	fprintf(o, "  uint32 srcaddr = (ADDRREG(srcreg)-= "
+	fprintf(o, "  uint32_t srcaddr = (ADDRREG(srcreg)-= "
 		"(srcreg == 7 ? 2 : 1));\n");
       } else {
-	fprintf(o, "  uint32 dstaddr = (ADDRREG(dstreg)-= "
+	fprintf(o, "  uint32_t dstaddr = (ADDRREG(dstreg)-= "
 		"(dstreg == 7 ? 2 : 1));\n");
       }
       break;
     case sz_word:
       if (type == tp_src)
-	fprintf(o, "  uint32 srcaddr = ADDRREG(srcreg)-=2;\n");
+	fprintf(o, "  uint32_t srcaddr = ADDRREG(srcreg)-=2;\n");
       else
-	fprintf(o, "  uint32 dstaddr = ADDRREG(dstreg)-=2;\n");
+	fprintf(o, "  uint32_t dstaddr = ADDRREG(dstreg)-=2;\n");
       break;
     case sz_long:
       if (type == tp_src)
-	fprintf(o, "  uint32 srcaddr = ADDRREG(srcreg)-=4;\n");
+	fprintf(o, "  uint32_t srcaddr = ADDRREG(srcreg)-=4;\n");
       else
-	fprintf(o, "  uint32 dstaddr = ADDRREG(dstreg)-=4;\n");
+	fprintf(o, "  uint32_t dstaddr = ADDRREG(dstreg)-=4;\n");
       break;
     default:
       fprintf(o, "ERROR size\n");
@@ -1917,24 +1917,24 @@ void generate_ea(FILE *o, t_iib *iib, t_type type, int update)
     case dt_Adec:
     case dt_Ainc:
       if (type == tp_src)
-	fprintf(o, "  uint32 srcaddr = ADDRREG(srcreg);\n");
+	fprintf(o, "  uint32_t srcaddr = ADDRREG(srcreg);\n");
       else
-	fprintf(o, "  uint32 dstaddr = ADDRREG(dstreg);\n");
+	fprintf(o, "  uint32_t dstaddr = ADDRREG(dstreg);\n");
       break;
     case dt_Adis:
       if (type == tp_src)
-	fprintf(o, "  uint32 srcaddr = (sint32)ADDRREG(srcreg) + "
+	fprintf(o, "  uint32_t srcaddr = (sint32)ADDRREG(srcreg) + "
 		"(sint32)(sint16)ipc->src;\n");
       else
-	fprintf(o, "  uint32 dstaddr = (sint32)ADDRREG(dstreg) + "
+	fprintf(o, "  uint32_t dstaddr = (sint32)ADDRREG(dstreg) + "
 		"(sint32)(sint16)ipc->dst;\n");
       break;
     case dt_Aidx:
       if (type == tp_src) {
-	fprintf(o, "  uint32 srcaddr = (sint32)ADDRREG(srcreg) + "
+	fprintf(o, "  uint32_t srcaddr = (sint32)ADDRREG(srcreg) + "
 		"idxval_src(ipc);\n");
       } else {
-	fprintf(o, "  uint32 dstaddr = (sint32)ADDRREG(dstreg) + "
+	fprintf(o, "  uint32_t dstaddr = (sint32)ADDRREG(dstreg) + "
 		"idxval_dst(ipc);\n");
       }
       break;
@@ -1942,15 +1942,15 @@ void generate_ea(FILE *o, t_iib *iib, t_type type, int update)
     case dt_AbsL:
     case dt_Pdis:
       if (type == tp_src)
-	fprintf(o, "  uint32 srcaddr = ipc->src;\n");
+	fprintf(o, "  uint32_t srcaddr = ipc->src;\n");
       else
-	fprintf(o, "  uint32 dstaddr = ipc->dst;\n");
+	fprintf(o, "  uint32_t dstaddr = ipc->dst;\n");
       break;
     case dt_Pidx:
       if (type == tp_src) {
-	fprintf(o, "  uint32 srcaddr = idxval_src(ipc);\n");
+	fprintf(o, "  uint32_t srcaddr = idxval_src(ipc);\n");
       } else {
-	fprintf(o, "  uint32 dstaddr = idxval_dst(ipc);\n");
+	fprintf(o, "  uint32_t dstaddr = idxval_dst(ipc);\n");
       }
       break;
     case dt_ImmB:
@@ -1981,21 +1981,21 @@ void generate_eaval(FILE *o, t_iib *iib, t_type type)
     switch(iib->size) {
     case sz_byte:
       if (type == tp_src)
-	fprintf(o, "  uint8 srcdata = DATAREG(srcreg);\n");
+	fprintf(o, "  uint8_t srcdata = DATAREG(srcreg);\n");
       else
-	fprintf(o, "  uint8 dstdata = DATAREG(dstreg);\n");
+	fprintf(o, "  uint8_t dstdata = DATAREG(dstreg);\n");
       break;
     case sz_word:
       if (type == tp_src)
-	fprintf(o, "  uint16 srcdata = DATAREG(srcreg);\n");
+	fprintf(o, "  uint16_t srcdata = DATAREG(srcreg);\n");
       else
-	fprintf(o, "  uint16 dstdata = DATAREG(dstreg);\n");
+	fprintf(o, "  uint16_t dstdata = DATAREG(dstreg);\n");
       break;
     case sz_long:
       if (type == tp_src)
-	fprintf(o, "  uint32 srcdata = DATAREG(srcreg);\n");
+	fprintf(o, "  uint32_t srcdata = DATAREG(srcreg);\n");
       else
-	fprintf(o, "  uint32 dstdata = DATAREG(dstreg);\n");
+	fprintf(o, "  uint32_t dstdata = DATAREG(dstreg);\n");
       break;
     default:
       fprintf(o, "ERROR size\n");
@@ -2006,21 +2006,21 @@ void generate_eaval(FILE *o, t_iib *iib, t_type type)
     switch(iib->size) {
     case sz_byte:
       if (type == tp_src)
-	fprintf(o, "  uint8 srcdata = ADDRREG(srcreg);\n");
+	fprintf(o, "  uint8_t srcdata = ADDRREG(srcreg);\n");
       else
-	fprintf(o, "  uint8 dstdata = ADDRREG(dstreg);\n");
+	fprintf(o, "  uint8_t dstdata = ADDRREG(dstreg);\n");
       break;
     case sz_word:
       if (type == tp_src)
-	fprintf(o, "  uint16 srcdata = ADDRREG(srcreg);\n");
+	fprintf(o, "  uint16_t srcdata = ADDRREG(srcreg);\n");
       else
-	fprintf(o, "  uint16 dstdata = ADDRREG(dstreg);\n");
+	fprintf(o, "  uint16_t dstdata = ADDRREG(dstreg);\n");
       break;
     case sz_long:
       if (type == tp_src)
-	fprintf(o, "  uint32 srcdata = ADDRREG(srcreg);\n");
+	fprintf(o, "  uint32_t srcdata = ADDRREG(srcreg);\n");
       else
-	fprintf(o, "  uint32 dstdata = ADDRREG(dstreg);\n");
+	fprintf(o, "  uint32_t dstdata = ADDRREG(dstreg);\n");
       break;
     default:
       fprintf(o, "ERROR size\n");
@@ -2039,21 +2039,21 @@ void generate_eaval(FILE *o, t_iib *iib, t_type type)
     switch(iib->size) {
     case sz_byte:
       if (type == tp_src)
-	fprintf(o, "  uint8 srcdata = fetchbyte(srcaddr);\n");
+	fprintf(o, "  uint8_t srcdata = fetchbyte(srcaddr);\n");
       else
-	fprintf(o, "  uint8 dstdata = fetchbyte(dstaddr);\n");
+	fprintf(o, "  uint8_t dstdata = fetchbyte(dstaddr);\n");
       break;
     case sz_word:
       if (type == tp_src)
-	fprintf(o, "  uint16 srcdata = fetchword(srcaddr);\n");
+	fprintf(o, "  uint16_t srcdata = fetchword(srcaddr);\n");
       else
-	fprintf(o, "  uint16 dstdata = fetchword(dstaddr);\n");
+	fprintf(o, "  uint16_t dstdata = fetchword(dstaddr);\n");
       break;
     case sz_long:
       if (type == tp_src)
-	fprintf(o, "  uint32 srcdata = fetchlong(srcaddr);\n");
+	fprintf(o, "  uint32_t srcdata = fetchlong(srcaddr);\n");
       else
-	fprintf(o, "  uint32 dstdata = fetchlong(dstaddr);\n");
+	fprintf(o, "  uint32_t dstdata = fetchlong(dstaddr);\n");
       break;
     default:
       fprintf(o, "ERROR size\n");
@@ -2062,35 +2062,35 @@ void generate_eaval(FILE *o, t_iib *iib, t_type type)
     break;
   case dt_ImmB:
     if (type == tp_src)
-      fprintf(o, "  uint8 srcdata = ipc->src;\n");
+      fprintf(o, "  uint8_t srcdata = ipc->src;\n");
     else
-      fprintf(o, "  uint8 dstdata = ipc->dst;\n");
+      fprintf(o, "  uint8_t dstdata = ipc->dst;\n");
     break;
   case dt_ImmW:
     if (type == tp_src)
-      fprintf(o, "  uint16 srcdata = ipc->src;\n");
+      fprintf(o, "  uint16_t srcdata = ipc->src;\n");
     else
-      fprintf(o, "  uint16 dstdata = ipc->dst;\n");
+      fprintf(o, "  uint16_t dstdata = ipc->dst;\n");
     break;
   case dt_ImmL:
     if (type == tp_src)
-      fprintf(o, "  uint32 srcdata = ipc->src;\n");
+      fprintf(o, "  uint32_t srcdata = ipc->src;\n");
     else
-      fprintf(o, "  uint32 dstdata = ipc->dst;\n");
+      fprintf(o, "  uint32_t dstdata = ipc->dst;\n");
     break;
   case dt_ImmS:
     if (type == tp_src)
-      fprintf(o, "  unsigned int srcdata = %d;\n", iib->immvalue);
+      fprintf(o, "  uint32_t srcdata = %d;\n", iib->immvalue);
     else
-      fprintf(o, "  unsigned int dstdata = %d;\n", iib->immvalue);
+      fprintf(o, "  uint32_t dstdata = %d;\n", iib->immvalue);
     break;
   case dt_Imm3:
   case dt_Imm4:
   case dt_Imm8:
     if (type == tp_src)
-      fprintf(o, "  unsigned int srcdata = ipc->src;\n");
+      fprintf(o, "  uint32_t srcdata = ipc->src;\n");
     else
-      fprintf(o, "  unsigned int dstdata = ipc->dst;\n");
+      fprintf(o, "  uint32_t dstdata = ipc->dst;\n");
     break;
   case dt_Imm8s:
     if (type == tp_src)
@@ -2184,11 +2184,11 @@ void generate_eastore(FILE *o, t_iib *iib, t_type type)
       fprintf(o, "  /* pre-decrement long store must write low 16 bits\n"
                  "     in -2 first, then upper 16 bits in -4 second */\n");
       if (type == tp_src) {
-        fprintf(o, "  storeword(srcaddr + 2, (uint16)outdata);\n");
-        fprintf(o, "  storeword(srcaddr, (uint16)(outdata >> 16));\n");
+        fprintf(o, "  storeword(srcaddr + 2, (uint16_t)outdata);\n");
+        fprintf(o, "  storeword(srcaddr, (uint16_t)(outdata >> 16));\n");
       } else {
-        fprintf(o, "  storeword(dstaddr + 2, (uint16)outdata);\n");
-        fprintf(o, "  storeword(dstaddr, (uint16)(outdata >> 16));\n");
+        fprintf(o, "  storeword(dstaddr + 2, (uint16_t)outdata);\n");
+        fprintf(o, "  storeword(dstaddr, (uint16_t)(outdata >> 16));\n");
       }
       break;
     default:
@@ -2235,13 +2235,13 @@ void generate_outdata(FILE *o, t_iib *iib, const char *init)
 {
   switch(iib->size) {
   case sz_byte:
-    fprintf(o, "  uint8 ");
+    fprintf(o, "  uint8_t ");
     break;
   case sz_word:
-    fprintf(o, "  uint16 ");
+    fprintf(o, "  uint16_t ");
     break;
   case sz_long:
-    fprintf(o, "  uint32 ");
+    fprintf(o, "  uint32_t ");
     break;
   default:
     fprintf(o, "ERROR size\n");
@@ -2255,52 +2255,52 @@ void generate_cc(FILE *o, t_iib *iib)
 {
   switch(iib->cc) {
   case 0:                                                     /*  T */
-    fprintf(o, "  uint8 cc = 1;\n");
+    fprintf(o, "  uint8_t cc = 1;\n");
     break;
   case 1:                                                     /*  F */
-    fprintf(o, "  uint8 cc = 0;\n");
+    fprintf(o, "  uint8_t cc = 0;\n");
     break;
   case 2:                                                     /* HI */
-    fprintf(o, "  uint8 cc = !(CFLAG || ZFLAG);\n");
+    fprintf(o, "  uint8_t cc = !(CFLAG || ZFLAG);\n");
     break;
   case 3:                                                     /* LS */
-    fprintf(o, "  uint8 cc = CFLAG || ZFLAG;\n");
+    fprintf(o, "  uint8_t cc = CFLAG || ZFLAG;\n");
     break;
   case 4:                                                     /* CC */
-    fprintf(o, "  uint8 cc = !CFLAG;\n");
+    fprintf(o, "  uint8_t cc = !CFLAG;\n");
     break;
   case 5:                                                     /* CS */
-    fprintf(o, "  uint8 cc = CFLAG;\n");
+    fprintf(o, "  uint8_t cc = CFLAG;\n");
     break;
   case 6:                                                     /* NE */
-    fprintf(o, "  uint8 cc = !ZFLAG;\n");
+    fprintf(o, "  uint8_t cc = !ZFLAG;\n");
     break;
   case 7:                                                     /* EQ */
-    fprintf(o, "  uint8 cc = ZFLAG;\n");
+    fprintf(o, "  uint8_t cc = ZFLAG;\n");
     break;
   case 8:                                                     /* VC */
-    fprintf(o, "  uint8 cc = !VFLAG;\n");
+    fprintf(o, "  uint8_t cc = !VFLAG;\n");
     break;
   case 9:                                                     /* VS */
-    fprintf(o, "  uint8 cc = VFLAG;\n");
+    fprintf(o, "  uint8_t cc = VFLAG;\n");
     break;
   case 10:                                                    /* PL */
-    fprintf(o, "  uint8 cc = !NFLAG;\n");
+    fprintf(o, "  uint8_t cc = !NFLAG;\n");
     break;
   case 11:                                                    /* MI */
-    fprintf(o, "  uint8 cc = NFLAG;\n");
+    fprintf(o, "  uint8_t cc = NFLAG;\n");
     break;
   case 12:                                                    /* GE */
-    fprintf(o, "  uint8 cc = (NFLAG == VFLAG);\n");
+    fprintf(o, "  uint8_t cc = (NFLAG == VFLAG);\n");
     break;
   case 13:                                                    /* LT */
-    fprintf(o, "  uint8 cc = (NFLAG != VFLAG);\n");
+    fprintf(o, "  uint8_t cc = (NFLAG != VFLAG);\n");
     break;
   case 14:                                                    /* GT */
-    fprintf(o, "  uint8 cc = !ZFLAG && (NFLAG == VFLAG);\n");
+    fprintf(o, "  uint8_t cc = !ZFLAG && (NFLAG == VFLAG);\n");
     break;
   case 15:                                                    /* LE */
-    fprintf(o, "  uint8 cc = ZFLAG || (NFLAG != VFLAG);\n");
+    fprintf(o, "  uint8_t cc = ZFLAG || (NFLAG != VFLAG);\n");
     break;
   default:
     fprintf(o, "ERROR cc\n");
@@ -2411,7 +2411,7 @@ void generate_cmpaflag_c(FILE *o, t_iib *iib)
   /* see generate_subflag_c - this is just the same but with a sign extend
      on the source */
   (void)iib;
-  fprintf(o, "  CFLAG = (uint32)(sint32)(sint16)srcdata > dstdata;\n");
+  fprintf(o, "  CFLAG = (uint32_t)(sint32)(sint16)srcdata > dstdata;\n");
 }
 
 void generate_subflag_v(FILE *o, t_iib *iib)
@@ -2470,13 +2470,13 @@ void generate_addflag_cx(FILE *o, t_iib *iib)
      compiler to do that without producing a warning, go on... */
   switch (iib->size) {
   case sz_byte:
-    fprintf(o, "  XFLAG = CFLAG = srcdata > (0xFFu - (uint8)dstdata);\n");
+    fprintf(o, "  XFLAG = CFLAG = srcdata > (0xFFu - (uint8_t)dstdata);\n");
     break;
   case sz_word:
-    fprintf(o, "  XFLAG = CFLAG = srcdata > (0xFFFFu - (uint16)dstdata);\n");
+    fprintf(o, "  XFLAG = CFLAG = srcdata > (0xFFFFu - (uint16_t)dstdata);\n");
     break;
   case sz_long:
-    fprintf(o, "  XFLAG = CFLAG = srcdata > (uint32)~(uint32)dstdata;\n");
+    fprintf(o, "  XFLAG = CFLAG = srcdata > (uint32_t)~(uint32_t)dstdata;\n");
     break;
   default:
     fprintf(o, "ERROR size\n");
@@ -2615,13 +2615,13 @@ void generate_bits(FILE *o, t_iib *iib)
 {
   switch (iib->size) {
   case sz_byte:
-    fprintf(o, "  uint8 bits = 8;\n");
+    fprintf(o, "  uint8_t bits = 8;\n");
     break;
   case sz_word:
-    fprintf(o, "  uint8 bits = 16;\n");
+    fprintf(o, "  uint8_t bits = 16;\n");
     break;
   case sz_long:
-    fprintf(o, "  uint8 bits = 32;\n");
+    fprintf(o, "  uint8_t bits = 32;\n");
     break;
   default:
     fprintf(o, "ERROR size\n");

@@ -15,17 +15,17 @@
 
 void zread_char(ZFILE *gz, char *c, int len) {
 	int rc;
-	rc = gn_unzip_fread(gz, (Uint8*)c, len);
+	rc = gn_unzip_fread(gz, (uint8_t*)c, len);
 	//debug("HS  %s %d\n",c,rc);
 }
-void zread_uint8(ZFILE *gz, Uint8 *c) {
+void zread_uint8_t(ZFILE *gz, uint8_t *c) {
 	int rc;
 	rc = gn_unzip_fread(gz, c, 1);
 	//debug("H8  %02x %d\n",*c,rc);
 }
-void zread_uint32le(ZFILE *gz, Uint32 *c) {
+void zread_uint32_tle(ZFILE *gz, uint32_t *c) {
 	int rc;
-	rc = gn_unzip_fread(gz, (Uint8*)c, sizeof(Uint32));
+	rc = gn_unzip_fread(gz, (uint8_t*)c, sizeof(uint32_t));
 #ifdef WORDS_BIGENDIAN
 	*c=SwapLONG(*c);
 #endif
@@ -68,20 +68,20 @@ ROM_DEF *res_load_drv(char *name) {
 	zread_char(z, drv->name, 32);
 	zread_char(z, drv->parent, 32);
 	zread_char(z, drv->longname, 128);
-	zread_uint32le(z, &drv->year);
+	zread_uint32_tle(z, &drv->year);
 	
 	for (i = 0; i < 10; i++)
-		zread_uint32le(z, &drv->romsize[i]);
+		zread_uint32_tle(z, &drv->romsize[i]);
 		
-	zread_uint32le(z, &drv->nb_romfile);
+	zread_uint32_tle(z, &drv->nb_romfile);
 	
 	for (i = 0; i < drv->nb_romfile; i++) {
 		zread_char(z, drv->rom[i].filename, 32);
-		zread_uint8(z, &drv->rom[i].region);
-		zread_uint32le(z, &drv->rom[i].src);
-		zread_uint32le(z, &drv->rom[i].dest);
-		zread_uint32le(z, &drv->rom[i].size);
-		zread_uint32le(z, &drv->rom[i].crc);
+		zread_uint8_t(z, &drv->rom[i].region);
+		zread_uint32_tle(z, &drv->rom[i].src);
+		zread_uint32_tle(z, &drv->rom[i].dest);
+		zread_uint32_tle(z, &drv->rom[i].size);
+		zread_uint32_tle(z, &drv->rom[i].crc);
 	}
 	gn_unzip_fclose(z);
 	gn_close_zip(pz);
@@ -98,8 +98,8 @@ ROM_DEF *res_load_drv(char *name) {
  */
 void *res_load_data(char *name) {
 	PKZIP *pz;
-	Uint8 * buffer;
-	unsigned int size;
+	uint8_t * buffer;
+	uint32_t size;
 
 	pz = gn_open_zip(gngeo_dat); //gn_open_zip(CF_STR(cf_get_item_by_name("datafile")));
 	if (!pz)

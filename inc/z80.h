@@ -1,18 +1,15 @@
 #ifndef Z80_H
 #define Z80_H
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
-
 #ifndef WORDS_BIGENDIAN
 #define LSB_FIRST
 #endif
 
 #include "../emu.h"
-#define UINT8     Uint8
-#define UINT16    Uint16
-#define UINT32    Uint32
+#define uint8_t     uint8_t
+#define uint16_t    uint16_t
+#define uint32_t    uint32_t
 #define INT8      Sint8
 #define INT16     Sint16
 #define INT32     Sint32
@@ -26,13 +23,13 @@
 
 typedef union {
 #ifdef LSB_FIRST
-        struct { UINT8 l,h,h2,h3; } b;
-        struct { UINT16 l,h; } w;
+        struct { uint8_t l,h,h2,h3; } b;
+        struct { uint16_t l,h; } w;
 #else
-        struct { UINT8 h3,h2,h,l; } b;
-        struct { UINT16 h,l; } w;
+        struct { uint8_t h3,h2,h,l; } b;
+        struct { uint16_t h,l; } w;
 #endif
-        UINT32 d;
+        uint32_t d;
 }       PAIR;
 
 typedef struct
@@ -87,7 +84,7 @@ enum
          * the names from the enum a CPU core defines for it's registers,
          * to get or set the contents of the memory pointed to by a stack pointer.
          * You can specify the n'th element on the stack by (REG_SP_CONTENTS-n),
-         * ie. lower negative values. The actual element size (UINT16 or UINT32)
+         * ie. lower negative values. The actual element size (uint16_t or uint32_t)
          * depends on the CPU core. */
         REG_SP_CONTENTS = -4
 };
@@ -146,12 +143,12 @@ extern unsigned z80_dasm(char *buffer, unsigned pc);
 
 
 /* interface */
-extern void mame_z80_writemem16(UINT16 addr,UINT8 val);
-extern UINT8 mame_z80_readmem16(UINT16 addr);
-extern UINT8 mame_z80_readop(UINT16 addr);
-extern UINT8 mame_z80_readop_arg(UINT16 addr);
-extern UINT8 mame_z80_readport16(UINT16 port);
-extern void mame_z80_writeport16(UINT16 port,UINT8 value);
+extern void mame_z80_writemem16(uint16_t addr,uint8_t val);
+extern uint8_t mame_z80_readmem16(uint16_t addr);
+extern uint8_t mame_z80_readop(uint16_t addr);
+extern uint8_t mame_z80_readop_arg(uint16_t addr);
+extern uint8_t mame_z80_readport16(uint16_t port);
+extern void mame_z80_writeport16(uint16_t port,uint8_t value);
 
 #ifdef MAME_DEBUG
 extern unsigned DasmZ80(char *buffer, unsigned pc);

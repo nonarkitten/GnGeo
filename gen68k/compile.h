@@ -10,7 +10,7 @@
 #include "generator.h"
 #include "cpu68k.h"
 
-//uint8 *compile_make(t_ipclist *list);
+//uint8_t *compile_make(t_ipclist *list);
 void (*compile_make(t_ipclist *list))(struct _t_ipc *ipc);
 
 #endif

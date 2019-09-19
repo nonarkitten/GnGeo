@@ -22,11 +22,11 @@ typedef enum {
 }GNGEO_BUTTON;
 
 struct BUT_MAP {
-	Uint8 player; /* 0=none 1=p1 2=p2 3=both */
+	uint8_t player; /* 0=none 1=p1 2=p2 3=both */
 	GNGEO_BUTTON map; /* Mapped button */
 };
 struct BUT_MAPJAXIS {
-	Uint8 player; /* 0=none 1=p1 2=p2 3=both */
+	uint8_t player; /* 0=none 1=p1 2=p2 3=both */
 	GNGEO_BUTTON map; /* Mapped button */
 	int dir; /* Only for joystick axis */
 	int value;
@@ -41,7 +41,7 @@ typedef struct JOYMAP {
 }JOYMAP;
 
 JOYMAP *jmap;
-Uint8 joy_state[2][GN_MAX_KEY];
+uint8_t joy_state[2][GN_MAX_KEY];
 
 
 bool init_event(void);

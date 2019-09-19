@@ -1,10 +1,7 @@
 #ifndef __2610INTF_H__
 #define __2610INTF_H__
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
-
 #include "ym2610.h"
 
 #define YM2610UpdateRequest()
@@ -25,13 +22,13 @@ void timer_callback_2610(int param);
 /************************************************/
 /* Chip 0 functions								*/
 /************************************************/
-Uint32 YM2610_status_port_A_r(Uint32 offset);
-Uint32 YM2610_status_port_B_r(Uint32 offset);
-Uint32 YM2610_read_port_r(Uint32 offset);
-void YM2610_control_port_A_w(Uint32 offset, Uint32 data);
-void YM2610_control_port_B_w(Uint32 offset, Uint32 data);
-void YM2610_data_port_A_w(Uint32 offset, Uint32 data);
-void YM2610_data_port_B_w(Uint32 offset, Uint32 data);
+uint32_t YM2610_status_port_A_r(uint32_t offset);
+uint32_t YM2610_status_port_B_r(uint32_t offset);
+uint32_t YM2610_read_port_r(uint32_t offset);
+void YM2610_control_port_A_w(uint32_t offset, uint32_t data);
+void YM2610_control_port_B_w(uint32_t offset, uint32_t data);
+void YM2610_data_port_A_w(uint32_t offset, uint32_t data);
+void YM2610_data_port_B_w(uint32_t offset, uint32_t data);
 
 #endif
 /**************** end of file ****************/

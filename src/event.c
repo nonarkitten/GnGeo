@@ -32,10 +32,10 @@ struct Library *LowLevelBase = NULL;
 /* gameport stuff */
 static struct MsgPort *gameport_mp = NULL;
 static struct IOStdReq *gameport_io = NULL;
-static BOOL gameport_is_open = FALSE;
-static BOOL gameport_io_in_progress = FALSE;
+static bool gameport_is_open = FALSE;
+static bool gameport_io_in_progress = FALSE;
 static struct InputEvent gameport_ie;
-static BYTE gameport_ct;        /* controller type */
+static uint8_t gameport_ct;        /* controller type */
 struct GamePortTrigger gameport_gpt = {
     GPTF_UPKEYS | GPTF_DOWNKEYS,    /* gpt_Keys */
     0,                /* gpt_Timeout */
@@ -148,12 +148,12 @@ static struct KeyQuery keys[KEY_COUNT] = {
 };
 
 int handle_event(void) {
-    static ULONG previous = 0;
-	UBYTE waspaused;
-	ULONG getkey, joypos0, joypos1;
-	UBYTE port;
-	UBYTE fire1p1, fire2p1;
-	UBYTE fire1p2, fire2p2;
+    static uint32_t previous = 0;
+	Uuint8_t waspaused;
+	uint32_t getkey, joypos0, joypos1;
+	Uuint8_t port;
+	Uuint8_t fire1p1, fire2p1;
+	Uuint8_t fire1p2, fire2p2;
 	
     /* CD32 joypad handler code supplied by Gabry (ggreco@iol.it) */
 
@@ -172,8 +172,8 @@ int handle_event(void) {
 	if(arg[OPTION_P1JOY] || arg[OPTION_P13BUTTON]) {
 		joypos1 = ReadJoyPort(1);
 		if(arg[OPTION_P13BUTTON]) {
-			fire1p1 = (fire1p1 << 1) | !!(*(volatile uint16_t*)0xDFF016 & 0x0100);
-			fire2p1 = (fire2p1 << 1) | !!(*(volatile uint16_t*)0xDFF016 & 0x0400);
+			fire1p1 = (fire1p1 << 1) | !!(*(volatile uint16_t_t*)0xDFF016 & 0x0100);
+			fire2p1 = (fire2p1 << 1) | !!(*(volatile uint16_t_t*)0xDFF016 & 0x0400);
 			if (fire1p1 & 3 == 2) joypos1 |= JPF_BUTTON_BLUE;
 			if (fire2p1 & 3 == 2) joypos1 |= JPF_BUTTON_YELLOW;
 		}
@@ -197,8 +197,8 @@ int handle_event(void) {
 	if(arg[OPTION_P2JOY] || arg[OPTION_P23BUTTON]) {
 		joypos0 = ReadJoyPort(0);
 		if(arg[OPTION_P23BUTTON]) {
-			fire1p2 = (fire1p2 << 1) | !!(*(volatile uint16_t*)0xDFF016 & 0x0100);
-			fire2p2 = (fire2p2 << 1) | !!(*(volatile uint16_t*)0xDFF016 & 0x0400);
+			fire1p2 = (fire1p2 << 1) | !!(*(volatile uint16_t_t*)0xDFF016 & 0x0100);
+			fire2p2 = (fire2p2 << 1) | !!(*(volatile uint16_t_t*)0xDFF016 & 0x0400);
 			if (fire1p2 & 3 == 2) joypos0 |= JPF_BUTTON_BLUE;
 			if (fire2p2 & 3 == 2) joypos0 |= JPF_BUTTON_YELLOW;
 		}

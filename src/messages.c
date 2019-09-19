@@ -16,10 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
  */
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
-
 #define MESSAGE_DELAY 3000
 
 #include <string.h>
@@ -57,7 +54,7 @@ void draw_message(const char *string) {
 
 void render_message(int fps) {
 	static char display_buffer[256] = { 0 };
-	unsigned char * bitmap, c;
+	uint8_t * bitmap, c;
 	int len, i, x, y, bytes_per_row;
 
 	if (args[OPTION_SHOWFPS])

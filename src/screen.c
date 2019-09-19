@@ -1,7 +1,5 @@
 #include <stdio.h>
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #include <devices/gameport.h>
 #include <devices/input.h>
@@ -29,26 +27,21 @@
 #include "../screen.h"
 #include "../video.h"
 
-#ifdef DEVKIT8000
 static Rect screen_rect;
-#else
-static Rect screen_rect;
-#endif
-
 static int vsync;
 
-BYTE *bufferpixels = NULL;
-BYTE *videoBuffer = NULL;
-static BOOL initialized = FALSE;
-static UWORD emptypointer[] = {
+uint8_t *bufferpixels = NULL;
+uint8_t *videoBuffer = NULL;
+static bool initialized = FALSE;
+static uint16_t emptypointer[] = {
     0x0000, 0x0000, /* reserved, must be NULL */
     0x0000, 0x0000, /* 1 row of image data */
     0x0000, 0x0000  /* reserved, must be NULL */
 };
 
 extern int AC68080;
-static APTR lockHandle;
-static ULONG bytesperrow;
+static void * lockHandle;
+static uint32_t bytesperrow;
 
 struct Library *CyberGfxBase = 0;
 //struct IntuitionBase  *IntuitionBase = NULL;
@@ -56,7 +49,7 @@ struct Library *CyberGfxBase = 0;
 /** Have we already done the init */
 static int firsttime = 1;
 
-ULONG pixFormat;
+uint32_t pixFormat;
 
 /** Hardware window */
 struct Window *_hardwareWindow;
@@ -65,13 +58,13 @@ struct Screen *_hardwareScreen;
 // Hardware double buffering.
 struct ScreenBuffer *_hardwareScreenBuffer[2];
 
-static BYTE _currentScreenBuffer;
+static uint8_t _currentScreenBuffer;
 static struct BitMap bm[2];
 
 static void initAmigaGraphics(void) {
   if (firsttime) {
-    ULONG modeId = INVALID_ID;
-    ULONG i, size;
+    uint32_t modeId = INVALID_ID;
+    uint32_t i, size;
     struct BitMap *bitmap;
 	extern int AC68080;
 
@@ -79,7 +72,7 @@ static void initAmigaGraphics(void) {
 
     if (!CyberGfxBase)
       CyberGfxBase =
-          (struct Library *)OpenLibrary((UBYTE *)"cybergraphics.library", 41L);
+          (struct Library *)OpenLibrary((Uuint8_t *)"cybergraphics.library", 41L);
 
     debug("Opened CyberGraphX library\n");
 
@@ -106,7 +99,7 @@ static void initAmigaGraphics(void) {
 
     _hardwareWindow = OpenWindowTags(
         NULL, WA_Left, 0, WA_Top, 0, WA_Width, 320, WA_Height, 240, WA_Title,
-        NULL, WA_CustomScreen, (ULONG)_hardwareScreen, WA_Backdrop, TRUE,
+        NULL, WA_CustomScreen, (uint32_t)_hardwareScreen, WA_Backdrop, TRUE,
         WA_Borderless, TRUE, WA_DragBar, FALSE, WA_Activate, TRUE,
         WA_SimpleRefresh, TRUE, WA_NoCareRefresh, TRUE, WA_IDCMP,
         IDCMP_RAWKEY | IDCMP_MOUSEBUTTONS | IDCMP_MOUSEMOVE, WA_Flags,
@@ -114,7 +107,7 @@ static void initAmigaGraphics(void) {
 
     debug("Opened screen *Handle: %p\n", _hardwareScreen);
 
-    if (AC68080) *(uint16_t *)0xDFF1F4 = 0x0703;
+    if (AC68080) *(uint16_t_t *)0xDFF1F4 = 0x0703;
   }
 }
 
@@ -146,7 +139,7 @@ static void killAmigaGraphics(void) {
 }
 
 static int blitter_soft_init() {
-  Uint32 width, height;
+  uint32_t width, height;
 
   screen_rect.x = 16;
   screen_rect.y = 16;
@@ -191,8 +184,8 @@ static int blitter_soft_init() {
 
 
 
-static void blitchar(UWORD *buffer, UBYTE *f, ULONG sx, ULONG sy) {
-  ULONG x, y, b;
+static void blitchar(uint16_t *buffer, Uuint8_t *f, uint32_t sx, uint32_t sy) {
+  uint32_t x, y, b;
   for (x = 0; x < 6; x++) {
     for (b = 1, y = 0; y < 8; y++) {
       if (*f & b) buffer[sx + x + (sy + y) * 384] = 0xFFFF;  // : 0x0000;
@@ -204,15 +197,15 @@ static void blitchar(UWORD *buffer, UBYTE *f, ULONG sx, ULONG sy) {
 
 /**********************************************************************/
 extern void dim_screen_m68k(void*);
-static void video_dim_screen(BYTE *buffer) {
+static void video_dim_screen(uint8_t *buffer) {
 	dim_screen_m68k(buffer);
 }
 
 static void video_do_fps(void) {
-	static Uint32 last_time = 0;
-	static Uint32 fps_avg = 60;
-	Uint32 time = timer_get_time_ms();
-	ULONG this_fps = 1000 / ((int)time - (int)last_time);
+	static uint32_t last_time = 0;
+	static uint32_t fps_avg = 60;
+	uint32_t time = timer_get_time_ms();
+	uint32_t this_fps = 1000 / ((int)time - (int)last_time);
 	fps_avg = (fps_avg >> 1) + (this_fps >> 1);
 	render_message(fps_avg);
 	last_time = time;
@@ -234,7 +227,7 @@ static void blitter_soft_update() {
     if (arg[OPTION_VSYNC]) WaitTOF();
   }
 
-  if (AC68080) *(uint16_t *)0xDFF1F4 = 0x0703;
+  if (AC68080) *(uint16_t_t *)0xDFF1F4 = 0x0703;
 }
 
 static void blitter_soft_close() {

@@ -26,16 +26,16 @@ typedef struct ROM_DEF{
 	char name[32];
 	char parent[32];
 	char longname[128];
-	Uint32 year;
-	Uint32 romsize[10];
-	Uint32 nb_romfile;
+	uint32_t year;
+	uint32_t romsize[10];
+	uint32_t nb_romfile;
 	struct romfile{
 		char filename[32];
-		Uint8 region;
-		Uint32 src;
-		Uint32 dest;
-		Uint32 size;
-		Uint32 crc;
+		uint8_t region;
+		uint32_t src;
+		uint32_t dest;
+		uint32_t size;
+		uint32_t crc;
 	}rom[32];
 }ROM_DEF;
 
@@ -43,12 +43,12 @@ typedef struct GAME_INFO {
 	char *name;
 	char *longname;
 	int year;
-	Uint32 flags;
+	uint32_t flags;
 }GAME_INFO;
 
 typedef struct ROM_REGION {
-	Uint8* p;
-	Uint32 size;
+	uint8_t* p;
+	uint32_t size;
 }ROM_REGION;
 
 

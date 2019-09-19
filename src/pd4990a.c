@@ -28,7 +28,7 @@ struct pd4990a_s pd4990a =
   1		/* weekday BCD */
 };
 
-static Uint32 shiftlo,shifthi;
+static uint32_t shiftlo,shifthi;
 static int retraces = 0;		/* Assumes 60 retraces a second */
 static int testwaits = 0;
 static int maxwaits = 1;
@@ -97,8 +97,8 @@ void pd4990a_init_save_state(void) {
     
     create_state_register(ST_PD4990A,"testwaits",1,&testwaits,sizeof(Sint32),REG_INT32);
     create_state_register(ST_PD4990A,"maxwaits",1,&maxwaits,sizeof(Sint32),REG_INT32);
-    create_state_register(ST_PD4990A,"shiftlo",1,&shiftlo,sizeof(Uint32),REG_INT32);
-    create_state_register(ST_PD4990A,"shifthi",1,&shifthi,sizeof(Uint32),REG_INT32);
+    create_state_register(ST_PD4990A,"shiftlo",1,&shiftlo,sizeof(uint32_t),REG_INT32);
+    create_state_register(ST_PD4990A,"shifthi",1,&shifthi,sizeof(uint32_t),REG_INT32);
     create_state_register(ST_PD4990A,"reading",1,&reading,sizeof(Sint8),REG_INT8);
     create_state_register(ST_PD4990A,"writing",1,&writing,sizeof(Sint8),REG_INT8);
 
@@ -271,7 +271,7 @@ static void pd4990a_resetbitstream(void)
   bitno=0;
 }
 
-static void pd4990a_writebit(Uint8 bit)
+static void pd4990a_writebit(uint8_t bit)
 {
   if(bitno<=31)	/*low part */
     shiftlo|=bit<<bitno;
@@ -292,7 +292,7 @@ static void pd4990a_nextbit(void)
 
 }
 
-static Uint8 pd4990a_getcommand(void)
+static uint8_t pd4990a_getcommand(void)
 {
   /*Warning: problems if the 4 bits are in different */
   /*parts, It's very strange that this case could happen. */
@@ -341,7 +341,7 @@ static void pd4990a_process_command(void)
 }
 
 
-void pd4990a_serial_control(unsigned char data)
+void pd4990a_serial_control(uint8_t data)
 {
   static int clock_line=0;
   static int command_line=0;	/*?? */
@@ -362,6 +362,6 @@ void pd4990a_serial_control(unsigned char data)
   clock_line=data&CLOCK_BIT;
 }
 
-void write_4990_control_w(Uint32 address, Uint32 data) {
+void write_4990_control_w(uint32_t address, uint32_t data) {
   pd4990a_serial_control(data&0x7);
 }

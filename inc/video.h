@@ -20,64 +20,61 @@
 #define _VIDEO_H_
 
 #include <stdio.h>
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
- 
+#include <config.h> 
 #include "emu.h"
 
 typedef struct gfx_cache {
-	Uint8 *data;  /* The cache */
-	Uint32 size;  /* Tha allocated size of the cache */      
-	Uint32 total_bank;  /* total number of rom bank */
-	Uint8 **ptr/*[TOTAL_GFX_BANK]*/; /* ptr[i] Contain a pointer to cached data for bank i */
+	uint8_t *data;  /* The cache */
+	uint32_t size;  /* Tha allocated size of the cache */      
+	uint32_t total_bank;  /* total number of rom bank */
+	uint8_t **ptr/*[TOTAL_GFX_BANK]*/; /* ptr[i] Contain a pointer to cached data for bank i */
 	int max_slot; /* Maximal numer of bank that can be cached (depend on cache size) */
 	int slot_size;
 	int *usage;   /* contain index to the banks in used order */
 	FILE *gno;
-    Uint32 *offset;
-    Uint8* in_buf;
+    uint32_t *offset;
+    uint8_t* in_buf;
 }GFX_CACHE;
 
 typedef struct VIDEO {
 	/* Video Ram&Pal */
-	Uint8 ram[0x20000];
-	Uint8 pal_neo[2][0x2000];
-	Uint8 pal_host[2][0x4000];
-	Uint8 currentpal;
-        Uint8 currentfix; /* 0=bios fix */
-	Uint16 rbuf;
+	uint8_t ram[0x20000];
+	uint8_t pal_neo[2][0x2000];
+	uint8_t pal_host[2][0x4000];
+	uint8_t currentpal;
+        uint8_t currentfix; /* 0=bios fix */
+	uint16_t rbuf;
 
 	/* Auto anim counter */
-	Uint32 fc;
-	Uint32 fc_speed;
+	uint32_t fc;
+	uint32_t fc_speed;
 
-	Uint32 vptr;
+	uint32_t vptr;
 	Sint16 modulo;
 
-	Uint32 current_line;
+	uint32_t current_line;
 
 	/* IRQ2 related */
-	Uint32 irq2control;
-	Uint32 irq2taken;
-	Uint32 irq2start;
-	Uint32 irq2pos;
+	uint32_t irq2control;
+	uint32_t irq2taken;
+	uint32_t irq2start;
+	uint32_t irq2pos;
 
     GFX_CACHE spr_cache;
 }VIDEO;
 
 #define RASTER_LINES 261
 
-unsigned int neogeo_frame_counter;
-extern unsigned int neogeo_frame_counter_speed;
+uint32_t neogeo_frame_counter;
+extern uint32_t neogeo_frame_counter_speed;
 
 void init_video(void);
-void debug_draw_tile(unsigned int tileno,int sx,int sy,int zx,int zy,
-		     int color,int xflip,int yflip,unsigned char *bmp);
+void debug_draw_tile(uint32_t tileno,int sx,int sy,int zx,int zy,
+		     int color,int xflip,int yflip,uint8_t *bmp);
 void draw_screen_scanline(int start_line, int end_line, int refresh);
 void draw_screen(void);
 // void show_cache(void);
-int init_sprite_cache(Uint32 size,Uint32 bsize);
+int init_sprite_cache(uint32_t size,uint32_t bsize);
 void free_sprite_cache(void);
 
 #endif

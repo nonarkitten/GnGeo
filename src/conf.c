@@ -86,26 +86,26 @@ static setArgBool(char **toolarray, char *argName, int index) {
 #define MYHEIGHT   400
  
 struct TagItem frtags[] = {
-    ASL_Hail,       (ULONG)"The RKM file requester",
+    ASL_Hail,       (uint32_t)"The RKM file requester",
     ASL_Height,     MYHEIGHT,
     ASL_Width,      MYWIDTH,
     ASL_LeftEdge,   MYLEFTEDGE,
     ASL_TopEdge,    MYTOPEDGE,
 	ASL_FuncFlags, 	FILF_PATGAD,
-    ASL_Pattern,    (ULONG)"#?.zip",
-    ASL_OKText,     (ULONG)"Okay",
-    ASL_CancelText, (ULONG)"Cancel",
-    ASL_File,       (ULONG)"",
-    ASL_Dir,        (ULONG)roms_path,
+    ASL_Pattern,    (uint32_t)"#?.zip",
+    ASL_OKText,     (uint32_t)"Okay",
+    ASL_CancelText, (uint32_t)"Cancel",
+    ASL_File,       (uint32_t)"",
+    ASL_Dir,        (uint32_t)roms_path,
     ASL_ExtFlags1,	FIL1F_NOFILES|FIL1F_MATCHDIRS,
     TAG_DONE
 };
 
-BOOL FromWb;
+bool FromWb;
 extern int AC68080;
 
 static void fixup_readargs(void) {
-	#define FIXUP(X) if(arg[X]) arg[X] = *(ULONG*)arg[X];
+	#define FIXUP(X) if(arg[X]) arg[X] = *(uint32_t*)arg[X];
 	FIXUP(OPTION_BENCH);
 	FIXUP(OPTION_SAMPLERATE);
 	FIXUP(OPTION_REGION);
@@ -125,7 +125,7 @@ void ParseArguments(int argc, char *argv[]) {
 	struct Library *AslBase;
 	struct WBArg *wbarg;
 	struct RDArgs *read_args, *free_args;
-	static uint32_t defaults[7] = {
+	static uint32_t_t defaults[7] = {
 		1, 
 		100,
 		18520,

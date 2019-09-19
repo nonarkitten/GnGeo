@@ -16,10 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
  */
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
-
 #include <string.h>
 #include <stdlib.h>
 #include <zlib.h>
@@ -38,42 +35,42 @@ extern int neogeo_fix_bank_type;
 
 // #ifdef PROCESSOR_ARM
 // /* global declaration for video_arm.S */
-// Uint8 *mem_gfx = NULL; /*=memory.rom.tiles.p;*/
-// Uint8 *mem_video = NULL; //memory.vid.ram;
+// uint8_t *mem_gfx = NULL; /*=memory.rom.tiles.p;*/
+// uint8_t *mem_video = NULL; //memory.vid.ram;
 // //#define TOTAL_GFX_BANK 4096
-// Uint32 *mem_bank_usage;
+// uint32_t *mem_bank_usage;
 // 
 // //GFX_CACHE gcache;
 // 
-// void draw_one_char_arm(int byte1, int byte2, unsigned short *br);
-// int draw_tile_arm_norm(unsigned int tileno, int color, unsigned char *bmp, int zy);
+// void draw_one_char_arm(int byte1, int byte2, uint16_t *br);
+// int draw_tile_arm_norm(uint32_t tileno, int color, uint8_t *bmp, int zy);
 // #endif
 
 // #ifdef I386_ASM
 // /* global declaration for video_i386.asm */
-// Uint8 **mem_gfx; //=&memory.rom.tiles.p;
-// Uint8 *mem_video; //=memory.vid.ram;
+// uint8_t **mem_gfx; //=&memory.rom.tiles.p;
+// uint8_t *mem_video; //=memory.vid.ram;
 // 
 // /* prototype */
-// void draw_tile_i386_norm(unsigned int tileno, int sx, int sy, int zx, int zy,
-// 		int color, int xflip, int yflip, unsigned char *bmp);
-// void draw_tile_i386_50(unsigned int tileno, int sx, int sy, int zx, int zy,
-// 		int color, int xflip, int yflip, unsigned char *bmp);
-// void draw_one_char_i386(int byte1, int byte2, unsigned short *br);
+// void draw_tile_i386_norm(uint32_t tileno, int sx, int sy, int zx, int zy,
+// 		int color, int xflip, int yflip, uint8_t *bmp);
+// void draw_tile_i386_50(uint32_t tileno, int sx, int sy, int zx, int zy,
+// 		int color, int xflip, int yflip, uint8_t *bmp);
+// void draw_one_char_i386(int byte1, int byte2, uint16_t *br);
 // 
-// void draw_scanline_tile_i386_norm(unsigned int tileno, int yoffs, int sx, int line, int zx,
-// 		int color, int xflip, unsigned char *bmp);
+// void draw_scanline_tile_i386_norm(uint32_t tileno, int yoffs, int sx, int line, int zx,
+// 		int color, int xflip, uint8_t *bmp);
 // 
-// void draw_scanline_tile_i386_50(unsigned int tileno, int yoffs, int sx, int line, int zx,
-// 		int color, int xflip, unsigned char *bmp);
+// void draw_scanline_tile_i386_50(uint32_t tileno, int yoffs, int sx, int line, int zx,
+// 		int color, int xflip, uint8_t *bmp);
 // #endif
 
-//Uint8 strip_usage[0x300];
-#define PEN_USAGE(tileno) ((((Uint32*) memory.rom.spr_usage.p)[tileno>>4]>>((tileno&0xF)*2))&0x3)
+//uint8_t strip_usage[0x300];
+#define PEN_USAGE(tileno) ((((uint32_t*) memory.rom.spr_usage.p)[tileno>>4]>>((tileno&0xF)*2))&0x3)
 
 
-static Uint8 dr, dg, db, sr, sg, sb;
-// static __inline__ Uint16 alpha_blend(Uint16 dest, Uint16 src, Uint8 a) {
+static uint8_t dr, dg, db, sr, sg, sb;
+// static __inline__ uint16_t alpha_blend(uint16_t dest, uint16_t src, uint8_t a) {
 // 	
 // 
 // 	dr = ((dest & 0xF800) >> 11) << 3;
@@ -97,15 +94,15 @@ static Uint8 dr, dg, db, sr, sg, sb;
 #define INLINE extern
 
 char dda_y_skip[17];
-Uint32 dda_y_skip_i;
-Uint32 full_y_skip_i = 0xFFFE;
+uint32_t dda_y_skip_i;
+uint32_t full_y_skip_i = 0xFFFE;
 char full_y_skip[16] = {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-unsigned int neogeo_frame_counter_speed = 8;
-static Uint16 fix_addr[40][32];
-static Uint8 fix_shift[40];
+uint32_t neogeo_frame_counter_speed = 8;
+static uint16_t fix_addr[40][32];
+static uint8_t fix_shift[40];
 
-static uint16_t dda_x_skip_i;
-const uint16_t ddaxskip_i[17] = {
+static uint16_t_t dda_x_skip_i;
+const uint16_t_t ddaxskip_i[17] = {
 	0x0000, 0x0080, 0x0880, 0x0888, 0x2888, 0x288a, 0x2a8a, 0x2aaa, 0xaaaa,
 	0xaaea, 0xbaea, 0xbaeb, 0xbbeb, 0xbbef, 0xfbef, 0xfbff, 0xffff
 };
@@ -140,33 +137,33 @@ static void fix_value_init(void) {
 // #endif
 const int overscan = 1;
 
-extern void draw_fix_char(unsigned char *buf, int start, int end);
+extern void draw_fix_char(uint8_t *buf, int start, int end);
 
 extern struct RastPort *theRastPort;
 
-uint8_t line_limit[256] = {0xFF}, *limit;
-uint32_t even_odd = 0;
+uint8_t_t line_limit[256] = {0xFF}, *limit;
+uint32_t_t even_odd = 0;
 
 //(palbase, tilepos, gfxdata, rzx, yskip)
-extern void draw_tile_m68k(unsigned int tileno,int sx,int sy,int zx,int zy, int color,int xflip,int yflip,unsigned char *bmp);
-extern void draw_tile_ammx(unsigned int tileno,int sx,int sy,int zx,int zy, int color,int xflip,int yflip,unsigned char *bmp);
+extern void draw_tile_m68k(uint32_t tileno,int sx,int sy,int zx,int zy, int color,int xflip,int yflip,uint8_t *bmp);
+extern void draw_tile_ammx(uint32_t tileno,int sx,int sy,int zx,int zy, int color,int xflip,int yflip,uint8_t *bmp);
 
 extern int AC68080;
-extern void draw_tiles_m68k(uint16_t *bufferpixels);
+extern void draw_tiles_m68k(uint16_t_t *bufferpixels);
 
 //OPTION_INTERLEAVED
 
 void draw_screen(void) { 
  	if(screen_prerender()) { 
 		if(arg[OPTION_INTERLEAVED]) {
-			uint8_t c = even_odd - 1;
-			uint32_t i, x;
-			uint16_t *clear = (uint16_t*)bufferpixels;
+			uint8_t_t c = even_odd - 1;
+			uint32_t_t i, x;
+			uint16_t_t *clear = (uint16_t_t*)bufferpixels;
 
 			for(i=0;i<224;i++) {
 				line_limit[i] = c;
 				if(!c) {
-					uint16_t pixel = current_pc_pal[4095];
+					uint16_t_t pixel = current_pc_pal[4095];
 					for(x=0;x<320;x++) clear[x] = pixel;
 					c = 255;
 				} else {

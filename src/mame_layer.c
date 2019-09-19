@@ -19,7 +19,7 @@ ym
 
 */
 
-UINT8 *memory_region( GAME_ROMS *r, char *region ) {
+uint8_t *memory_region( GAME_ROMS *r, char *region ) {
 	if (strcmp(region,"audiocpu")==0) return r->cpu_z80.p;
 	if (strcmp(region,"audiocrypt")==0) return r->cpu_z80c.p;
 	if (strcmp(region,"fixed")==0) return r->game_sfix.p;
@@ -31,7 +31,7 @@ UINT8 *memory_region( GAME_ROMS *r, char *region ) {
 	
 	return NULL;
 }
-UINT32 memory_region_length( GAME_ROMS *r, char *region ) {
+uint32_t memory_region_length( GAME_ROMS *r, char *region ) {
 	if (strcmp(region,"audiocpu")==0) return r->cpu_z80.size;
 	if (strcmp(region,"audiocrypt")==0) return r->cpu_z80c.size;
 	if (strcmp(region,"fixed")==0) return r->game_sfix.size;
@@ -44,7 +44,7 @@ UINT32 memory_region_length( GAME_ROMS *r, char *region ) {
 	return 0;
 }
 
-void *malloc_or_die(UINT32 b) {
+void *malloc_or_die(uint32_t b) {
 	void *a=malloc(b);
 	if (a) return a;
 	debug("Not enough memory :( exiting\n");

@@ -11,10 +11,7 @@
 
 ***************************************************************************/
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
-
 #include <stdio.h>
 #include "2610intf.h"
 #include "../conf.h"
@@ -43,9 +40,8 @@ void timer_callback_2610(int param)
 }
 
 /* TimerHandler from fm.c */
-static void TimerHandler(int c, int count, double stepTime)
-//static void TimerHandler(int c, int count, Uint32 stepTime)
-{
+//static void TimerHandler(int c, int count, double stepTime)
+static void TimerHandler(int c, int count, uint32_t stepTime) {
 	//debug("TimerHandler %d %d %f\n",c,count,stepTime);
 	if (count == 0) {		/* Reset FM Timer */
 		if (Timer[c]) {
@@ -53,8 +49,8 @@ static void TimerHandler(int c, int count, double stepTime)
 			Timer[c] = 0;
 		}
 	} else {			/* Start FM Timer */
-		double timeSec = (double) count * stepTime;
-		//Uint32 timeSec = count * (Uint32)(stepTime*(1<<TIMER_SH));
+		//double timeSec = (double) count * stepTime;
+		uint32_t timeSec = count * (uint32_t)(stepTime*(1<<TIMER_SH));
 		
 		if (Timer[c] == 0) {
 			Timer[c] =
@@ -63,26 +59,12 @@ static void TimerHandler(int c, int count, double stepTime)
 		}
 	}
 }
+
 void FMTimerInit(void)
 {
     Timer[0] = Timer[1] = 0;
     free_all_timer();
 }
-#if 0
-/* update request from fm.c */
-void YM2610UpdateRequest(void)
-{
-	static double old_tc;
-	//static Uint32 old_tc;
-	double tc=timer_count-old_tc;
-	//Uint32 tc=timer_count-old_tc;
-    int len=(int)((conf.sample_rate*tc)>>TIMER_SH)<<2;
-    if (len >4 ) {
-	old_tc=timer_count;
-	streamupdate(len);
-    }
-}
-#endif
 
 int YM2610_sh_start(void)
 {
@@ -141,12 +123,12 @@ void YM2610_sh_reset(void)
 /************************************************/
 /* Status Read for YM2610 - Chip 0		*/
 /************************************************/
-Uint32 YM2610_status_port_A_r(Uint32 offset)
+uint32_t YM2610_status_port_A_r(uint32_t offset)
 {
     return YM2610Read(0);
 }
 
-Uint32 YM2610_status_port_B_r(Uint32 offset)
+uint32_t YM2610_status_port_B_r(uint32_t offset)
 {
     return YM2610Read(2);
 }
@@ -154,7 +136,7 @@ Uint32 YM2610_status_port_B_r(Uint32 offset)
 /************************************************/
 /* Port Read for YM2610 - Chip 0		*/
 /************************************************/
-Uint32 YM2610_read_port_r(Uint32 offset)
+uint32_t YM2610_read_port_r(uint32_t offset)
 {
     return YM2610Read(1);
 }
@@ -164,12 +146,12 @@ Uint32 YM2610_read_port_r(Uint32 offset)
 /* Control Write for YM2610 - Chip 0		*/
 /* Consists of 2 addresses			*/
 /************************************************/
-void YM2610_control_port_A_w(Uint32 offset, Uint32 data)
+void YM2610_control_port_A_w(uint32_t offset, uint32_t data)
 {
     YM2610Write(0, data);
 }
 
-void YM2610_control_port_B_w(Uint32 offset, Uint32 data)
+void YM2610_control_port_B_w(uint32_t offset, uint32_t data)
 {
     YM2610Write(2, data);
 }
@@ -178,12 +160,12 @@ void YM2610_control_port_B_w(Uint32 offset, Uint32 data)
 /* Data Write for YM2610 - Chip 0		*/
 /* Consists of 2 addresses			*/
 /************************************************/
-void YM2610_data_port_A_w(Uint32 offset, Uint32 data)
+void YM2610_data_port_A_w(uint32_t offset, uint32_t data)
 {
     YM2610Write(1, data);
 }
 
-void YM2610_data_port_B_w(Uint32 offset, Uint32 data)
+void YM2610_data_port_B_w(uint32_t offset, uint32_t data)
 {
     YM2610Write(3, data);
 }

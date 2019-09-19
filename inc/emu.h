@@ -19,21 +19,18 @@
 #ifndef _EMU_H_
 #define _EMU_H_
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
-
 #include "conf.h"
 #include <string.h>
 
 #define debug(...) do { if(arg[OPTION_DEBUG]) printf(__VA_ARGS__); } while(0)
 #define error(...) do { printf(__VA_ARGS__); exit(-1); } while(0)
 
-typedef unsigned char	Uint8;
+typedef uint8_t	uint8_t;
 typedef signed char	Sint8;
-typedef unsigned short	Uint16;
+typedef uint16_t	uint16_t;
 typedef signed short	Sint16;
-typedef unsigned int	Uint32;
+typedef uint32_t	uint32_t;
 typedef signed int	Sint32;
 #define Uintptr long
 
@@ -42,10 +39,10 @@ extern int HostPAL;
 extern int paused;
 
 typedef struct {
-   Uint32 x;
-   Uint32 y;
-   Uint32 w;
-   Uint32 h;
+   uint32_t x;
+   uint32_t y;
+   uint32_t w;
+   uint32_t h;
 } Rect;
 
 typedef enum SYSTEM {
@@ -93,32 +90,32 @@ static __inline__ long SwapLONG(long val)
 
 // struct {
 //     char *game;
-//     Uint16 x_start;
-//     Uint16 y_start;
-//     Uint16 res_x;
-//     Uint16 res_y;
-//     Uint16 sample_rate;
-//     Uint16 test_switch;
+//     uint16_t x_start;
+//     uint16_t y_start;
+//     uint16_t res_x;
+//     uint16_t res_y;
+//     uint16_t sample_rate;
+//     uint16_t test_switch;
 // 
-//     Uint8 sound;
-//     Uint8 vsync;
-//     Uint8 snd_st_reg_create;
-//     Uint8 do_message;
-//     Uint8 nb_joy;
-//     Uint8 raster;
-//     Uint8 debug;
-//     Uint8 rom_type;
-//     Uint8 special_bios;
-//     Uint8 extra_xor;
-//     Uint8 pal;
-//     Uint8 accurate940;
+//     uint8_t sound;
+//     uint8_t vsync;
+//     uint8_t snd_st_reg_create;
+//     uint8_t do_message;
+//     uint8_t nb_joy;
+//     uint8_t raster;
+//     uint8_t debug;
+//     uint8_t rom_type;
+//     uint8_t special_bios;
+//     uint8_t extra_xor;
+//     uint8_t pal;
+//     uint8_t accurate940;
 //     SYSTEM system;
 //     COUNTRY country;
 // 
-//     Uint8 autoframeskip;
-//     Uint8 show_fps;
-//     Uint8 sleep_idle;
-//     Uint8 screen320;
+//     uint8_t autoframeskip;
+//     uint8_t show_fps;
+//     uint8_t sleep_idle;
+//     uint8_t screen320;
 // 
 //     char message[128];
 //     char fps[4];
@@ -169,13 +166,13 @@ enum {
 
 //config conf;
 
-//Uint8 key[SDLK_LAST];
+//uint8_t key[SDLK_LAST];
 
-Uint8 key[100];
+uint8_t key[100];
 
-Uint8 *joy_button[2];
+uint8_t *joy_button[2];
 Sint32 *joy_axe[2];
-Uint32 joy_numaxes[2];
+uint32_t joy_numaxes[2];
 
 void debug_loop(void);
 void main_loop(void);

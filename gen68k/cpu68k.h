@@ -3,41 +3,41 @@
 
 typedef struct _t_ipc {
   void (*function)(struct _t_ipc *ipc);
-  uint8 used;               /* bitmap of XNZVC flags inspected */
-  uint8 set;                /* bitmap of XNZVC flags altered */
-  uint16 opcode;
-  uint16 wordlen;
-  unsigned int :0;
-  uint32 src;
-  uint32 dst;
+  uint8_t used;               /* bitmap of XNZVC flags inspected */
+  uint8_t set;                /* bitmap of XNZVC flags altered */
+  uint16_t opcode;
+  uint16_t wordlen;
+  uint32_t :0;
+  uint32_t src;
+  uint32_t dst;
 } t_ipc;
 
 typedef struct _t_ipclist {
     struct _t_ipclist *next;
-    uint8 norepeat;
-    uint32 pc;
-    uint32 pass;
-    uint32  bank;
-    uint32 clocks;
+    uint8_t norepeat;
+    uint32_t pc;
+    uint32_t pass;
+    uint32_t  bank;
+    uint32_t clocks;
     void (*compiled)(struct _t_ipc *ipc);
 } t_ipclist;
 
-extern uint8 *cpu68k_rom;
-extern unsigned int cpu68k_romlen;
-extern uint8 *cpu68k_ram;
+extern uint8_t *cpu68k_rom;
+extern uint32_t cpu68k_romlen;
+extern uint8_t *cpu68k_ram;
 extern t_iib *cpu68k_iibtable[65536];
 extern void (*cpu68k_functable[65536*2])(t_ipc *ipc);
 extern int cpu68k_totalinstr;
 extern int cpu68k_totalfuncs;
-extern unsigned int cpu68k_clocks;
-extern unsigned int cpu68k_clocks_curevent;
-extern unsigned int cpu68k_frames;
-extern unsigned int cpu68k_line;
+extern uint32_t cpu68k_clocks;
+extern uint32_t cpu68k_clocks_curevent;
+extern uint32_t cpu68k_frames;
+extern uint32_t cpu68k_line;
 extern t_regs regs;
 extern t_ipclist *ipclist[LEN_IPCLISTTABLE];
-extern uint8 movem_bit[256];
-extern unsigned int cpu68k_adaptive;
-extern unsigned int cpu68k_frozen;
+extern uint8_t movem_bit[256];
+extern uint32_t cpu68k_adaptive;
+extern uint32_t cpu68k_frozen;
 
 extern t_iib iibs[];
 extern int iibs_num;
@@ -45,11 +45,11 @@ extern int iibs_num;
 
 int cpu68k_init(void);
 void cpu68k_printipc(t_ipc *ipc);
-void cpu68k_ipc(uint32 addr68k, uint8 *addr, t_iib *iib, t_ipc *ipc);
+void cpu68k_ipc(uint32_t addr68k, uint8_t *addr, t_iib *iib, t_ipc *ipc);
 void cpu68k_reset(void);
 void cpu68k_step(void);
 void cpu68k_framestep(void);
-t_ipclist *cpu68k_makeipclist(uint32 pc);
+t_ipclist *cpu68k_makeipclist(uint32_t pc);
 void cpu68k_endfield(void);
 void cpu68k_clearcache(void);
 

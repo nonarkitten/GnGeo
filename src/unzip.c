@@ -25,12 +25,12 @@
 #include <proto/exec.h>
 
 //pkzip = path
-ZFILE *gn_unzip_fopen(PKZIP *zf, char *filename, uint32_t file_crc) {
-	unsigned char *mem = NULL, *mem2 = NULL;
+ZFILE *gn_unzip_fopen(PKZIP *zf, char *filename, uint32_t_t file_crc) {
+	uint8_t *mem = NULL, *mem2 = NULL;
 	struct FileInfoBlock *fib = NULL;
 	struct ZFILE *zfile = NULL;
 	const char name[256];
-	ULONG size = 0;
+	uint32_t size = 0;
 	BPTR fh = NULL;
 	
 //	if(!(name = AllocVec(strlen(zf) + strlen(filename) + 2, MEMF_FAST)))
@@ -78,16 +78,16 @@ void gn_unzip_fclose(ZFILE *z) {
 	FreeVec(z);
 }
 
-int gn_unzip_fread(ZFILE *z, uint8_t *data, unsigned int size) {
+int gn_unzip_fread(ZFILE *z, uint8_t_t *data, uint32_t size) {
 	if(size > (z->len - z->pos)) size = (z->len - z->pos);
 	CopyMem( &z->mem[z->pos], data, size );
 	z->pos += size;
 	return size;
 }
 
-uint8_t *gn_unzip_file_malloc(PKZIP *zf, char *filename, uint32_t file_crc, unsigned int *outlen) {
+uint8_t_t *gn_unzip_file_malloc(PKZIP *zf, char *filename, uint32_t_t file_crc, uint32_t *outlen) {
 	ZFILE *z = gn_unzip_fopen(zf, filename, file_crc);
-	uint8_t *data = z->mem;
+	uint8_t_t *data = z->mem;
 	*outlen = z->len;
 	FreeVec(z);
 	return data;
@@ -95,7 +95,7 @@ uint8_t *gn_unzip_file_malloc(PKZIP *zf, char *filename, uint32_t file_crc, unsi
 
 // 
 PKZIP *gn_open_zip(char *path) {
-	ULONG len = 1 + strlen(path);
+	uint32_t len = 1 + strlen(path);
 	void *mem = AllocVec(len, MEMF_FAST);
 	CopyMem(path, mem, len);
 	// maybe check if path is valid?

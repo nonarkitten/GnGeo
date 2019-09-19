@@ -21,14 +21,14 @@
 #include "mamez80/z80.h"
 #include "state.h"
 
-static Uint8 *z80map1, *z80map2, *z80map3, *z80map4;
+static uint8_t *z80map1, *z80map2, *z80map3, *z80map4;
 
-Uint8 mame_z80mem[0x10000];
+uint8_t mame_z80mem[0x10000];
 static Z80_STATE z80_st;
 
 #if 0
 /* Memory and port IO handler */
-void mame_z80_writemem16(Uint16 addr, Uint8 val)
+void mame_z80_writemem16(uint16_t addr, uint8_t val)
 {
     //  debug("Writemem %x=%x\n",addr,val);
     if (addr >= 0xf800)
@@ -36,7 +36,7 @@ void mame_z80_writemem16(Uint16 addr, Uint8 val)
     
 }
 
-Uint8 mame_z80_readmem16(Uint16 addr)
+uint8_t mame_z80_readmem16(uint16_t addr)
 {
     if (addr <= 0x7fff)
         return memory.rom.cpu_z80.p[addr];
@@ -52,24 +52,24 @@ Uint8 mame_z80_readmem16(Uint16 addr)
 }
 
 
-Uint8 mame_z80_readop(Uint16 addr)
+uint8_t mame_z80_readop(uint16_t addr)
 {
     return mame_z80_readmem16(addr);
 }
 
-Uint8 mame_z80_readop_arg(Uint16 addr)
+uint8_t mame_z80_readop_arg(uint16_t addr)
 {
     return mame_z80_readmem16(addr);
 }
 #endif
 
-void mame_z80_writeport16(Uint16 port, Uint8 value)
+void mame_z80_writeport16(uint16_t port, uint8_t value)
 {
     //debug("Write port %d=%d\n",port,value);
     z80_port_write(port, value);
 }
 
-Uint8 mame_z80_readport16(Uint16 port)
+uint8_t mame_z80_readport16(uint16_t port)
 {
     //debug("Read port %d\n",port);
     return z80_port_read(port);
@@ -77,7 +77,7 @@ Uint8 mame_z80_readport16(Uint16 port)
 
 
 /* cpu interface implementation */
-void cpu_z80_switchbank(Uint8 bank, Uint16 PortNo)
+void cpu_z80_switchbank(uint8_t bank, uint16_t PortNo)
 {
     if (bank<=3)
         z80_bank[bank]=PortNo;
@@ -169,27 +169,27 @@ static void z80_init_save_state(void) {
      int size=z80_get_context(NULL);
      mz80_context=(void*)malloc(size);
      */
-    create_state_register(ST_Z80,"pc",1,(void *)&z80_st.PC,sizeof(Uint16),REG_UINT16);
-    create_state_register(ST_Z80,"sp",1,(void *)&z80_st.SP,sizeof(Uint16),REG_UINT16);
-    create_state_register(ST_Z80,"af",1,(void *)&z80_st.AF,sizeof(Uint16),REG_UINT16);
-    create_state_register(ST_Z80,"bc",1,(void *)&z80_st.BC,sizeof(Uint16),REG_UINT16);
-    create_state_register(ST_Z80,"de",1,(void *)&z80_st.DE,sizeof(Uint16),REG_UINT16);
-    create_state_register(ST_Z80,"hl",1,(void *)&z80_st.HL,sizeof(Uint16),REG_UINT16);
-    create_state_register(ST_Z80,"ix",1,(void *)&z80_st.IX,sizeof(Uint16),REG_UINT16);
-    create_state_register(ST_Z80,"iy",1,(void *)&z80_st.IY,sizeof(Uint16),REG_UINT16);
+    create_state_register(ST_Z80,"pc",1,(void *)&z80_st.PC,sizeof(uint16_t),REG_uint16_t);
+    create_state_register(ST_Z80,"sp",1,(void *)&z80_st.SP,sizeof(uint16_t),REG_uint16_t);
+    create_state_register(ST_Z80,"af",1,(void *)&z80_st.AF,sizeof(uint16_t),REG_uint16_t);
+    create_state_register(ST_Z80,"bc",1,(void *)&z80_st.BC,sizeof(uint16_t),REG_uint16_t);
+    create_state_register(ST_Z80,"de",1,(void *)&z80_st.DE,sizeof(uint16_t),REG_uint16_t);
+    create_state_register(ST_Z80,"hl",1,(void *)&z80_st.HL,sizeof(uint16_t),REG_uint16_t);
+    create_state_register(ST_Z80,"ix",1,(void *)&z80_st.IX,sizeof(uint16_t),REG_uint16_t);
+    create_state_register(ST_Z80,"iy",1,(void *)&z80_st.IY,sizeof(uint16_t),REG_uint16_t);
     
-    create_state_register(ST_Z80,"af2",1,(void *)&z80_st.AF2,sizeof(Uint16),REG_UINT16);
-    create_state_register(ST_Z80,"bc2",1,(void *)&z80_st.BC2,sizeof(Uint16),REG_UINT16);
-    create_state_register(ST_Z80,"de2",1,(void *)&z80_st.DE2,sizeof(Uint16),REG_UINT16);
-    create_state_register(ST_Z80,"hl2",1,(void *)&z80_st.HL2,sizeof(Uint16),REG_UINT16);
+    create_state_register(ST_Z80,"af2",1,(void *)&z80_st.AF2,sizeof(uint16_t),REG_uint16_t);
+    create_state_register(ST_Z80,"bc2",1,(void *)&z80_st.BC2,sizeof(uint16_t),REG_uint16_t);
+    create_state_register(ST_Z80,"de2",1,(void *)&z80_st.DE2,sizeof(uint16_t),REG_uint16_t);
+    create_state_register(ST_Z80,"hl2",1,(void *)&z80_st.HL2,sizeof(uint16_t),REG_uint16_t);
     
-    create_state_register(ST_Z80,"iff1",1,(void *)&z80_st.IFF1,sizeof(Uint8),REG_UINT8);
-    create_state_register(ST_Z80,"iff2",1,(void *)&z80_st.IFF2,sizeof(Uint8),REG_UINT8);
-    create_state_register(ST_Z80,"im",1,(void *)&z80_st.IM,sizeof(Uint8),REG_UINT8);
+    create_state_register(ST_Z80,"iff1",1,(void *)&z80_st.IFF1,sizeof(uint8_t),REG_uint8_t);
+    create_state_register(ST_Z80,"iff2",1,(void *)&z80_st.IFF2,sizeof(uint8_t),REG_uint8_t);
+    create_state_register(ST_Z80,"im",1,(void *)&z80_st.IM,sizeof(uint8_t),REG_uint8_t);
     
     
-    create_state_register(ST_Z80,"bank",1,(void *)z80_bank,sizeof(Uint16)*4,REG_UINT16);
-    create_state_register(ST_Z80,"z80_ram",1,(void *)memory.z80_ram,sizeof(Uint8)*0x800,REG_UINT8);
+    create_state_register(ST_Z80,"bank",1,(void *)z80_bank,sizeof(uint16_t)*4,REG_uint16_t);
+    create_state_register(ST_Z80,"z80_ram",1,(void *)memory.z80_ram,sizeof(uint8_t)*0x800,REG_uint8_t);
     
     set_post_load_function(ST_Z80,post_load_state);
     set_pre_save_function(ST_Z80,pre_save_state);
@@ -249,7 +249,7 @@ void cpu_z80_lower_irq(void)
     z80_set_irq_line(0, CLEAR_LINE);
 }
 
-Uint16 cpu_z80_get_pc(void)
+uint16_t cpu_z80_get_pc(void)
 {
     return 0;
 }

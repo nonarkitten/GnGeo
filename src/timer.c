@@ -16,9 +16,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
  */
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
+#include <exec/lists.h>
 
 #include <stdlib.h>
 #include "conf.h"
@@ -28,7 +27,7 @@
 #include "ym2610/ym2610.h"
 
 typedef struct timer_struct {
-	struct timer_struct *next;	// process each timer as a list
+	struct timer_struct next;	// list of timers
 	struct TimeVal when;		// timer interval (are eclocks faster?)
 	void(*func) (int param);	// callback when tiemr expires
 	int param;					// parameter to pass to callback
@@ -37,21 +36,25 @@ typedef struct timer_struct {
 static timer_struct *timer_list = NULL;
 static struct TimeVal now;
 
-Uint32 timer_get_time_ms(void) {
+uint32_t timer_get_time_ms(void) {
 	GetSysTime(&now);
 	return now.Seconds * 1000 + now.Microseconds / 1000;
 }
 
-timer_struct *insert_timer(Uint32 duration_ms, int param, timer_callback func) {
+void timer_set_time(timer_struct *timer, uint32_t duration_ms) {
+	GetSysTime(&now);
+	timer->when.Seconds = duration_ms / 1000;
+	timer->when.Microseconds = (duration_ms % 1000) * 1000;
+	timer->AddTime(&timer->when, now);
+}
+
+timer_struct *timer_insert(uint32_t duration_ms, int param, timer_callback func) {
 	timer_struct *timer = AllocVec(sizeof(timer_struct), MEMF_PUBLIC);
 	if (timer) {
 		// Initialize timer
-		GetSysTime(&now);
-		timer->when.Seconds = duration_ms / 1000;
-		timer->when.Microseconds = (duration_ms % 1000) * 1000;
-		timer->AddTime(&timer->when, now);
-		timer->func = func;
+		timer_set_time(timer, duration_ms);
 		timer->param = param;
+		timer->func = func;
 
 		// Insert timer
 		timer->next = timer_list;
@@ -64,7 +67,7 @@ timer_struct *insert_timer(Uint32 duration_ms, int param, timer_callback func) {
 	}
 }
 
-void free_all_timer(void) {
+void timer_free_all (void) {
 	timer_struct *timer = timer_list, *next;
 	while (timer) {
 		next = timer->next;
@@ -73,7 +76,7 @@ void free_all_timer(void) {
 	}
 }
 
-void del_timer(timer_struct * ts) {
+void timer_del(timer_struct * ts) {
 	timer_struct *timer = &timer_list;
 	while (timer) {
 		if (timer->next == ts) {
@@ -86,7 +89,7 @@ void del_timer(timer_struct * ts) {
 }
 
 // call frequently to avoid missed timers
-void my_timer(void) {
+void timer_run(void) {
 	static timer_struct *timer = NULL;
 	timer_struct *next;
 	GetSysTime(&now);

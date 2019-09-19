@@ -1,7 +1,4 @@
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
-
 #ifndef _GENERATOR_H_
 #define _GENERATOR_H_
 
@@ -10,9 +7,9 @@
 /* VERSION set by autoconf */
 /* PACKAGE set by autoconf */
  
-#define uint8     Uint8
-#define uint16    Uint16
-#define uint32    Uint32
+#define uint8_t     uint8_t
+#define uint16_t    uint16_t
+#define uint32_t    uint32_t
 #define sint8     Sint8
 #define sint16    Sint16
 #define sint32    Sint32
@@ -44,7 +41,7 @@
 #ifdef WORDS_BIGENDIAN
 #define LOCENDIAN16(y) (y)
 #define LOCENDIAN32(y) (y)
-#define BYTES_HIGHFIRST
+#define uint8_tS_HIGHFIRST
 #else
 #define LOCENDIAN16(y) ((((y)>>8)&0x00FF)+((((y)<<8)&0xFF00)))
 #define LOCENDIAN32(y) ( (((y)>>24) & 0x000000FF) + \
@@ -106,8 +103,8 @@ typedef enum {
 } t_mnemonic;
 
 typedef struct {
-  uint16 mask;              /* mask of bits that are static */
-  uint16 bits;              /* bit values corresponding to bits in mask */
+  uint16_t mask;              /* mask of bits that are static */
+  uint16_t bits;              /* bit values corresponding to bits in mask */
   t_mnemonic mnemonic;      /* instruction mnemonic */
   struct {
     int priv:1;             /* instruction is privileged if set */
@@ -119,13 +116,13 @@ typedef struct {
   t_size size;              /* size of instruction */
   t_datatype stype;         /* type of source */
   t_datatype dtype;         /* type of destination */
-  unsigned int sbitpos:4;   /* bit pos of imm data or reg part of EA */
-  unsigned int dbitpos:4;   /* reg part of EA */
-  unsigned int immvalue;    /* if stype is ImmS this is the value */
-  unsigned int cc;          /* condition code if mnemonic is Scc/Dbcc/Bcc */
-  unsigned int funcnum;     /* function number for this instruction */
-  unsigned int wordlen;     /* length in words of this instruction */
-  unsigned int clocks;      /* number of external clock periods */
+  uint32_t sbitpos:4;   /* bit pos of imm data or reg part of EA */
+  uint32_t dbitpos:4;   /* reg part of EA */
+  uint32_t immvalue;    /* if stype is ImmS this is the value */
+  uint32_t cc;          /* condition code if mnemonic is Scc/Dbcc/Bcc */
+  uint32_t funcnum;     /* function number for this instruction */
+  uint32_t wordlen;     /* length in words of this instruction */
+  uint32_t clocks;      /* number of external clock periods */
 } t_iib;                    /* instruction information block */
 
 #define IIB_FLAG_X 1<<0
@@ -145,46 +142,46 @@ extern const char *condition_table[];
 
 typedef union {
   struct {
-#ifndef BYTES_HIGHFIRST
-    unsigned int c:1;
-    unsigned int v:1;
-    unsigned int z:1;
-    unsigned int n:1;
-    unsigned int x:1;
-    unsigned int :3;
-    unsigned int i0:1;
-    unsigned int i1:1;
-    unsigned int i2:1;
-    unsigned int :2;
-    unsigned int s:1;
-    unsigned int :1;
-    unsigned int t:1;
+#ifndef uint8_tS_HIGHFIRST
+    uint32_t c:1;
+    uint32_t v:1;
+    uint32_t z:1;
+    uint32_t n:1;
+    uint32_t x:1;
+    uint32_t :3;
+    uint32_t i0:1;
+    uint32_t i1:1;
+    uint32_t i2:1;
+    uint32_t :2;
+    uint32_t s:1;
+    uint32_t :1;
+    uint32_t t:1;
 #else
-    unsigned int t:1;
-    unsigned int :1;
-    unsigned int s:1;
-    unsigned int :2;
-    unsigned int i2:1;
-    unsigned int i1:1;
-    unsigned int i0:1;
-    unsigned int :3;
-    unsigned int x:1;
-    unsigned int n:1;
-    unsigned int z:1;
-    unsigned int v:1;
-    unsigned int c:1;
+    uint32_t t:1;
+    uint32_t :1;
+    uint32_t s:1;
+    uint32_t :2;
+    uint32_t i2:1;
+    uint32_t i1:1;
+    uint32_t i0:1;
+    uint32_t :3;
+    uint32_t x:1;
+    uint32_t n:1;
+    uint32_t z:1;
+    uint32_t v:1;
+    uint32_t c:1;
 #endif
   } sr_struct;
-  uint16 sr_int;
+  uint16_t sr_int;
 } t_sr;
 
 typedef struct {
-  uint32 pc;
-  uint32 sp;
+  uint32_t pc;
+  uint32_t sp;
   t_sr sr;
-  uint16 stop;
-  uint32 regs[16];
-  uint16 pending;
+  uint16_t stop;
+  uint32_t regs[16];
+  uint16_t pending;
 } t_regs;
 
 #define SR_CFLAG (1<<0)
