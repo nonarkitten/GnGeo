@@ -1,7 +1,7 @@
-# Amiga-GnGeo
-Neo Geo Emulator for M68K Amiga Computers 
+# GnGeo
+Neo Geo Emulator for M68K Amiga Computers.
 
-This is a deep port of the GNGEO emulator for the M68K platform suitable for 68060 and Vampire equiopped Amiga computers.
+This is a deep port of the GNGEO emulator for the M68K platform suitable for 68060 and Vampire equiopped Amiga computers. Due to substantial deviations from the original Amiga-GnGeo fork, I've de-forked the whole repository.
 
 Done:
 - removed requirement with ixemul; ixemul made a lot of tasks in GNGEO slower than they needed to be (especially with file handling).
@@ -13,15 +13,16 @@ Done:
 - convert ROM images from ZIP to LZ4W
 - removed sin and exp tables from audio
 - compressed EXE to bring it under 200KB
-
-In-Progress:
-- rewrite sprite rendering to use M68K and (optional) AMMX code; note that AMMX is specifically useful for helping with the CLUT mapping and scaling, but simply rewriting in assembly is a huge jump in performance -- this is mostly done and inline-M68K has nearly matched AMMX in overall game performance; need to find a way to inline AMMX now.
+- rewrite fixed and tile rendering to use M68K and AMMX code
+- supports audio at different sample depth (8/14-bit) and 16-bit on Vampire "Pamela" sound
+- args may now come from gngeo.config globally, the name.info file or via command line
+- frameskip simplified to half-rate (30/25Hz for NTSC/PAL) mode
+- removed interleaved mode as we're able to hit 50Hz with just frameskip
+- added M68K emulation detuning (80-90% seems to improve performance nicely)
+- made gamepad support option and added non-CD32 3-button support
 
 To-do:
-- correctly support audio at different sample depth (8/14-bit) and rates
-- add per-game mapping of ReadArgs as a form of configuration file
 - fix vsync and triple buffer timing to SAGA or AGA (vsync should lock updates to the retrace and should have nothing to do with the speed of the game and/or whether or not frame-skip is enabled).
-- fix frame-skip timing with or wintout vsync (frame skip should make games more playable on slower systems, right now this does not work at all)
 - reimplement user-configurable key mapping
 - rewrite the audio engine with M68K and (optional) AMMX code
 - reimplement save states using ~~LZ4W~~ raw blobs (LZ4W is too slow at compressing)
