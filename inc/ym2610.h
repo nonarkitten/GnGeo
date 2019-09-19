@@ -16,7 +16,7 @@
 /* for busy flag emulation , function FM_GET_TIME_NOW() should be */
 /* return the present time in second unit with (double) value     */
 /* in timer.c */
-#define FM_GET_TIME_NOW() timer_get_time()
+#define FM_GET_TIME_NOW() timer_get_time_ms()
 
 typedef s16 FMSAMPLE;
 typedef s32 FMSAMPLE_MIX;

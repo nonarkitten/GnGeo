@@ -10,6 +10,6 @@ typedef struct {
 	unsigned char * font_bitmap;
 } font_t;
 
-extern const font_t font_6x8[];
+extern const font_t font_6x8;
 
 #endif /* FONT_H_ */

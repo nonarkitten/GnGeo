@@ -19,28 +19,20 @@
 #ifndef _TIMER_H_
 #define _TIMER_H_
 
- 
-
-typedef struct timer_struct {
-    double time;		// when
-//	Uint32 time;		// when
-    Uint32 odo_debut;
-    Uint32 nb_cycle;
-    int param;
-    Uint32 del_it;
-    void (*func) (int param);
-    struct timer_struct *next;
-} timer_struct;
+typedef struct timer_struct timer_struct; 
+typedef void(*timer_callback)(int);
 
 extern double timer_count;
 //extern Uint32 timer_count;
-
-timer_struct *insert_timer(double duration, int param, void (*func) (int));
 //timer_struct *insert_timer(Uint32 duration, int param, void (*func) (int));
-void del_timer(timer_struct * ts);
-void my_timer(void);
-double timer_get_time(void);
 //Uint32 timer_get_time(void);
+
+Uint32 timer_get_time_ms(void);
+timer_struct *insert_timer(Uint32, int, timer_callback);
+void del_timer(timer_struct * ts);
 void free_all_timer(void);
+
+// call frequently to avoid missed timers
+void my_timer(void);
 
 #endif

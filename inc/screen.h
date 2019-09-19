@@ -13,6 +13,8 @@
 #include "emu.h"
 #include "list.h"
 
+#define PITCH 768
+
 // typedef struct RGB2YUV
 // {
 //   Uint16 y;

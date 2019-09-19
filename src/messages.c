@@ -20,8 +20,10 @@
 #include <config.h>
 #endif
 
+#define MESSAGE_DELAY 3000
+
 #include <string.h>
-//#include "SDL.h"
+
 #include "messages.h"
 #include "video.h"
 #include "emu.h"
@@ -33,31 +35,57 @@
 
 #include "font.h"
 
-static char message_buffer[128] = { 0 };
+static char message[128] = { 0 };
 static timer_struct *msg_timer;
-/*
-void stop_message(int param)
-{
-  conf.do_message=0;
-  msg_timer=NULL;
-}
-*/
-void draw_message(const char *string)
-{
-    /*
-       if (msg_timer!=NULL)
-       del_timer(msg_timer);
-       msg_timer=NULL;
-     */
-    strcpy(message_buffer, string);
-    //conf.do_message = 75;
-    //msg_timer=insert_timer(1.0,0,stop_message);
+extern 
+
+void stop_message(int param) {
+	msg_timer = NULL;
+	message[0] = 0;
 }
 
+void draw_message(const char *string) {
+	if (msg_timer == NULL) {
+		msg_timer = timer_insert(MESSAGE_DELAY, 0, stop_message);
+	} else {
+		timer_set_time(msg_timer, MESSAGE_DELAY);
+	}
+    strcpy(message, string);
+}
 
-#define LEFT 1
-#define RIGHT 2
-#define BACKSPACE 3
-#define DEL 4
+#draw_pixel(X,Y,C) bufferpixels[((X)<<1) + ((Y) * PITCH)]=(C)
+
+void render_message(int fps) {
+	static char display_buffer[256] = { 0 };
+	unsigned char * bitmap, c;
+	int len, i, x, y, bytes_per_row;
+
+	if (args[OPTION_SHOWFPS])
+		len = sprintf(display_buffer, "%3d fps %s", fps, message);
+	else
+		len = sprintf(display_buffer, "        %s", fps, message);
+
+	bytes_per_row = font_6x8.char_height * (font_6x8.char_width / 8);
+	for (i = 0; i < len; i++) {
+		c = display_buffer[i];
+		if (c >= font_6x8.first_char && c <= font_6x8.last_char) {
+			c -= font_6x8.first_char;
+			bitmap = &font_6x8.font_bitmap[bytes_per_row * c];
+			for (y = 0; y < font_6x8.char_height) {
+				bits = font_6x8.char_width;
+				for (bytes = 0; bytes < bytes_per_row; bytes++) {
+					c = *bitmap++;
+					for (x = 0; x < 8; x++) {
+						if (c & 0x80) draw_pixel(20 + x, 4 + y, 0xFFFF);
+						c <<= 1;
+					}
+					bits -= 8;
+				}
+			}
+		}
+	}
+	
+}
+
 
  

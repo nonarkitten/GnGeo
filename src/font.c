@@ -1,6 +1,6 @@
 #include "font.h"
 
-unsigned char font_6x8[] = {
+static const unsigned char font_6x8_bitmap[] = {
 
 	/*
 	 * code=0, hex=0x00, ascii="^@"
@@ -3073,4 +3073,13 @@ unsigned char font_6x8[] = {
 	0x00,  /* 000000 */
 	0x00,  /* 000000 */
 	0x00,  /* 000000 */
+};
+
+const font_t font_6x8 {
+	6, //unsigned char_width;
+	8, //unsigned char_height;
+	"Console 6x8", //const char * font_name;
+	0, //unsigned char first_char;
+	255, //unsigned char last_char;
+	font_6x8_bitmap, // unsigned char * font_bitmap;
 };

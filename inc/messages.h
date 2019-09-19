@@ -22,9 +22,11 @@
 //#include <SDL.h>
 
 void draw_message(const char *string);
-void stop_message(int param);
+//void stop_message(int param);
 //void SDL_textout(SDL_Surface * dest, int x, int y, const char *string);
-void text_input(const char *message,int x,int y,char *string,int size);
-void error_box(char *fmt,...);
+void render_message(int fps);
+
+//void text_input(const char *message,int x,int y,char *string,int size);
+//void error_box(char *fmt,...);
 
 #endif

@@ -11,8 +11,6 @@
 #include <cybergraphx/cybergraphics.h>
 #include <proto/cybergraphics.h>
 
-#define PITCH 768
-
 #define PEN_USAGE(tileno) ((((Uint32*) memory.rom.spr_usage.p)[tileno>>4]>>((tileno&0xF)*2))&0x3)
 
 typedef union {

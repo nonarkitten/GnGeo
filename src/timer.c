@@ -27,111 +27,75 @@
 #include "state.h"
 #include "ym2610/ym2610.h"
 
-double timer_count;
-//Uint32 timer_count;
+typedef struct timer_struct {
+	struct timer_struct *next;	// process each timer as a list
+	struct TimeVal when;		// timer interval (are eclocks faster?)
+	void(*func) (int param);	// callback when tiemr expires
+	int param;					// parameter to pass to callback
+} timer_struct;
 
-timer_struct *timer_list;
-#define MAX_TIMER 3
-timer_struct timers[MAX_TIMER];
-extern int nb_interlace;
-//int nb_timer=0;
+static timer_struct *timer_list = NULL;
+static struct TimeVal now;
 
-double timer_get_time(void) {
-//Uint32 timer_get_time(void) {
-    return timer_count;
+Uint32 timer_get_time_ms(void) {
+	GetSysTime(&now);
+	return now.Seconds * 1000 + now.Microseconds / 1000;
 }
 
-timer_struct *insert_timer(double duration, int param, void (*func) (int))
-//timer_struct *insert_timer(Uint32 duration, int param, void (*func) (int))
-{
-    int i;
-    for (i = 0; i < MAX_TIMER; i++) {
-	if (timers[i].del_it) {
-	    timers[i].time = timer_count + duration;
-	    timers[i].param = param;
-	    timers[i].func = func;
-	    //debug("Insert_timer %d duration=%f param=%d\n",i,duration,timers[i].param);
-	    timers[i].del_it = 0;
-	    return &timers[i];
+timer_struct *insert_timer(Uint32 duration_ms, int param, timer_callback func) {
+	timer_struct *timer = AllocVec(sizeof(timer_struct), MEMF_PUBLIC);
+	if (timer) {
+		// Initialize timer
+		GetSysTime(&now);
+		timer->when.Seconds = duration_ms / 1000;
+		timer->when.Microseconds = (duration_ms % 1000) * 1000;
+		timer->AddTime(&timer->when, now);
+		timer->func = func;
+		timer->param = param;
+
+		// Insert timer
+		timer->next = timer_list;
+		timer_list = timer;
+		return timer;
+
+	} else {
+		debug("YM2610: No timer free!\n");
+		return NULL;
 	}
-    }
-    debug("YM2610: No timer free!\n");
-    return NULL;		/* No timer free */
 }
 
 void free_all_timer(void) {
-    int i;
-    for (i = 0; i < MAX_TIMER; i++) {
-	timers[i].del_it=1;
-    }
-}
-
-void timer_callback_2610(int param);
-void timer_post_load_state(void) {
-    int i;
-    for (i = 0; i < MAX_TIMER; i++) {
-	if (timers[i].del_it) {
-	    timers[i].func=NULL;
-	} else {
-	    /* FIXME: Ugly.... */
-	    timers[i].func=timer_callback_2610;
+	timer_struct *timer = timer_list, *next;
+	while (timer) {
+		next = timer->next;
+		FreeVec(timer);
+		timer = next;
 	}
-    }
 }
 
-void timer_pre_save_state(void)
-{
-
-}
-
-void timer_init_save_state(void) {
-    int i;
-    create_state_register(ST_TIMER,"timer_count",1,&timer_count,sizeof(double),REG_UINT32);
-
-    for(i=0;i<MAX_TIMER;i++) {
-	create_state_register(ST_TIMER,"t.del_it",i,&timers[i].del_it,sizeof(Uint32),REG_UINT32);
-	create_state_register(ST_TIMER,"t.time",i,&timers[i].time,sizeof(double),REG_UINT32);
-	create_state_register(ST_TIMER,"t.param",i,&timers[i].param,sizeof(Sint32),REG_INT32);
-    }
-    set_post_load_function(ST_TIMER,timer_post_load_state);
-    set_pre_save_function(ST_TIMER,timer_pre_save_state);
-}
-
-void del_timer(timer_struct * ts)
-{
-    ts->del_it = 1;
-}
-
-static double inc;
-//static Uint32 inc;
-
-void my_timer(void)
-{
-    static int init = 1;
-    int i;
-
-    if (init) {
-	timer_init_save_state();
-	init = 0;
-
-	if (arg[OPTION_PAL]) {
-		inc = ((double) (0.02) / nb_interlace);/* *(1<<TIMER_SH);*/
-			  //(arg[OPTION_SAMPLERATE] ? (double) nb_interlace : 1.0);
-	} else {
-		inc = ((double) (0.01666) / nb_interlace); /* *(1<<TIMER_SH); */
-		//(arg[OPTION_SAMPLERATE] ? (double) nb_interlace : 1.0);
+void del_timer(timer_struct * ts) {
+	timer_struct *timer = &timer_list;
+	while (timer) {
+		if (timer->next == ts) {
+			timer->next = timer->next->next;
+			FreeVec(timer->next);
+			break;
+		}
+		timer = timer->next;
 	}
-	for (i = 0; i < MAX_TIMER; i++)
-	    timers[i].del_it = 1;
-    }
+}
 
-    timer_count += inc;		/* 16ms par frame */
+// call frequently to avoid missed timers
+void my_timer(void) {
+	static timer_struct *timer = NULL;
+	timer_struct *next;
+	GetSysTime(&now);
+	if (!timer) timer = timer_list;
 
-    for (i = 0; i < MAX_TIMER; i++) {
-	if (timer_count >= timers[i].time && timers[i].del_it == 0) {
-	    //debug("Timer_expire %d duration=%f param=%d\n",i,timers[i].time,timers[i].param);
-	    if (timers[i].func) timers[i].func(timers[i].param);
-	    timers[i].del_it = 1;
+	next = timer->next;
+	if (CmpTime(now, timer->when) == 1) {
+		if (timers[i].func) timers[i].func(timers[i].param);
+		FreeVec(timer);
 	}
-    }
+	timer = next;
 }
