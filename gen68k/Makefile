@@ -28,11 +28,11 @@ $(CURDIR)/$(APPNAME):
 	ar q $(CURDIR)/$(APPNAME) $(OBJS)
 	ranlib $(CURDIR)/$(APPNAME)
 
-def68k.exe: def68k.c tab68k.c def68k.def
+def68k.exe: def68k.c tab68k.c def68k.def *.h
 	$(CC) -o def68k.exe def68k.c tab68k.c
 	def68k.exe
 
-gen68k.exe: gen68k.c tab68k.c def68k-funcs.h def68k-iibs.h def68k-proto.h 
+gen68k.exe: gen68k.c tab68k.c def68k-funcs.h def68k-iibs.h def68k-proto.h  *.h
 	$(CC) -o gen68k.exe gen68k.c tab68k.c
 	gen68k.exe
 	

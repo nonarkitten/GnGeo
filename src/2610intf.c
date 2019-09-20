@@ -45,7 +45,7 @@ static void TimerHandler(int c, int count, uint32_t stepTime) {
 	//debug("TimerHandler %d %d %f\n",c,count,stepTime);
 	if (count == 0) {		/* Reset FM Timer */
 		if (Timer[c]) {
-			del_timer(Timer[c]);
+			timer_free(Timer[c]);
 			Timer[c] = 0;
 		}
 	} else {			/* Start FM Timer */
@@ -54,7 +54,7 @@ static void TimerHandler(int c, int count, uint32_t stepTime) {
 		
 		if (Timer[c] == 0) {
 			Timer[c] =
-				(timer_struct *) insert_timer(timeSec, c,
+				(timer_struct *) timer_insert(timeSec, c,
 							      timer_callback_2610);
 		}
 	}
@@ -63,7 +63,7 @@ static void TimerHandler(int c, int count, uint32_t stepTime) {
 void FMTimerInit(void)
 {
     Timer[0] = Timer[1] = 0;
-    free_all_timer();
+    timer_free_all();
 }
 
 int YM2610_sh_start(void)

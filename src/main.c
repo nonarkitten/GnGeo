@@ -148,10 +148,10 @@ int main(int argc, char *argv[]) {
 
 	atexit(cleanup);
 
-    I_InitTimer();
+    //I_InitTimer();
 	//reset_frame_skip();
 
-	initStart = getMilliseconds();
+	initStart = timer_get_time_ms();
 	if (init_game(rom_name)!=TRUE) {
 		error("Can't init %s...\n",rom_name);
 	}
@@ -159,7 +159,7 @@ int main(int argc, char *argv[]) {
 	//convert_audio_rom();
 	init_sdl();
 	
-	debug("Startup took %u ms, ", (uint32_t)((int)getMilliseconds() - (int)initStart));
+	debug("Startup took %u ms, ", (uint32_t)((int)timer_get_time_ms() - (int)initStart));
 	suspend_os();
 	main_loop();
 

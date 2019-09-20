@@ -280,7 +280,7 @@ __saveds __interrupt static int AudioServer(ChanT num asm("a1")) {
 	void *temp;
 	
 	if(!paused) {
-		if(arg[OPTION_BENCH]) timerTemp = getMilliseconds();
+		if(arg[OPTION_BENCH]) timerTemp = timer_get_time_ms();
 
 		if(enablePAM) {
 			// kick off next chunk	
@@ -310,7 +310,7 @@ __saveds __interrupt static int AudioServer(ChanT num asm("a1")) {
 			temp = lLBuffer; lLBuffer = _lLBuffer; _lLBuffer = temp;
 		}
 
-		if(arg[OPTION_BENCH]) timerSound += (uint32_t)((int)getMilliseconds() - (int)timerTemp);
+		if(arg[OPTION_BENCH]) timerSound += (uint32_t)((int)timer_get_time_ms() - (int)timerTemp);
 	}
 	custom->intreq = 1 << INTB_AUD0;
 	return 0;

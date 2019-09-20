@@ -33,6 +33,8 @@
 #include "state.h"
 #include "ym2610.h"
 
+struct Library *TimerBase;
+
 struct timer_struct {
 	struct timer_struct *next;	// list of timers
 	struct timeval when;		// timer interval (are eclocks faster?)
@@ -83,7 +85,7 @@ void timer_free_all (void) {
 	}
 }
 
-void timer_del(timer_struct * ts) {
+void timer_free(timer_struct * ts) {
 	timer_struct *timer = &timer_list;
 	while (timer) {
 		if (timer->next == ts) {
@@ -95,12 +97,18 @@ void timer_del(timer_struct * ts) {
 	}
 }
 
+void timer_init(void) {
+	static struct IORequest timereq;
+	OpenDevice("timer.device", 0, &timereq, 0);
+	TimerBase = timereq.io_Device;
+}
+
 // call frequently to avoid missed timers
 void timer_run(void) {
 	static timer_struct *timer = NULL;
 	timer_struct *next;
 	int i;
-	
+
 	GetSysTime(&now);
 	if (!timer) timer = timer_list;
 

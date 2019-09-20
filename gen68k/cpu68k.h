@@ -42,7 +42,6 @@ extern uint32_t cpu68k_frozen;
 extern t_iib iibs[];
 extern int iibs_num;
 
-
 int cpu68k_init(void);
 void cpu68k_printipc(t_ipc *ipc);
 void cpu68k_ipc(uint32_t addr68k, uint8_t *addr, t_iib *iib, t_ipc *ipc);

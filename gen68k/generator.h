@@ -13,6 +13,8 @@
 
 #define LEN_IPCLISTTABLE 16*1024
 
+#define debug(...)
+
 //#define GENERATOR_JIT
 
 /*

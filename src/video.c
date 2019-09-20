@@ -98,8 +98,9 @@ uint32_t dda_y_skip_i;
 uint32_t full_y_skip_i = 0xFFFE;
 char full_y_skip[16] = {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
 uint32_t neogeo_frame_counter_speed = 8;
-static uint16_t fix_addr[40][32];
-static uint8_t fix_shift[40];
+
+// static uint16_t fix_addr[40][32];
+// static uint8_t fix_shift[40];
 
 static uint16_t dda_x_skip_i;
 const uint16_t ddaxskip_i[17] = {
@@ -108,13 +109,13 @@ const uint16_t ddaxskip_i[17] = {
 };
 #define dda_x_skip(N) (dda_x_skip_i & (1 << N))
 static void fix_value_init(void) {
-	int x, y;
-	for (x = 0; x < 40; x++) {
-		for (y = 0; y < 32; y++) {
-			fix_addr[x][y] = 0xea00 + (y << 1) + 64 * (x / 6);
-		}
-		fix_shift[x] = (5 - (x % 6));
-	}
+	// int x, y;
+	// for (x = 0; x < 40; x++) {
+	// 	for (y = 0; y < 32; y++) {
+	// 		fix_addr[x][y] = 0xea00 + (y << 1) + 64 * (x / 6);
+	// 	}
+	// 	fix_shift[x] = (5 - (x % 6));
+	// }
 }
 
 
