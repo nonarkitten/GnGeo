@@ -28,10 +28,11 @@
 
 #include <stdlib.h>
 
-#include "generator68k/generator.h"
-#include "generator68k/cpu68k.h"
-#include "generator68k/reg68k.h"
-#include "generator68k/mem68k.h"
+#include "gen68k/generator.h"
+#include "gen68k/cpu68k.h"
+#include "gen68k/reg68k.h"
+#include "gen68k/mem68k.h"
+
 #include "memory.h"
 #include "emu.h"
 #include "state.h"
@@ -39,20 +40,20 @@
 #include "conf.h"
 
 extern unsigned int cpu68k_clocks;
-extern Uint8 *cpu68k_rom;
+extern uint8_t *cpu68k_rom;
 extern unsigned int cpu68k_romlen;
-extern Uint8 *cpu68k_ram;
+extern uint8_t *cpu68k_ram;
 
-extern Uint32 reg68k_pc;
+extern uint32_t reg68k_pc;
 extern t_sr reg68k_sr;
 
-Uint8 *mem68k_memptr_bad(Uint32 addr);
-Uint8 *mem68k_memptr_cpu(Uint32 addr);
-Uint8 *mem68k_memptr_bios(Uint32 addr);
-Uint8 *mem68k_memptr_cpu_bk(Uint32 addr);
-Uint8 *mem68k_memptr_ram(Uint32 addr);
+uint8_t *mem68k_memptr_bad(uint32_t addr);
+uint8_t *mem68k_memptr_cpu(uint32_t addr);
+uint8_t *mem68k_memptr_bios(uint32_t addr);
+uint8_t *mem68k_memptr_cpu_bk(uint32_t addr);
+uint8_t *mem68k_memptr_ram(uint32_t addr);
 
-int diss68k_getdumpline(uint32 addr68k, uint8 *addr, char *dumpline);
+int diss68k_getdumpline(uint32_t addr68k, uint8_t *addr, char *dumpline);
 
 t_mem68k_def mem68k_def[] = {
     {0x000, 0x1000, mem68k_memptr_bad,
@@ -147,15 +148,15 @@ t_mem68k_def mem68k_def[] = {
 
 };
 
-Uint8 *(*mem68k_memptr[0x1000]) (Uint32 addr);
-Uint8(*mem68k_fetch_byte[0x1000]) (Uint32 addr);
-Uint16(*mem68k_fetch_word[0x1000]) (Uint32 addr);
-Uint32(*mem68k_fetch_long[0x1000]) (Uint32 addr);
-void (*mem68k_store_byte[0x1000]) (Uint32 addr, Uint8 data);
-void (*mem68k_store_word[0x1000]) (Uint32 addr, Uint16 data);
-void (*mem68k_store_long[0x1000]) (Uint32 addr, Uint32 data);
+uint8_t *(*mem68k_memptr[0x1000]) (uint32_t addr);
+uint8_t(*mem68k_fetch_byte[0x1000]) (uint32_t addr);
+uint16_t(*mem68k_fetch_word[0x1000]) (uint32_t addr);
+uint32_t(*mem68k_fetch_long[0x1000]) (uint32_t addr);
+void (*mem68k_store_byte[0x1000]) (uint32_t addr, uint8_t data);
+void (*mem68k_store_word[0x1000]) (uint32_t addr, uint16_t data);
+void (*mem68k_store_long[0x1000]) (uint32_t addr, uint32_t data);
 
-static void swap_memory(Uint8 * mem, Uint32 length)
+static void swap_memory(uint8_t * mem, uint32_t length)
 {
     int i, j;
 
@@ -201,12 +202,12 @@ int mem68k_init(void)
 
 /*** memptr routines - called for IPC generation so speed is not vital ***/
 
-Uint8 *mem68k_memptr_bad(Uint32 addr)
+uint8_t *mem68k_memptr_bad(uint32_t addr)
 {
     return memory.rom.cpu_m68k.p;
 }
 
-Uint8 *mem68k_memptr_cpu(Uint32 addr)
+uint8_t *mem68k_memptr_cpu(uint32_t addr)
 {
     if (addr < cpu68k_romlen) {
 	return (memory.rom.cpu_m68k.p + addr);
@@ -215,27 +216,27 @@ Uint8 *mem68k_memptr_cpu(Uint32 addr)
     return memory.rom.cpu_m68k.p;
 }
 
-Uint8 *mem68k_memptr_bios(Uint32 addr)
+uint8_t *mem68k_memptr_bios(uint32_t addr)
 {
     addr &= 0x1FFFF;
     return (memory.rom.bios_m68k.p + addr);
 }
 
-Uint8 *mem68k_memptr_cpu_bk(Uint32 addr)
+uint8_t *mem68k_memptr_cpu_bk(uint32_t addr)
 {
     addr &= 0xFFFFF;
     //debug("mem68k_memptr_cpu_bk %x %x %d\n",addr,bankaddress,current_cpu_bank);
     return (memory.rom.cpu_m68k.p + addr + bankaddress);
 }
 
-Uint8 *mem68k_memptr_ram(Uint32 addr)
+uint8_t *mem68k_memptr_ram(uint32_t addr)
 {
     addr &= 0xffff;
     return (memory.ram + addr);
 }
 
 
-void cpu_68k_bankswitch(Uint32 address)
+void cpu_68k_bankswitch(uint32_t address)
 {
 
     bankaddress = address;
@@ -249,13 +250,13 @@ void cpu_68k_reset(void)
 
 
 /* Save State */
-static Uint32 sr,pc,mregs[16],asp;
+static uint32_t sr,pc,mregs[16],asp;
 void cpu_68k_post_load_state(void)
 {
     regs.pc=pc;
     regs.sr.sr_int=sr;
     regs.sp=asp;
-    memcpy(regs.regs,mregs,16*sizeof(Uint32));
+    memcpy(regs.regs,mregs,16*sizeof(uint32_t));
     cpu_68k_bankswitch(bankaddress);
     debug("POSTLOAD %08x %08x %08x\n",pc,sr,mregs[15]);
 }
@@ -265,19 +266,19 @@ void cpu_68k_pre_save_state(void)
     pc=regs.pc;
     sr=regs.sr.sr_int;
     asp=regs.sp;
-    memcpy(mregs,regs.regs,16*sizeof(Uint32));
+    memcpy(mregs,regs.regs,16*sizeof(uint32_t));
     debug("PRESAVE  %08x %08x %08x\n",pc,sr,mregs[15]);
 }
 static void cpu_68k_init_save_state(void) {
-    create_state_register(ST_68k,"dreg",1,(void *)mregs,sizeof(Uint32)*8,REG_UINT32);
-    create_state_register(ST_68k,"areg",1,(void *)(&mregs[8]),sizeof(Uint32)*8,REG_UINT32);
-    create_state_register(ST_68k,"pc",1,(void *)&pc,sizeof(Uint32),REG_UINT32);
-    create_state_register(ST_68k,"asp",1,(void *)&asp,sizeof(Uint32),REG_UINT32);
-    create_state_register(ST_68k,"sr",1,(void *)&sr,sizeof(Uint32),REG_UINT32);
-    create_state_register(ST_68k,"bank",1,(void *)&bankaddress,sizeof(Uint32),REG_UINT32);
-    create_state_register(ST_68k,"ram",1,(void *)memory.ram,0x10000,REG_UINT8);
- //  create_state_register(ST_68k,"kof2003_bksw",1,(void *)memory.kof2003_bksw,0x1000,REG_UINT8);
-    create_state_register(ST_68k,"current_vector",1,(void *)memory.rom.cpu_m68k.p,0x80,REG_UINT8);
+    create_state_register(ST_68k,"dreg",1,(void *)mregs,sizeof(uint32_t)*8,REG_uint32_t);
+    create_state_register(ST_68k,"areg",1,(void *)(&mregs[8]),sizeof(uint32_t)*8,REG_uint32_t);
+    create_state_register(ST_68k,"pc",1,(void *)&pc,sizeof(uint32_t),REG_uint32_t);
+    create_state_register(ST_68k,"asp",1,(void *)&asp,sizeof(uint32_t),REG_uint32_t);
+    create_state_register(ST_68k,"sr",1,(void *)&sr,sizeof(uint32_t),REG_uint32_t);
+    create_state_register(ST_68k,"bank",1,(void *)&bankaddress,sizeof(uint32_t),REG_uint32_t);
+    create_state_register(ST_68k,"ram",1,(void *)memory.ram,0x10000,REG_uint8_t);
+ //  create_state_register(ST_68k,"kof2003_bksw",1,(void *)memory.kof2003_bksw,0x1000,REG_uint8_t);
+    create_state_register(ST_68k,"current_vector",1,(void *)memory.rom.cpu_m68k.p,0x80,REG_uint8_t);
     set_post_load_function(ST_68k,cpu_68k_post_load_state);
     set_pre_save_function(ST_68k,cpu_68k_pre_save_state);
 }
@@ -320,7 +321,7 @@ void cpu_68k_init(void)
 }
 
 
-int cpu_68k_run(Uint32 nb_cycle)
+int cpu_68k_run(uint32_t nb_cycle)
 {
     static int n;
     n = reg68k_external_execute(nb_cycle);
@@ -329,18 +330,18 @@ int cpu_68k_run(Uint32 nb_cycle)
     pc=regs.pc;
     sr=regs.sr.sr_int;
     asp=regs.sp;
-    memcpy(mregs,regs.regs,16*sizeof(Uint32));
+    memcpy(mregs,regs.regs,16*sizeof(uint32_t));
     */
     cpu68k_endfield();
     return n;
 }
 
 /* Debuger interface */
-static Uint32 gen68k_disassemble(int pc, int nb_instr)
+static uint32_t gen68k_disassemble(int pc, int nb_instr)
 {
     int i;
     char buf[512];
-    Uint8 *addr;
+    uint8_t *addr;
     //debug("%x\n",pc);
     for (i = 0; i < nb_instr; i++) {
 	addr = mem68k_memptr[pc >> 12] (pc);
@@ -369,9 +370,9 @@ static void gen68k_dumpreg(void)
     
 }
 
-static void hexdump(Uint32 addr) {
-    Uint8 c, tmpchar[16];
-    Uint32 tmpaddr;
+static void hexdump(uint32_t addr) {
+    uint8_t c, tmpchar[16];
+    uint32_t tmpaddr;
     int i, j, k;
     tmpaddr = addr & 0xFFFFFFF0;
     for(i = 0; i < 8; i++) {
@@ -403,7 +404,7 @@ static void hexdump(Uint32 addr) {
     //addr += 0x80;
 }
 
-Uint32 cpu_68k_getpc(void)
+uint32_t cpu_68k_getpc(void)
 {
     return regs.pc;
 }
