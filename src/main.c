@@ -113,6 +113,7 @@ int HostCpuClock = 0;
 int HostPAL = 0;
 int AC68080 = 0;
 int real_AC68080 = 0;
+uint32_t initStart;
 
 extern void ParseArguments(int argc, char *argv[]);
 extern void convert_audio_rom(void);
@@ -121,19 +122,23 @@ extern const uint8_t gngeo_logo_clut[];
 static void load_logo(void) {
 	uint16_t pal[16] = { 0 };
 	uint8_t *logo = gngeo_logo;
-	uint16_t *pix = bufferpixels;
+	uint16_t *pix;
 	int i, x;
 
 	for(i=0;i<16;i++) {
-		uint8_t r = gngeo_logo_clut[i * 4 + 0] & 0xF8;
+		uint8_t b = gngeo_logo_clut[i * 4 + 0] & 0xF8;
 		uint8_t g = gngeo_logo_clut[i * 4 + 1] & 0xFC;
-		uint8_t b = gngeo_logo_clut[i * 4 + 2] & 0xF8;
+		uint8_t r = gngeo_logo_clut[i * 4 + 2] & 0xF8;
 		uint16_t c = (r << 8) | (g << 3) | b;
 		pal[i] = c;
 	}
+	screen_prerender();
+	pix = bufferpixels;
 	for(i=0;i<200;i++) {
 		for(x=0;x<320;x++) {
-			*pix++ = pal[*logo++];
+			uint8_t pp = *logo++;
+			*pix++ = pal[pp >> 4];
+			*pix++ = pal[pp & 15];
 		}
 		pix += (PITCH >> 1) - 320;
 	}
@@ -143,7 +148,9 @@ int main(int argc, char *argv[]) {
     char *rom_name;
     BPTR file_lock;
     int bench = 0;
-    uint32_t initStart;
+
+	timer_init();
+	initStart = timer_get_time_ms();
 
     if(!LowLevelBase) LowLevelBase = (struct Library *) OpenLibrary("lowlevel.library",0);
 	if(!LowLevelBase) exit(-1);
@@ -157,11 +164,13 @@ int main(int argc, char *argv[]) {
 	}
 	AC68080 = !!(SysBase->AttnFlags & (1<<10));
 	real_AC68080 = AC68080;
-		
+			
 	ParseArguments(argc, argv);
 	if(!arg[OPTION_DEBUG]) {
 		init_sdl();
 		load_logo();
+		load_logo();
+		while(((int)timer_get_time_ms() - initStart) < 4000) ;	
 	}
 
 	file_lock = GetProgramDir();
@@ -174,8 +183,6 @@ int main(int argc, char *argv[]) {
 
 	atexit(cleanup);
 
-	timer_init();
-	initStart = timer_get_time_ms();
 	if (init_game(rom_name)!=TRUE) {
 		error("Can't init %s...\n",rom_name);
 	}
