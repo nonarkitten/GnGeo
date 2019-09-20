@@ -17,7 +17,14 @@
  */
 
 #include <config.h>
-#include <exec/lists.h>
+
+#include <exec/types.h>
+#include <exec/io.h>
+#include <exec/memory.h>
+#include <devices/timer.h> 
+#include <proto/exec.h>
+#include <proto/dos.h>
+#include <clib/timer_protos.h>
 
 #include <stdlib.h>
 #include "conf.h"
@@ -26,26 +33,26 @@
 #include "state.h"
 #include "ym2610.h"
 
-typedef struct timer_struct {
-	struct timer_struct next;	// list of timers
-	struct TimeVal when;		// timer interval (are eclocks faster?)
+struct timer_struct {
+	struct timer_struct *next;	// list of timers
+	struct timeval when;		// timer interval (are eclocks faster?)
 	void(*func) (int param);	// callback when tiemr expires
 	int param;					// parameter to pass to callback
-} timer_struct;
+};
 
 static timer_struct *timer_list = NULL;
-static struct TimeVal now;
+static struct timeval now;
 
 uint32_t timer_get_time_ms(void) {
 	GetSysTime(&now);
-	return now.Seconds * 1000 + now.Microseconds / 1000;
+	return now.tv_secs * 1000 + now.tv_micro / 1000;
 }
 
 void timer_set_time(timer_struct *timer, uint32_t duration_ms) {
 	GetSysTime(&now);
-	timer->when.Seconds = duration_ms / 1000;
-	timer->when.Microseconds = (duration_ms % 1000) * 1000;
-	timer->AddTime(&timer->when, now);
+	timer->when.tv_secs = duration_ms / 1000;
+	timer->when.tv_micro = (duration_ms % 1000) * 1000;
+	AddTime(&timer->when, &now);
 }
 
 timer_struct *timer_insert(uint32_t duration_ms, int param, timer_callback func) {
@@ -92,12 +99,15 @@ void timer_del(timer_struct * ts) {
 void timer_run(void) {
 	static timer_struct *timer = NULL;
 	timer_struct *next;
+	int i;
+	
 	GetSysTime(&now);
 	if (!timer) timer = timer_list;
 
+
 	next = timer->next;
-	if (CmpTime(now, timer->when) == 1) {
-		if (timers[i].func) timers[i].func(timers[i].param);
+	if (CmpTime(&now, &timer->when) == 1) {
+		if (timer->func) timer->func(timer->param);
 		FreeVec(timer);
 	}
 	timer = next;
