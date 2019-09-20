@@ -12,7 +12,7 @@ struct pd4990a_s
   int year;
   int weekday;
 };
-
+ 
 void pd4990a_init(void);
 //void pd4990a_init_save_state(void);
 void pd4990a_addretrace(void);

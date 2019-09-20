@@ -1,6 +1,6 @@
 #ifndef __2610INTF_H__
 #define __2610INTF_H__
-
+ 
 #include <config.h>
 #include "ym2610.h"
 

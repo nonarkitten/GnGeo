@@ -14,7 +14,7 @@
  ***************************************************************************/
 
 /*--------------------------------------------------------------------------
-
+ 
  History:
 
  03-08-2003 Jarek Burczynski:
@@ -170,7 +170,7 @@
 #define ENV_QUIET		(TL_TAB_LEN>>3)
 
 /* sin waveform table in 'decibel' scale */
-//static uint32_t ALIGN_DATA sin_tab[SIN_LEN];
+//static unsigned int ALIGN_DATA sin_tab[SIN_LEN];
 
 /* sustain level table (3dB per step) */
 /* bit0, bit1, bit2, bit3, bit4, bit5, bit6 */
@@ -519,10 +519,10 @@ typedef struct {
 typedef struct {
 	int clock; /* master clock  (Hz)   */
 	int rate; /* sampling rate (Hz)   */
-	int freqbase; /* frequency base       */
-	int TimerBase; /* Timer base time      */
+	float freqbase; /* frequency base       */
+	float TimerBase; /* Timer base time      */
 #if FM_BUSY_FLAG_SUPPORT
-	int BusyExpire; /* ExpireTime of Busy clear */
+	float BusyExpire; /* ExpireTime of Busy clear */
 #endif
 	u8 address; /* address register     */
 	u8 irq; /* interrupt level      */
@@ -554,7 +554,7 @@ typedef struct {
 	FM_ST ST; /* general state */
 	FM_3SLOT SL3; /* 3 slot mode state */
 	//FM_CH P_CH[6]; /* pointer of CH */
-	//uint32_t pan[6 * 2]; /* fm channels output masks (0xffffffff = enable) */
+	//unsigned int pan[6 * 2]; /* fm channels output masks (0xffffffff = enable) */
 	u32 eg_cnt; /* global envelope generator counter */
 	u32 eg_timer; /* global envelope generator counter works at frequency = chipclock/64/3 */
 	u32 eg_timer_add; /* step of eg_timer */
@@ -614,7 +614,7 @@ typedef struct {
 /* ADPCM type B struct */
 typedef struct adpcmb_state {
 	//s32 *pan; /* pan : &output_pointer[pan]   */
-	int freqbase;
+	float freqbase;
 	int output_range;
 	u32 now_addr; /* current address      */
 	u32 now_step; /* currect step         */
@@ -1062,9 +1062,9 @@ static inline void advance_lfo(void) {
 }
 
 static inline void advance_eg_channel(FM_SLOT *SLOT) {
-	uint32_t out;
-	uint32_t swap_flag = 0;
-	uint32_t i = 4; /* four operators per channel */
+	unsigned int out;
+	unsigned int swap_flag = 0;
+	unsigned int i = 4; /* four operators per channel */
 
 	do {	switch (SLOT->state) {
 		case EG_ATT: /* attack phase */
@@ -1179,7 +1179,7 @@ static inline void advance_eg_channel(FM_SLOT *SLOT) {
 #define volume_calc(OP) ((OP)->vol_out + (AM & (OP)->AMmask))
 
 static inline void chan_calc(FM_CH *CH) {
-	uint32_t eg_out;
+	unsigned int eg_out;
 
 	u32 AM = LFO_AM >> CH->ams;
 
@@ -1326,7 +1326,7 @@ static void init_timetables(const u8 *dttable) {
 	float rate;
 
 //#if 0
-	debug("FM.C: samplerate=%8i chip clock=%8i  freqbase=%d  \n",
+	printf("FM.C: samplerate=%8i chip clock=%8i  freqbase=%f  \n",
 			YM2610.OPN.ST.rate, YM2610.OPN.ST.clock, YM2610.OPN.ST.freqbase );
 //#endif
 
@@ -1430,9 +1430,9 @@ static void OPNSetPres(int pres, int TimerPres, int SSGpres) {
 
 	/* frequency base */
 	YM2610.OPN.ST.freqbase =
-			(YM2610.OPN.ST.rate) ? (YM2610.OPN.ST.clock / YM2610.OPN.ST.rate) / pres : 0;
+			(YM2610.OPN.ST.rate) ? ((float) YM2610.OPN.ST.clock / YM2610.OPN.ST.rate) / pres : 0;
 
-	YM2610.OPN.ST.freqbase *= 2;
+	YM2610.OPN.ST.freqbase *= 2.0;
 #if 0
 	YM2610.OPN.ST.rate = (float)YM2610.OPN.ST.clock / pres;
 	YM2610.OPN.ST.freqbase = 1.0f;
@@ -1470,7 +1470,8 @@ static void OPNSetPres(int pres, int TimerPres, int SSGpres) {
 	for (i = 0; i < 8; i++) {
 		/* Amplitude modulation: 64 output levels (triangle waveform); 1 level lasts for one of "lfo_samples_per_step" samples */
 		/* Phase modulation: one entry from lfo_pm_output lasts for one of 4 * "lfo_samples_per_step" samples  */
-		YM2610.OPN.lfo_freq[i] = ((1 << LFO_SH) * YM2610.OPN.ST.freqbase) / lfo_samples_per_step[i];
+		YM2610.OPN.lfo_freq[i] = (1.0 / lfo_samples_per_step[i]) * (1 << LFO_SH)
+				* YM2610.OPN.ST.freqbase;
 #if 0
 		logerror("FM.C: lfo_freq[%i] = %08x (dec=%8i)\n",
 				i, YM2610.OPN.lfo_freq[i],YM2610.OPN.lfo_freq[i] );
@@ -2682,7 +2683,7 @@ static int32_t max_sample = 32767;
 void YM2610ChangeSamplerate(int rate) {
 	int i;
 
-	debug("Max sample: %d\n", max_sample);
+	printf("Max sample: %d\n", max_sample);
 
 	YM2610.OPN.ST.rate = rate;
 	SSG.step = ((float) SSG_STEP * rate * 8) / YM2610.OPN.ST.clock;
@@ -2733,7 +2734,8 @@ void YM2610Reset(void) {
 	}
 	/**** ADPCM work initial ****/
 	for (i = 0; i < 6; i++) {
-		YM2610.adpcma[i].step = (u32) ((1 << ADPCM_SHIFT) * YM2610.OPN.ST.freqbase + 1) / 3;
+		YM2610.adpcma[i].step = (u32) ((float) (1 << ADPCM_SHIFT)
+				* ((float) YM2610.OPN.ST.freqbase) / 3.0);
 		YM2610.adpcma[i].now_addr = 0;
 		YM2610.adpcma[i].now_step = 0;
 		YM2610.adpcma[i].start = 0;
@@ -3172,7 +3174,7 @@ STATE_SAVE( ym2610 )
 
 	state_save_byte(YM2610.regs, 512);
 
-	state_save_long(&YM2610.OPN.ST.BusyExpire, 1);
+	state_save_double(&YM2610.OPN.ST.BusyExpire, 1);
 	state_save_byte(&YM2610.OPN.ST.address, 1);
 	state_save_byte(&YM2610.OPN.ST.irq, 1);
 	state_save_byte(&YM2610.OPN.ST.irqmask, 1);
@@ -3235,7 +3237,7 @@ STATE_LOAD( ym2610 )
 
 	state_load_byte(YM2610.regs, 512);
 
-	state_load_long(&YM2610.OPN.ST.BusyExpire, 1);
+	state_load_double(&YM2610.OPN.ST.BusyExpire, 1);
 	state_load_byte(&YM2610.OPN.ST.address, 1);
 	state_load_byte(&YM2610.OPN.ST.irq, 1);
 	state_load_byte(&YM2610.OPN.ST.irqmask, 1);

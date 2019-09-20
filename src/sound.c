@@ -109,7 +109,7 @@ static AudioT TheAudio;
 static int AudioInitialized = 0;
 static int CpuClock = 0;
 
-__saveds __interrupt static int AudioServer(ChanT num asm("a1"));
+__saveds __interrupt static int AudioServer(void);
 
 static int InitAudio() {
 	struct GfxBase *GfxBase;
@@ -272,14 +272,14 @@ void RemixAmigaAmmx(void) {
 	memcpy( rHBuffer, R_Mix, 2 * BUFFER_LEN );
 }
 
-__saveds __interrupt static int AudioServer(ChanT num asm("a1")) {
+__saveds __interrupt static int AudioServer(void) {
 	extern void YM2610Update_Amiga(void);
 	extern  uint32_t timerSound;
 	uint32_t timerTemp;
 	void *temp;
 	
 	if(!paused) {
-		if(arg[OPTION_BENCH]) timerTemp = timer_get_time_ms();
+		if(arg[OPTION_BENCH]) timerTemp = timer_get_time();
 
 		if(enablePAM) {
 			// kick off next chunk	
@@ -309,7 +309,7 @@ __saveds __interrupt static int AudioServer(ChanT num asm("a1")) {
 			temp = lLBuffer; lLBuffer = _lLBuffer; _lLBuffer = temp;
 		}
 
-		if(arg[OPTION_BENCH]) timerSound += (uint32_t)((int)timer_get_time_ms() - (int)timerTemp);
+		if(arg[OPTION_BENCH]) timerSound += (uint32_t)((int)timer_get_time() - (int)timerTemp);
 	}
 	custom->intreq = 1 << INTB_AUD0;
 	return 0;

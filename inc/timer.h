@@ -18,12 +18,14 @@
 
 #ifndef _TIMER_H_
 #define _TIMER_H_
-
+ 
 typedef struct timer_struct timer_struct; 
 typedef void(*timer_callback)(int);
 
-uint32_t timer_get_time_ms(void);
-timer_struct *timer_insert(uint32_t, int, timer_callback);
+double timer_get_time(void);
+timer_struct *timer_insert(double, int, timer_callback);
+void timer_set_time(timer_struct *timer, double);
+
 void timer_free(timer_struct * ts);
 void timer_free_all(void);
 void timer_init(void);

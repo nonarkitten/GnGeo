@@ -182,7 +182,7 @@ static inline int neo_interrupt(int skip_this_frame) {
 }
 
 void dumpStats(void) {
-	uint32_t ms = (uint32_t)((int)timer_get_time_ms() - (int)startBenchTime);
+	uint32_t ms = (uint32_t)((int)timer_get_time() - (int)startBenchTime);
 	uint32_t round = (ms >> 1);
 	uint32_t leftover = ms - timerVideo - timer68k - timerZ80 - timerSound;
 	uint32_t frames = frame_count;//arg[OPTION_BENCH] - bench;
@@ -263,7 +263,7 @@ void main_loop(void) {
 	timer_run();
 	
 	debug("Starting main loop, CPU at %d%%\n", arg[OPTION_M68K]);
-	startBenchTime = timer_get_time_ms();
+	startBenchTime = timer_get_time();
 	atexit(dumpStats);
 	bench = arg[OPTION_BENCH];
 
@@ -271,28 +271,28 @@ void main_loop(void) {
 		handle_event();
 
 		if(!paused) {
-			if(arg[OPTION_BENCH]) timerTemp = timer_get_time_ms();
+			if(arg[OPTION_BENCH]) timerTemp = timer_get_time();
 			tm_cycle = cpu_68k_run(cpu_68k_timeslice - tm_cycle);
-			if(arg[OPTION_BENCH]) timer68k += (uint32_t)((int)timer_get_time_ms() - (int)timerTemp);
+			if(arg[OPTION_BENCH]) timer68k += (uint32_t)((int)timer_get_time() - (int)timerTemp);
 		
 			handle_event();
 
-			if(arg[OPTION_BENCH]) timerTemp = timer_get_time_ms();
+			if(arg[OPTION_BENCH]) timerTemp = timer_get_time();
 			for(i=0; i<nb_interlace; i++) {
 				cpu_z80_run(cpu_z80_timeslice_scanline);
 				handle_event();
 				timer_run();
 			}
 //			cpu_z80_run(cpu_z80_timeslice_rem);
-			if(arg[OPTION_BENCH]) timerZ80 += (uint32_t)((int)timer_get_time_ms() - (int)timerTemp);
+			if(arg[OPTION_BENCH]) timerZ80 += (uint32_t)((int)timer_get_time() - (int)timerTemp);
 		}
 		
 		handle_event();
 
-		if(arg[OPTION_BENCH]) timerTemp = timer_get_time_ms();		
+		if(arg[OPTION_BENCH]) timerTemp = timer_get_time();		
 		if(arg[OPTION_FRAMESKIP]) frameskip = !frameskip;
 		if ((a = neo_interrupt(frameskip))) cpu_68k_interrupt(a);
-		if(arg[OPTION_BENCH]) timerVideo += (uint32_t)((int)timer_get_time_ms() - (int)timerTemp);
+		if(arg[OPTION_BENCH]) timerVideo += (uint32_t)((int)timer_get_time() - (int)timerTemp);
 		frame_count++;
 
 	}

@@ -13,5 +13,5 @@ typedef struct {
 } font_t;
 
 extern const font_t font_6x8;
-
+ 
 #endif /* FONT_H_ */

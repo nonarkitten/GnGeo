@@ -63,7 +63,7 @@ typedef struct Z80_STATE {
     uint16_t bank[4];
     uint8_t  ram[0x800];
 }Z80_STATE;
-
+ 
 //typedef struct YM2610_STATE {
 //} YM2610_STATE;
 

@@ -16,7 +16,7 @@
 #define uint8_t  uint8_t
 #define uint16_t uint16_t
 #define uint32_t uint32_t
-
+ 
 /* macros for accessing bytes and words within larger chunks */
 #ifndef BIGENDIAN
 

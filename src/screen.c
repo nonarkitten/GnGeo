@@ -202,7 +202,7 @@ static void video_dim_screen(uint8_t *buffer) {
 static void video_do_fps(void) {
 	static uint32_t last_time = 0;
 	static uint32_t fps_avg = 60;
-	uint32_t time = timer_get_time_ms();
+	uint32_t time = timer_get_time();
 	uint32_t this_fps = 1000 / ((int)time - (int)last_time);
 	fps_avg = (fps_avg >> 1) + (this_fps >> 1);
 	render_message(fps_avg);

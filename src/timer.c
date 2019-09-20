@@ -45,23 +45,23 @@ struct timer_struct {
 static timer_struct *timer_list = NULL;
 static struct timeval now;
 
-uint32_t timer_get_time_ms(void) {
+double timer_get_time(void) {
 	GetSysTime(&now);
-	return now.tv_secs * 1000 + now.tv_micro / 1000;
+	return (double)now.tv_secs + (double)now.tv_micro / 1000.0;
 }
 
-void timer_set_time(timer_struct *timer, uint32_t duration_ms) {
+void timer_set_time(timer_struct *timer, double duration) {
 	GetSysTime(&now);
-	timer->when.tv_secs = duration_ms / 1000;
-	timer->when.tv_micro = (duration_ms % 1000) * 1000;
+	timer->when.tv_secs = (int)duration;
+	timer->when.tv_micro = (int)(duration * 1000000) % 1000000;
 	AddTime(&timer->when, &now);
 }
 
-timer_struct *timer_insert(uint32_t duration_ms, int param, timer_callback func) {
+timer_struct *timer_insert(double duration, int param, timer_callback func) {
 	timer_struct *timer = AllocVec(sizeof(timer_struct), MEMF_PUBLIC);
 	if (timer) {
 		// Initialize timer
-		timer_set_time(timer, duration_ms);
+		timer_set_time(timer, duration);
 		timer->param = param;
 		timer->func = func;
 

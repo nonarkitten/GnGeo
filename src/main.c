@@ -150,7 +150,7 @@ int main(int argc, char *argv[]) {
     int bench = 0;
 
 	timer_init();
-	initStart = timer_get_time_ms();
+	initStart = timer_get_time();
 
     if(!LowLevelBase) LowLevelBase = (struct Library *) OpenLibrary("lowlevel.library",0);
 	if(!LowLevelBase) exit(-1);
@@ -170,7 +170,7 @@ int main(int argc, char *argv[]) {
 		init_sdl();
 		load_logo();
 		load_logo();
-		while(((int)timer_get_time_ms() - initStart) < 4000) ;	
+		while(((int)timer_get_time() - initStart) < 4000) ;	
 	}
 
 	file_lock = GetProgramDir();
@@ -191,7 +191,7 @@ int main(int argc, char *argv[]) {
 	if(arg[OPTION_DEBUG]) init_sdl();
 	
 	printf("%d\n", __LINE__);
-	debug("Startup took %u ms, ", (uint32_t)((int)timer_get_time_ms() - (int)initStart));
+	debug("Startup took %u ms, ", (uint32_t)((int)timer_get_time() - (int)initStart));
 	suspend_os();
 	main_loop();
 

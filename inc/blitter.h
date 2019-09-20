@@ -1,7 +1,7 @@
 
 #ifndef _BLITTER_H_
 #define _BLITTER_H_
-
+ 
 #include <config.h>
  
 

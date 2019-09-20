@@ -18,7 +18,7 @@
 
 #ifndef _MESSAGES_H_
 #define _MESSAGES_H_
-
+ 
 //#include <SDL.h>
 
 void draw_message(const char *string);

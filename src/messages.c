@@ -17,7 +17,7 @@
  */
 
 #include <config.h>
-#define MESSAGE_DELAY 3000
+#define MESSAGE_DELAY 3.0
 
 #include <string.h>
 

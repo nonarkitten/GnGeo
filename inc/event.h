@@ -1,6 +1,6 @@
 #ifndef GNEVENT_H
 #define GNEVENT_H
- 
+  
 typedef enum {
 	GN_NONE=0,
 	GN_A,

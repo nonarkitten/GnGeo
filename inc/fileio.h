@@ -18,7 +18,7 @@
 
 #ifndef _FILEIO_H_
 #define _FILEIO_H_
-
+ 
 #include <stdbool.h>
 
 int open_rom(char *romname);

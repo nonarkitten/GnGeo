@@ -1,6 +1,6 @@
 #ifndef _CONF_H_
 #define _CONF_H_
-
+ 
 #include "emu.h"
 
 typedef enum {
