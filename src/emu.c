@@ -25,7 +25,7 @@
 #include "emu.h"
 #include "conf.h"
 #include "memory.h"
-#include "frame_skip.h"
+// #include "frame_skip.h"
 #include "pd4990a.h"
 #include "messages.h"
 #include "profiler.h"

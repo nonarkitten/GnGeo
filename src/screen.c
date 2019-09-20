@@ -22,7 +22,7 @@
 #include <inline/cybergraphics.h>
 
 #include "conf.h"
-#include "effect.h"
+// #include "effect.h"
 #include "emu.h"
 #include "screen.h"
 #include "video.h"
@@ -70,7 +70,7 @@ static void initAmigaGraphics(void) {
 
     if (!CyberGfxBase)
       CyberGfxBase =
-          (struct Library *)OpenLibrary((Uuint8_t *)"cybergraphics.library", 41L);
+          (struct Library *)OpenLibrary((uint8_t *)"cybergraphics.library", 41L);
 
     debug("Opened CyberGraphX library\n");
 
@@ -137,43 +137,43 @@ static void killAmigaGraphics(void) {
 }
 
 static int blitter_soft_init() {
-  uint32_t width, height;
+  // uint32_t width, height;
 
-  screen_rect.x = 16;
-  screen_rect.y = 16;
-  screen_rect.w = 304;
-  screen_rect.h = 224;
+  // screen_rect.x = 16;
+  // screen_rect.y = 16;
+  // screen_rect.w = 304;
+  // screen_rect.h = 224;
 
-  visible_area.x = 0;
-  visible_area.y = 0;
-  visible_area.w = 304;
-  visible_area.h = 224;
+  // visible_area.x = 0;
+  // visible_area.y = 0;
+  // visible_area.w = 304;
+  // visible_area.h = 224;
 
-  width = visible_area.w;
-  height = visible_area.h;
+  // width = visible_area.w;
+  // height = visible_area.h;
 
-  if (vsync) {
-    height = 240;
-    screen_rect.y = 8;
+  // if (vsync) {
+  //   height = 240;
+  //   screen_rect.y = 8;
 
-  } else {
-    height = visible_area.h;
-    screen_rect.y = 0;
-    yscreenpadding = 0;
-  }
+  // } else {
+  //   height = visible_area.h;
+  //   screen_rect.y = 0;
+  //   yscreenpadding = 0;
+  // }
 
-  screen_rect.w = visible_area.w;
-  screen_rect.h = visible_area.h;
+  // screen_rect.w = visible_area.w;
+  // screen_rect.h = visible_area.h;
 
-  if (neffect != 0) scale = 1;
-  if (scale == 1) {
-    width *= effect[neffect].x_ratio;
-    height *= effect[neffect].y_ratio;
-  } else {
-    if (scale > 3) scale = 3;
-    width *= scale;
-    height *= scale;
-  }
+  // if (neffect != 0) scale = 1;
+  // if (scale == 1) {
+  //   width *= effect[neffect].x_ratio;
+  //   height *= effect[neffect].y_ratio;
+  // } else {
+  //   if (scale > 3) scale = 3;
+  //   width *= scale;
+  //   height *= scale;
+  // }
 
   initAmigaGraphics();
 
@@ -182,7 +182,7 @@ static int blitter_soft_init() {
 
 
 
-static void blitchar(uint16_t *buffer, Uuint8_t *f, uint32_t sx, uint32_t sy) {
+static void blitchar(uint16_t *buffer, uint8_t *f, uint32_t sx, uint32_t sy) {
   uint32_t x, y, b;
   for (x = 0; x < 6; x++) {
     for (b = 1, y = 0; y < 8; y++) {

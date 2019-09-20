@@ -149,11 +149,11 @@ static struct KeyQuery keys[KEY_COUNT] = {
 
 int handle_event(void) {
     static uint32_t previous = 0;
-	Uuint8_t waspaused;
+	uint8_t waspaused;
 	uint32_t getkey, joypos0, joypos1;
-	Uuint8_t port;
-	Uuint8_t fire1p1, fire2p1;
-	Uuint8_t fire1p2, fire2p2;
+	uint8_t port;
+	uint8_t fire1p1, fire2p1;
+	uint8_t fire1p2, fire2p2;
 	
     /* CD32 joypad handler code supplied by Gabry (ggreco@iol.it) */
 

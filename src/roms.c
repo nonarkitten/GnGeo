@@ -15,7 +15,7 @@
 #include "unzip.h"
 
 #include "video.h"
-#include "transpack.h"
+// #include "transpack.h"
 #include "conf.h"
 #include "resfile.h"
 #include "menu.h"
@@ -1104,10 +1104,9 @@ static int convert_roms_tile(uint8_t *g, int tileno) {
 		*(gfxdata++) = dw;
 	}
 
-	//if ((usage & ~1) == 0) pen_usage|=(TILE_INVISIBLE<<((tileno&0xF)*2));
 	/* TODO transpack support */
 	if ((usage & ~1) == 0)
-		return (TILE_INVISIBLE << ((tileno & 0xF) * 2));
+		return (1 << ((tileno & 0xF) * 2));
 	else
 		return 0;
 

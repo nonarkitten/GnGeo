@@ -22,7 +22,7 @@
 #include "video.h"
 #include "memory.h"
 #include "pd4990a.h"
-#include "transpack.h"
+//#include "transpack.h"
 
 uint32_t bankaddress = 0;
 extern int current_line;

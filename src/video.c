@@ -26,8 +26,8 @@
 #include "messages.h"
 #include "conf.h"
 #include "screen.h"
-#include "frame_skip.h"
-#include "transpack.h"
+// #include "frame_skip.h"
+// #include "transpack.h"
 #include <cybergraphx/cybergraphics.h>
 #include <proto/cybergraphics.h>
 extern int neogeo_fix_bank_type;
@@ -119,9 +119,9 @@ static void fix_value_init(void) {
 
 
 /* Drawing function generation */
-#define RENAME(name) name##_tile
-#define PUTPIXEL(dst,src) dst=src
-#include "video_template.h"
+// #define RENAME(name) name##_tile
+// #define PUTPIXEL(dst,src) dst=src
+// #include "video_template.h"
 
 // #define RENAME(name) name##_tile_50
 // #define PUTPIXEL(dst,src) dst=BLEND16_50(src,dst)

@@ -38,9 +38,9 @@
 #include "neocrypt.h"
 #include "screen.h"
 #include "sound.h"
-#include "transpack.h"
+// #include "transpack.h"
 #include "menu.h"
-#include "frame_skip.h"
+// #include "frame_skip.h"
 
 #if defined (__AMIGA__)
 #define ROOTPATH "WinDH_C:CrossCompiler/gngeo/release/"

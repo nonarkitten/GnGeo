@@ -1,9 +1,11 @@
 #ifndef FONT_H_
 #define FONT_H_
 
+#include <stdint.h>
+
 typedef struct {
-	uint8_t_width;
-	uint8_t_height;
+	uint8_t width;
+	uint8_t height;
 	const char * font_name;
 	uint8_t first_char;
 	uint8_t last_char;

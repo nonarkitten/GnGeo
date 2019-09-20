@@ -25,7 +25,7 @@
 #include "video.h"
 #include "emu.h"
 #include "timer.h"
-#include "frame_skip.h"
+//#include "frame_skip.h"
 #include "screen.h"
 #include "sound.h"
 #include <stdarg.h>
@@ -50,26 +50,29 @@ void draw_message(const char *string) {
     strcpy(message, string);
 }
 
-#draw_pixel(X,Y,C) bufferpixels[((X)<<1) + ((Y) * PITCH)]=(C)
+static inline void draw_pixel(int X,int Y,int C) {
+	bufferpixels[((X)<<1) + ((Y) * PITCH)]=(C);
+}
 
 void render_message(int fps) {
 	static char display_buffer[256] = { 0 };
 	uint8_t * bitmap, c;
 	int len, i, x, y, bytes_per_row;
+	int bits, bytes;
 
-	if (args[OPTION_SHOWFPS])
+	if (arg[OPTION_SHOWFPS])
 		len = sprintf(display_buffer, "%3d fps %s", fps, message);
 	else
 		len = sprintf(display_buffer, "        %s", fps, message);
 
-	bytes_per_row = font_6x8.char_height * (font_6x8.char_width / 8);
+	bytes_per_row = font_6x8.height * (font_6x8.width / 8);
 	for (i = 0; i < len; i++) {
 		c = display_buffer[i];
 		if (c >= font_6x8.first_char && c <= font_6x8.last_char) {
 			c -= font_6x8.first_char;
 			bitmap = &font_6x8.font_bitmap[bytes_per_row * c];
-			for (y = 0; y < font_6x8.char_height) {
-				bits = font_6x8.char_width;
+			for (y = 0; y < font_6x8.height; y++) {
+				bits = font_6x8.width;
 				for (bytes = 0; bytes < bytes_per_row; bytes++) {
 					c = *bitmap++;
 					for (x = 0; x < 8; x++) {

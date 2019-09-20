@@ -6,8 +6,8 @@
 #include "emu.h"
 #include "messages.h"
 #include "screen.h"
-#include "frame_skip.h"
-#include "transpack.h"
+// #include "frame_skip.h"
+// #include "transpack.h"
 #include <cybergraphx/cybergraphics.h>
 #include <proto/cybergraphics.h>
 

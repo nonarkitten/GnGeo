@@ -1,6 +1,6 @@
 APPNAME  := release/gngeo
 SOURCES  := $(wildcard src/*.c src/*.s )
-OBJECTS  := $(patsubst %.c,%.o, $(patsubst %.s,%.o, $(SOURCES)))
+OBJECTS  := $(patsubst src/%.c,obj/%.o, $(patsubst src/%.s,obj/%.o, $(SOURCES)))
 
 DEFINES  := \
 	-DWORDS_BIGENDIAN \

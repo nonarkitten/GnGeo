@@ -1,6 +1,7 @@
 #include "mame_layer.h"
+
 #include <string.h>
- #include <stdio.h>
+#include <stdio.h>
 
 /*
   fixed

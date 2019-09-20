@@ -7,8 +7,8 @@
 #include "emu.h"
 #include "messages.h"
 #include "screen.h"
-#include "frame_skip.h"
-#include "transpack.h"
+// #include "frame_skip.h"
+// #include "transpack.h"
 #include <cybergraphx/cybergraphics.h>
 #include <proto/cybergraphics.h>
 
@@ -497,7 +497,7 @@ void draw_tiles_m68k(void) {
 			}
 
 			if (sx >= -16 && sx <= 336 && sy >= 0 && sy <= 240) {
-				if (PEN_USAGE(tileno) != TILE_INVISIBLE) {	
+				if (PEN_USAGE(tileno) != 1) {	
 					uint32_t color = tileatr >> 8;
 					uint32_t *palbase = (uint32_t*)&current_pc_pal[16 * color];
 					uint32_t *gfxdata = (uint32_t*)&memory.rom.tiles.p[(tileno % memory.nb_of_tiles)<<7];
