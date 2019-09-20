@@ -528,7 +528,7 @@ static inline void BURNODD(int cycles, int opcodes, int cyclesum)
 }
 
 #if BIG_SWITCH
-#define EXEC_static inline(prefix,opcode)								\
+#define EXEC_INLINE(prefix,opcode)								\
 {																\
 	unsigned op = opcode;										\
 	CC(prefix,op);												\
@@ -601,7 +601,7 @@ static inline void BURNODD(int cycles, int opcodes, int cyclesum)
 	}																																	\
 }
 #else
-#define EXEC_static inline EXEC
+#define EXEC_INLINE EXEC
 #endif
 
 
@@ -4243,7 +4243,7 @@ int z80_execute(int cycles)
 		_PPC = _PCD;
 		//CALL_MAME_DEBUG;
 		_R++;
-		EXEC_static inline(op,ROP());
+		EXEC_INLINE(op,ROP());
 	} while( Z80_ICOUNT > 0 );
 
 	Z80_ICOUNT -= Z80.extra_cycles;

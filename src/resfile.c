@@ -2,6 +2,9 @@
 #include "config.h"
 #endif
 
+#include <stdlib.h>
+#include <stdio.h>
+
 //#include "SDL.h"
  
 #include "emu.h"
@@ -10,7 +13,7 @@
 #include "unzip.h"
 //#include "stb_zlib.h"
 #include "conf.h"
-#include "stb_image.h"
+//#include "stb_image.h"
 
 
 void zread_char(ZFILE *gz, char *c, int len) {
