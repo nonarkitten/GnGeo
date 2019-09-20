@@ -54,30 +54,29 @@ typedef enum COUNTRY {
     CTY_MAX
 } COUNTRY;
 
-//static inline short SwapSHORT(short val) {
-//	asm volatile
-//	(
-//		"ror.w	#8,%0"
-//
-//		: "=d" (val)
-//		: "0" (val)
-//		);
-//	return val;
-//}
-//
-//static inline long SwapLONG(long val) {
-//	asm volatile
-//	(
-//		"ror.w	#8,%0 \n\t"
-//		"swap	%0 \n\t"
-//		"ror.w	#8,%0"
-//
-//		: "=d" (val)
-//		: "0" (val)
-//		);
-//
-//	return val;
-//}
+//#define __builtin_bswap16(X) asm volatile("rol.w #8,%0" : "+r"(X))
+//#define __builtin_bswap32(X) asm volatile("rol.w #8,%0\n\tswap %0\n\trol.w #8,%0\n\t" : "+r"(X))
+
+static inline short __builtin_bswap16(short val) {
+	asm volatile (
+		"ror.w	#8,%0"
+		: "=d" (val)
+		: "0" (val)
+		);
+	return val;
+}
+
+static inline long __builtin_bswap32(long val) {
+	asm volatile (
+		"ror.w	#8,%0 \n\t"
+		"swap	%0 \n\t"
+		"ror.w	#8,%0"
+		: "=d" (val)
+		: "0" (val)
+		);
+
+	return val;
+}
 
 // struct {
 //     char *game;

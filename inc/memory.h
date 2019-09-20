@@ -170,7 +170,6 @@ void cpu_z80_fill_state(Z80_STATE *st);
 /* memory handler prototype */
 void neogeo_sound_irq(int irq);
 
-
 #define LONG_FETCH(fetchname) uint32_t fetchname ## _long(uint32_t addr) { \
       return (fetchname ## _word(addr) << 16) |	fetchname ## _word(addr+2); \
 }

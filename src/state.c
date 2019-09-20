@@ -49,7 +49,7 @@ void create_state_register(ST_MODULE_TYPE module,const char *reg_name,
     t->type=type;
     t->num=num;
 }
-
+ 
 void set_pre_save_function(ST_MODULE_TYPE module,void (*func)(void)) {
     st_mod[module].pre_save_state=func;
 }

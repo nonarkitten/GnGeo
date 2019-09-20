@@ -34,7 +34,7 @@ void neogeo_sound_irq(int irq) {
 	if (irq) {
 		cpu_z80_raise_irq(0);
 	} else
-	cpu_z80_lower_irq();
+	cpu_z80_lower_irq(); 
 	//debug("neogeo_sound_end %d\n",irq);
 }
 
@@ -519,7 +519,8 @@ uint16_t convert_pal(uint16_t npal) {
 		c = (r << 11) + (g << 6) + b;
 		if(!(npal & 0x8000)) c |= 0x821;
 		if(!c) c = 0x821;
-		return __builtin_bswap16(c);
+		c = __builtin_bswap16(c);
+		return c;
 	}
 	
 //	return AC68080 ? c : SwapSHORT(c);
