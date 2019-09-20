@@ -519,10 +519,10 @@ typedef struct {
 typedef struct {
 	int clock; /* master clock  (Hz)   */
 	int rate; /* sampling rate (Hz)   */
-	float freqbase; /* frequency base       */
-	float TimerBase; /* Timer base time      */
+	int freqbase; /* frequency base       */
+	int TimerBase; /* Timer base time      */
 #if FM_BUSY_FLAG_SUPPORT
-	float BusyExpire; /* ExpireTime of Busy clear */
+	int BusyExpire; /* ExpireTime of Busy clear */
 #endif
 	u8 address; /* address register     */
 	u8 irq; /* interrupt level      */
@@ -614,7 +614,7 @@ typedef struct {
 /* ADPCM type B struct */
 typedef struct adpcmb_state {
 	//s32 *pan; /* pan : &output_pointer[pan]   */
-	float freqbase;
+	int freqbase;
 	int output_range;
 	u32 now_addr; /* current address      */
 	u32 now_step; /* currect step         */
@@ -1326,7 +1326,7 @@ static void init_timetables(const u8 *dttable) {
 	float rate;
 
 //#if 0
-	debug("FM.C: samplerate=%8i chip clock=%8i  freqbase=%f  \n",
+	debug("FM.C: samplerate=%8i chip clock=%8i  freqbase=%d  \n",
 			YM2610.OPN.ST.rate, YM2610.OPN.ST.clock, YM2610.OPN.ST.freqbase );
 //#endif
 
@@ -1430,9 +1430,9 @@ static void OPNSetPres(int pres, int TimerPres, int SSGpres) {
 
 	/* frequency base */
 	YM2610.OPN.ST.freqbase =
-			(YM2610.OPN.ST.rate) ? ((float) YM2610.OPN.ST.clock / YM2610.OPN.ST.rate) / pres : 0;
+			(YM2610.OPN.ST.rate) ? (YM2610.OPN.ST.clock / YM2610.OPN.ST.rate) / pres : 0;
 
-	YM2610.OPN.ST.freqbase *= 2.0;
+	YM2610.OPN.ST.freqbase *= 2;
 #if 0
 	YM2610.OPN.ST.rate = (float)YM2610.OPN.ST.clock / pres;
 	YM2610.OPN.ST.freqbase = 1.0f;
@@ -1470,8 +1470,7 @@ static void OPNSetPres(int pres, int TimerPres, int SSGpres) {
 	for (i = 0; i < 8; i++) {
 		/* Amplitude modulation: 64 output levels (triangle waveform); 1 level lasts for one of "lfo_samples_per_step" samples */
 		/* Phase modulation: one entry from lfo_pm_output lasts for one of 4 * "lfo_samples_per_step" samples  */
-		YM2610.OPN.lfo_freq[i] = (1.0 / lfo_samples_per_step[i]) * (1 << LFO_SH)
-				* YM2610.OPN.ST.freqbase;
+		YM2610.OPN.lfo_freq[i] = ((1 << LFO_SH) * YM2610.OPN.ST.freqbase) / lfo_samples_per_step[i];
 #if 0
 		logerror("FM.C: lfo_freq[%i] = %08x (dec=%8i)\n",
 				i, YM2610.OPN.lfo_freq[i],YM2610.OPN.lfo_freq[i] );
@@ -2734,8 +2733,7 @@ void YM2610Reset(void) {
 	}
 	/**** ADPCM work initial ****/
 	for (i = 0; i < 6; i++) {
-		YM2610.adpcma[i].step = (u32) ((float) (1 << ADPCM_SHIFT)
-				* ((float) YM2610.OPN.ST.freqbase) / 3.0);
+		YM2610.adpcma[i].step = (u32) ((1 << ADPCM_SHIFT) * YM2610.OPN.ST.freqbase + 1) / 3;
 		YM2610.adpcma[i].now_addr = 0;
 		YM2610.adpcma[i].now_step = 0;
 		YM2610.adpcma[i].start = 0;

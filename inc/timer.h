@@ -23,9 +23,9 @@ typedef struct timer_struct timer_struct;
 typedef void(*timer_callback)(int);
 
 uint32_t timer_get_time_ms(void);
-timer_struct *insert_timer(uint32_t, int, timer_callback);
-void del_timer(timer_struct * ts);
-void free_all_timer(void);
+timer_struct *timer_insert(uint32_t, int, timer_callback);
+void timer_free(timer_struct * ts);
+void timer_free_all(void);
 
 // call frequently to avoid missed timers
 void my_timer(void);

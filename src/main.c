@@ -137,7 +137,7 @@ int main(int argc, char *argv[]) {
 	real_AC68080 = AC68080;
 		
 	ParseArguments(argc, argv);
-	
+
 	file_lock = GetProgramDir();
 	SetProgramDir(file_lock);
 	
@@ -148,9 +148,7 @@ int main(int argc, char *argv[]) {
 
 	atexit(cleanup);
 
-    //I_InitTimer();
-	//reset_frame_skip();
-
+	timer_init();
 	initStart = timer_get_time_ms();
 	if (init_game(rom_name)!=TRUE) {
 		error("Can't init %s...\n",rom_name);
@@ -159,6 +157,7 @@ int main(int argc, char *argv[]) {
 	//convert_audio_rom();
 	init_sdl();
 	
+	printf("%d\n", __LINE__);
 	debug("Startup took %u ms, ", (uint32_t)((int)timer_get_time_ms() - (int)initStart));
 	suspend_os();
 	main_loop();

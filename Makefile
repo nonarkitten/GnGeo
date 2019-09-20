@@ -11,7 +11,7 @@ DEFINES  := \
 INCLUDE  := -I./inc\
 	-IADE\:include.arti -IADE\:os-include -I.
 
-LIBS      = -lm -lgen68k -llz4w
+LIBS      = -lgen68k -llz4w
 
 LIBPATH  := -L./libs
 
