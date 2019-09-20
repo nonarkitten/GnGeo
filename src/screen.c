@@ -21,11 +21,11 @@
 #include <cybergraphx/cybergraphics.h>
 #include <inline/cybergraphics.h>
 
-#include "../conf.h"
-#include "../effect.h"
-#include "../emu.h"
-#include "../screen.h"
-#include "../video.h"
+#include "conf.h"
+#include "effect.h"
+#include "emu.h"
+#include "screen.h"
+#include "video.h"
 
 static Rect screen_rect;
 static int vsync;

@@ -50,7 +50,7 @@ typedef struct VIDEO {
 	uint32_t fc_speed;
 
 	uint32_t vptr;
-	Sint16 modulo;
+	int16_t modulo;
 
 	uint32_t current_line;
 

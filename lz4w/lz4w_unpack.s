@@ -1261,3 +1261,4 @@ lz4w_unpack_a:
 
     movem.l (%sp)+,%a2-%a4
     rts
+    

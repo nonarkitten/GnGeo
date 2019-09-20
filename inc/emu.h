@@ -26,12 +26,6 @@
 #define debug(...) do { if(arg[OPTION_DEBUG]) printf(__VA_ARGS__); } while(0)
 #define error(...) do { printf(__VA_ARGS__); exit(-1); } while(0)
 
-typedef uint8_t	uint8_t;
-typedef signed char	Sint8;
-typedef uint16_t	uint16_t;
-typedef signed short	Sint16;
-typedef uint32_t	uint32_t;
-typedef signed int	Sint32;
 #define Uintptr long
 
 extern int HostCpuClock;
@@ -171,7 +165,7 @@ enum {
 uint8_t key[100];
 
 uint8_t *joy_button[2];
-Sint32 *joy_axe[2];
+int32_t *joy_axe[2];
 uint32_t joy_numaxes[2];
 
 void debug_loop(void);

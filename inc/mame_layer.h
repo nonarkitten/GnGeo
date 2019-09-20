@@ -9,9 +9,9 @@
 #include "emu.h"
 #include "roms.h"
 
-#define INT8  Sint8
-#define INT16 Sint16
-#define INT32 Sint32
+#define INT8  int8_t
+#define INT16 int16_t
+#define INT32 int32_t
 
 #define uint8_t  uint8_t
 #define uint16_t uint16_t

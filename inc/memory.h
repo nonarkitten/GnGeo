@@ -22,7 +22,7 @@
 #include <config.h>
  
 #include "video.h"
-#include "ym2610/2610intf.h"
+#include "2610intf.h"
 #include "state.h"
 #include "roms.h"
 

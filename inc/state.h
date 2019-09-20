@@ -69,7 +69,7 @@ typedef struct YM2610_STATE {
 
 typedef struct NEOGEO_STATE {
     uint16_t vptr;
-    Sint16 modulo;
+    int16_t modulo;
     uint8_t current_pal;
     uint8_t current_fix;
     uint8_t sram_lock;

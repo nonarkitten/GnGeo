@@ -34,7 +34,7 @@
 
 #include "timer.h"
 //#include "streams.h"
-#include "ym2610/2610intf.h"
+#include "2610intf.h"
 #include "sound.h"
 #include "screen.h"
 #include "neocrypt.h"

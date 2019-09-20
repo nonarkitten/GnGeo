@@ -1,18 +1,13 @@
-#include <config.h>
+//#include <config.h>
 #ifndef _GENERATOR_H_
 #define _GENERATOR_H_
 
-#include "../emu.h"
+//#include "emu.h"
 
 /* VERSION set by autoconf */
 /* PACKAGE set by autoconf */
  
-#define uint8_t     uint8_t
-#define uint16_t    uint16_t
-#define uint32_t    uint32_t
-#define sint8     Sint8
-#define sint16    Sint16
-#define sint32    Sint32
+#include <stdint.h>
 
 #define GEN_RAMLENGTH 64*1024
 

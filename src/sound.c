@@ -28,7 +28,7 @@
 #include "memory.h"
 #include "profiler.h"
 //#include "gnutil.h"
-#include "ym2610/ym2610.h"
+#include "ym2610.h"
 
 #include <dos/dostags.h>
 #include <exec/types.h>

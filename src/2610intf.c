@@ -14,10 +14,10 @@
 #include <config.h>
 #include <stdio.h>
 #include "2610intf.h"
-#include "../conf.h"
-#include "../emu.h"
-#include "../memory.h"
-#include "../timer.h"
+#include "conf.h"
+#include "emu.h"
+#include "memory.h"
+#include "timer.h"
 
 static timer_struct *Timer[2];
 

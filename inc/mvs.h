@@ -13,9 +13,9 @@
 #define u16 uint16_t
 #define u32 unsigned long
 */
-#define s8  Sint8
-#define s16 Sint16
-#define s32 Sint32
+#define s8  int8_t
+#define s16 int16_t
+#define s32 int32_t
 
 #define u8  uint8_t
 #define u16 uint16_t

@@ -8,7 +8,7 @@ DEFINES  := \
 	-DUSE_GENERATOR68K -DUSE_MAMEZ80 \
 	-DDATA_DIRECTORY=\"${pkgdatadir}\"
    
-INCLUDE  := \
+INCLUDE  := -I./inc\
 	-IADE\:include.arti -IADE\:os-include -I.
 
 LIBS      = -lm -lgen68k.a
@@ -23,11 +23,14 @@ CC       := m68k-amigaos-gcc $(FLAGS) $(INCLUDE) $(DEFINES) -Wall
 VASM     := vasm -Faout -quiet -x -m68020 -spaces -showopt
 GAS      := as
 
+.PHONY: all
 all: premake $(OBJECTS)
 	$(CC) -flto -s $(OBJECTS) -o $(APPNAME) $(LIBPATH) $(LIBS)
 	shrinkler $(APPNAME) $(APPNAME)
 
+.PHONY: premake
 premake:
+	$(MAKE) -C lz4w
 	$(MAKE) -C gen68k
 
 %.o: ../src/%.c
@@ -36,8 +39,12 @@ premake:
 %.o: ../src/%.s
 	$(GAS) $< -o $@
 
+.PHONY: clean
 clean:
+	$(MAKE) -C lz4w clean
 	$(MAKE) -C gen68k clean
 	rm -rf obj/*
 	rm -f $(APPNAME)
 
+.PHONY: rebuild
+rebuild: clean all

@@ -14,7 +14,7 @@ void cpu_op_1230a(t_ipc *ipc) /* CMP */ {
   uint8_t srcdata = DATAREG(srcreg);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint8_t dstdata = DATAREG(dstreg);
-  uint8_t outdata = (sint8)dstdata - (sint8)srcdata;
+  uint8_t outdata = (int8_t)dstdata - (int8_t)srcdata;
   PC+= 2;
 }
 
@@ -24,12 +24,12 @@ void cpu_op_1230b(t_ipc *ipc) /* CMP */ {
   uint8_t srcdata = DATAREG(srcreg);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint8_t dstdata = DATAREG(dstreg);
-  uint8_t outdata = (sint8)dstdata - (sint8)srcdata;
+  uint8_t outdata = (int8_t)dstdata - (int8_t)srcdata;
 
-  VFLAG = (((sint8)srcdata < 0) != ((sint8)dstdata < 0)) &&
-    (((sint8)dstdata < 0) != ((sint8)outdata < 0));
+  VFLAG = (((int8_t)srcdata < 0) != ((int8_t)dstdata < 0)) &&
+    (((int8_t)dstdata < 0) != ((int8_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint8)outdata) < 0;
+  NFLAG = ((int8_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 2;
 }
@@ -40,7 +40,7 @@ void cpu_op_1231a(t_ipc *ipc) /* CMP */ {
   uint8_t srcdata = ADDRREG(srcreg);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint8_t dstdata = DATAREG(dstreg);
-  uint8_t outdata = (sint8)dstdata - (sint8)srcdata;
+  uint8_t outdata = (int8_t)dstdata - (int8_t)srcdata;
   PC+= 2;
 }
 
@@ -50,12 +50,12 @@ void cpu_op_1231b(t_ipc *ipc) /* CMP */ {
   uint8_t srcdata = ADDRREG(srcreg);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint8_t dstdata = DATAREG(dstreg);
-  uint8_t outdata = (sint8)dstdata - (sint8)srcdata;
+  uint8_t outdata = (int8_t)dstdata - (int8_t)srcdata;
 
-  VFLAG = (((sint8)srcdata < 0) != ((sint8)dstdata < 0)) &&
-    (((sint8)dstdata < 0) != ((sint8)outdata < 0));
+  VFLAG = (((int8_t)srcdata < 0) != ((int8_t)dstdata < 0)) &&
+    (((int8_t)dstdata < 0) != ((int8_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint8)outdata) < 0;
+  NFLAG = ((int8_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 2;
 }
@@ -67,7 +67,7 @@ void cpu_op_1232a(t_ipc *ipc) /* CMP */ {
   uint8_t srcdata = fetchbyte(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint8_t dstdata = DATAREG(dstreg);
-  uint8_t outdata = (sint8)dstdata - (sint8)srcdata;
+  uint8_t outdata = (int8_t)dstdata - (int8_t)srcdata;
   PC+= 2;
 }
 
@@ -78,12 +78,12 @@ void cpu_op_1232b(t_ipc *ipc) /* CMP */ {
   uint8_t srcdata = fetchbyte(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint8_t dstdata = DATAREG(dstreg);
-  uint8_t outdata = (sint8)dstdata - (sint8)srcdata;
+  uint8_t outdata = (int8_t)dstdata - (int8_t)srcdata;
 
-  VFLAG = (((sint8)srcdata < 0) != ((sint8)dstdata < 0)) &&
-    (((sint8)dstdata < 0) != ((sint8)outdata < 0));
+  VFLAG = (((int8_t)srcdata < 0) != ((int8_t)dstdata < 0)) &&
+    (((int8_t)dstdata < 0) != ((int8_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint8)outdata) < 0;
+  NFLAG = ((int8_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 2;
 }
@@ -96,7 +96,7 @@ void cpu_op_1233a(t_ipc *ipc) /* CMP */ {
   uint8_t srcdata = fetchbyte(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint8_t dstdata = DATAREG(dstreg);
-  uint8_t outdata = (sint8)dstdata - (sint8)srcdata;
+  uint8_t outdata = (int8_t)dstdata - (int8_t)srcdata;
   PC+= 2;
 }
 
@@ -108,12 +108,12 @@ void cpu_op_1233b(t_ipc *ipc) /* CMP */ {
   uint8_t srcdata = fetchbyte(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint8_t dstdata = DATAREG(dstreg);
-  uint8_t outdata = (sint8)dstdata - (sint8)srcdata;
+  uint8_t outdata = (int8_t)dstdata - (int8_t)srcdata;
 
-  VFLAG = (((sint8)srcdata < 0) != ((sint8)dstdata < 0)) &&
-    (((sint8)dstdata < 0) != ((sint8)outdata < 0));
+  VFLAG = (((int8_t)srcdata < 0) != ((int8_t)dstdata < 0)) &&
+    (((int8_t)dstdata < 0) != ((int8_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint8)outdata) < 0;
+  NFLAG = ((int8_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 2;
 }
@@ -125,7 +125,7 @@ void cpu_op_1234a(t_ipc *ipc) /* CMP */ {
   uint8_t srcdata = fetchbyte(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint8_t dstdata = DATAREG(dstreg);
-  uint8_t outdata = (sint8)dstdata - (sint8)srcdata;
+  uint8_t outdata = (int8_t)dstdata - (int8_t)srcdata;
   PC+= 2;
 }
 
@@ -136,12 +136,12 @@ void cpu_op_1234b(t_ipc *ipc) /* CMP */ {
   uint8_t srcdata = fetchbyte(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint8_t dstdata = DATAREG(dstreg);
-  uint8_t outdata = (sint8)dstdata - (sint8)srcdata;
+  uint8_t outdata = (int8_t)dstdata - (int8_t)srcdata;
 
-  VFLAG = (((sint8)srcdata < 0) != ((sint8)dstdata < 0)) &&
-    (((sint8)dstdata < 0) != ((sint8)outdata < 0));
+  VFLAG = (((int8_t)srcdata < 0) != ((int8_t)dstdata < 0)) &&
+    (((int8_t)dstdata < 0) != ((int8_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint8)outdata) < 0;
+  NFLAG = ((int8_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 2;
 }
@@ -149,27 +149,27 @@ void cpu_op_1234b(t_ipc *ipc) /* CMP */ {
 void cpu_op_1235a(t_ipc *ipc) /* CMP */ {
   /* mask f1f8, bits b028, mnemonic 15, priv 0, endblk 0, imm_notzero 0, used 0     set -2, size 1, stype 5, dtype 0, sbitpos 0, dbitpos 9, immvalue 0 */
   int srcreg = (ipc->opcode >> 0) & 7;
-  uint32_t srcaddr = (sint32)ADDRREG(srcreg) + (sint32)(sint16)ipc->src;
+  uint32_t srcaddr = (int32_t)ADDRREG(srcreg) + (int32_t)(int16_t)ipc->src;
   uint8_t srcdata = fetchbyte(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint8_t dstdata = DATAREG(dstreg);
-  uint8_t outdata = (sint8)dstdata - (sint8)srcdata;
+  uint8_t outdata = (int8_t)dstdata - (int8_t)srcdata;
   PC+= 4;
 }
 
 void cpu_op_1235b(t_ipc *ipc) /* CMP */ {
   /* mask f1f8, bits b028, mnemonic 15, priv 0, endblk 0, imm_notzero 0, used 0     set -2, size 1, stype 5, dtype 0, sbitpos 0, dbitpos 9, immvalue 0 */
   int srcreg = (ipc->opcode >> 0) & 7;
-  uint32_t srcaddr = (sint32)ADDRREG(srcreg) + (sint32)(sint16)ipc->src;
+  uint32_t srcaddr = (int32_t)ADDRREG(srcreg) + (int32_t)(int16_t)ipc->src;
   uint8_t srcdata = fetchbyte(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint8_t dstdata = DATAREG(dstreg);
-  uint8_t outdata = (sint8)dstdata - (sint8)srcdata;
+  uint8_t outdata = (int8_t)dstdata - (int8_t)srcdata;
 
-  VFLAG = (((sint8)srcdata < 0) != ((sint8)dstdata < 0)) &&
-    (((sint8)dstdata < 0) != ((sint8)outdata < 0));
+  VFLAG = (((int8_t)srcdata < 0) != ((int8_t)dstdata < 0)) &&
+    (((int8_t)dstdata < 0) != ((int8_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint8)outdata) < 0;
+  NFLAG = ((int8_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 4;
 }
@@ -177,27 +177,27 @@ void cpu_op_1235b(t_ipc *ipc) /* CMP */ {
 void cpu_op_1236a(t_ipc *ipc) /* CMP */ {
   /* mask f1f8, bits b030, mnemonic 15, priv 0, endblk 0, imm_notzero 0, used 0     set -2, size 1, stype 6, dtype 0, sbitpos 0, dbitpos 9, immvalue 0 */
   int srcreg = (ipc->opcode >> 0) & 7;
-  uint32_t srcaddr = (sint32)ADDRREG(srcreg) + idxval_src(ipc);
+  uint32_t srcaddr = (int32_t)ADDRREG(srcreg) + idxval_src(ipc);
   uint8_t srcdata = fetchbyte(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint8_t dstdata = DATAREG(dstreg);
-  uint8_t outdata = (sint8)dstdata - (sint8)srcdata;
+  uint8_t outdata = (int8_t)dstdata - (int8_t)srcdata;
   PC+= 4;
 }
 
 void cpu_op_1236b(t_ipc *ipc) /* CMP */ {
   /* mask f1f8, bits b030, mnemonic 15, priv 0, endblk 0, imm_notzero 0, used 0     set -2, size 1, stype 6, dtype 0, sbitpos 0, dbitpos 9, immvalue 0 */
   int srcreg = (ipc->opcode >> 0) & 7;
-  uint32_t srcaddr = (sint32)ADDRREG(srcreg) + idxval_src(ipc);
+  uint32_t srcaddr = (int32_t)ADDRREG(srcreg) + idxval_src(ipc);
   uint8_t srcdata = fetchbyte(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint8_t dstdata = DATAREG(dstreg);
-  uint8_t outdata = (sint8)dstdata - (sint8)srcdata;
+  uint8_t outdata = (int8_t)dstdata - (int8_t)srcdata;
 
-  VFLAG = (((sint8)srcdata < 0) != ((sint8)dstdata < 0)) &&
-    (((sint8)dstdata < 0) != ((sint8)outdata < 0));
+  VFLAG = (((int8_t)srcdata < 0) != ((int8_t)dstdata < 0)) &&
+    (((int8_t)dstdata < 0) != ((int8_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint8)outdata) < 0;
+  NFLAG = ((int8_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 4;
 }
@@ -208,7 +208,7 @@ void cpu_op_1237a(t_ipc *ipc) /* CMP */ {
   uint8_t srcdata = fetchbyte(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint8_t dstdata = DATAREG(dstreg);
-  uint8_t outdata = (sint8)dstdata - (sint8)srcdata;
+  uint8_t outdata = (int8_t)dstdata - (int8_t)srcdata;
   PC+= 4;
 }
 
@@ -218,12 +218,12 @@ void cpu_op_1237b(t_ipc *ipc) /* CMP */ {
   uint8_t srcdata = fetchbyte(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint8_t dstdata = DATAREG(dstreg);
-  uint8_t outdata = (sint8)dstdata - (sint8)srcdata;
+  uint8_t outdata = (int8_t)dstdata - (int8_t)srcdata;
 
-  VFLAG = (((sint8)srcdata < 0) != ((sint8)dstdata < 0)) &&
-    (((sint8)dstdata < 0) != ((sint8)outdata < 0));
+  VFLAG = (((int8_t)srcdata < 0) != ((int8_t)dstdata < 0)) &&
+    (((int8_t)dstdata < 0) != ((int8_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint8)outdata) < 0;
+  NFLAG = ((int8_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 4;
 }
@@ -234,7 +234,7 @@ void cpu_op_1238a(t_ipc *ipc) /* CMP */ {
   uint8_t srcdata = fetchbyte(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint8_t dstdata = DATAREG(dstreg);
-  uint8_t outdata = (sint8)dstdata - (sint8)srcdata;
+  uint8_t outdata = (int8_t)dstdata - (int8_t)srcdata;
   PC+= 6;
 }
 
@@ -244,12 +244,12 @@ void cpu_op_1238b(t_ipc *ipc) /* CMP */ {
   uint8_t srcdata = fetchbyte(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint8_t dstdata = DATAREG(dstreg);
-  uint8_t outdata = (sint8)dstdata - (sint8)srcdata;
+  uint8_t outdata = (int8_t)dstdata - (int8_t)srcdata;
 
-  VFLAG = (((sint8)srcdata < 0) != ((sint8)dstdata < 0)) &&
-    (((sint8)dstdata < 0) != ((sint8)outdata < 0));
+  VFLAG = (((int8_t)srcdata < 0) != ((int8_t)dstdata < 0)) &&
+    (((int8_t)dstdata < 0) != ((int8_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint8)outdata) < 0;
+  NFLAG = ((int8_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 6;
 }
@@ -260,7 +260,7 @@ void cpu_op_1239a(t_ipc *ipc) /* CMP */ {
   uint8_t srcdata = fetchbyte(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint8_t dstdata = DATAREG(dstreg);
-  uint8_t outdata = (sint8)dstdata - (sint8)srcdata;
+  uint8_t outdata = (int8_t)dstdata - (int8_t)srcdata;
   PC+= 4;
 }
 
@@ -270,12 +270,12 @@ void cpu_op_1239b(t_ipc *ipc) /* CMP */ {
   uint8_t srcdata = fetchbyte(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint8_t dstdata = DATAREG(dstreg);
-  uint8_t outdata = (sint8)dstdata - (sint8)srcdata;
+  uint8_t outdata = (int8_t)dstdata - (int8_t)srcdata;
 
-  VFLAG = (((sint8)srcdata < 0) != ((sint8)dstdata < 0)) &&
-    (((sint8)dstdata < 0) != ((sint8)outdata < 0));
+  VFLAG = (((int8_t)srcdata < 0) != ((int8_t)dstdata < 0)) &&
+    (((int8_t)dstdata < 0) != ((int8_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint8)outdata) < 0;
+  NFLAG = ((int8_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 4;
 }
@@ -286,7 +286,7 @@ void cpu_op_1240a(t_ipc *ipc) /* CMP */ {
   uint8_t srcdata = fetchbyte(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint8_t dstdata = DATAREG(dstreg);
-  uint8_t outdata = (sint8)dstdata - (sint8)srcdata;
+  uint8_t outdata = (int8_t)dstdata - (int8_t)srcdata;
   PC+= 4;
 }
 
@@ -296,12 +296,12 @@ void cpu_op_1240b(t_ipc *ipc) /* CMP */ {
   uint8_t srcdata = fetchbyte(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint8_t dstdata = DATAREG(dstreg);
-  uint8_t outdata = (sint8)dstdata - (sint8)srcdata;
+  uint8_t outdata = (int8_t)dstdata - (int8_t)srcdata;
 
-  VFLAG = (((sint8)srcdata < 0) != ((sint8)dstdata < 0)) &&
-    (((sint8)dstdata < 0) != ((sint8)outdata < 0));
+  VFLAG = (((int8_t)srcdata < 0) != ((int8_t)dstdata < 0)) &&
+    (((int8_t)dstdata < 0) != ((int8_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint8)outdata) < 0;
+  NFLAG = ((int8_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 4;
 }
@@ -311,7 +311,7 @@ void cpu_op_1241a(t_ipc *ipc) /* CMP */ {
   uint8_t srcdata = ipc->src;
   int dstreg = (ipc->opcode >> 9) & 7;
   uint8_t dstdata = DATAREG(dstreg);
-  uint8_t outdata = (sint8)dstdata - (sint8)srcdata;
+  uint8_t outdata = (int8_t)dstdata - (int8_t)srcdata;
   PC+= 4;
 }
 
@@ -320,12 +320,12 @@ void cpu_op_1241b(t_ipc *ipc) /* CMP */ {
   uint8_t srcdata = ipc->src;
   int dstreg = (ipc->opcode >> 9) & 7;
   uint8_t dstdata = DATAREG(dstreg);
-  uint8_t outdata = (sint8)dstdata - (sint8)srcdata;
+  uint8_t outdata = (int8_t)dstdata - (int8_t)srcdata;
 
-  VFLAG = (((sint8)srcdata < 0) != ((sint8)dstdata < 0)) &&
-    (((sint8)dstdata < 0) != ((sint8)outdata < 0));
+  VFLAG = (((int8_t)srcdata < 0) != ((int8_t)dstdata < 0)) &&
+    (((int8_t)dstdata < 0) != ((int8_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint8)outdata) < 0;
+  NFLAG = ((int8_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 4;
 }
@@ -336,7 +336,7 @@ void cpu_op_1242a(t_ipc *ipc) /* CMP */ {
   uint16_t srcdata = DATAREG(srcreg);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint16_t dstdata = DATAREG(dstreg);
-  uint16_t outdata = (sint16)dstdata - (sint16)srcdata;
+  uint16_t outdata = (int16_t)dstdata - (int16_t)srcdata;
   PC+= 2;
 }
 
@@ -346,12 +346,12 @@ void cpu_op_1242b(t_ipc *ipc) /* CMP */ {
   uint16_t srcdata = DATAREG(srcreg);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint16_t dstdata = DATAREG(dstreg);
-  uint16_t outdata = (sint16)dstdata - (sint16)srcdata;
+  uint16_t outdata = (int16_t)dstdata - (int16_t)srcdata;
 
-  VFLAG = (((sint16)srcdata < 0) != ((sint16)dstdata < 0)) &&
-    (((sint16)dstdata < 0) != ((sint16)outdata < 0));
+  VFLAG = (((int16_t)srcdata < 0) != ((int16_t)dstdata < 0)) &&
+    (((int16_t)dstdata < 0) != ((int16_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint16)outdata) < 0;
+  NFLAG = ((int16_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 2;
 }
@@ -362,7 +362,7 @@ void cpu_op_1243a(t_ipc *ipc) /* CMP */ {
   uint16_t srcdata = ADDRREG(srcreg);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint16_t dstdata = DATAREG(dstreg);
-  uint16_t outdata = (sint16)dstdata - (sint16)srcdata;
+  uint16_t outdata = (int16_t)dstdata - (int16_t)srcdata;
   PC+= 2;
 }
 
@@ -372,12 +372,12 @@ void cpu_op_1243b(t_ipc *ipc) /* CMP */ {
   uint16_t srcdata = ADDRREG(srcreg);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint16_t dstdata = DATAREG(dstreg);
-  uint16_t outdata = (sint16)dstdata - (sint16)srcdata;
+  uint16_t outdata = (int16_t)dstdata - (int16_t)srcdata;
 
-  VFLAG = (((sint16)srcdata < 0) != ((sint16)dstdata < 0)) &&
-    (((sint16)dstdata < 0) != ((sint16)outdata < 0));
+  VFLAG = (((int16_t)srcdata < 0) != ((int16_t)dstdata < 0)) &&
+    (((int16_t)dstdata < 0) != ((int16_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint16)outdata) < 0;
+  NFLAG = ((int16_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 2;
 }
@@ -389,7 +389,7 @@ void cpu_op_1244a(t_ipc *ipc) /* CMP */ {
   uint16_t srcdata = fetchword(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint16_t dstdata = DATAREG(dstreg);
-  uint16_t outdata = (sint16)dstdata - (sint16)srcdata;
+  uint16_t outdata = (int16_t)dstdata - (int16_t)srcdata;
   PC+= 2;
 }
 
@@ -400,12 +400,12 @@ void cpu_op_1244b(t_ipc *ipc) /* CMP */ {
   uint16_t srcdata = fetchword(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint16_t dstdata = DATAREG(dstreg);
-  uint16_t outdata = (sint16)dstdata - (sint16)srcdata;
+  uint16_t outdata = (int16_t)dstdata - (int16_t)srcdata;
 
-  VFLAG = (((sint16)srcdata < 0) != ((sint16)dstdata < 0)) &&
-    (((sint16)dstdata < 0) != ((sint16)outdata < 0));
+  VFLAG = (((int16_t)srcdata < 0) != ((int16_t)dstdata < 0)) &&
+    (((int16_t)dstdata < 0) != ((int16_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint16)outdata) < 0;
+  NFLAG = ((int16_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 2;
 }
@@ -417,7 +417,7 @@ void cpu_op_1245a(t_ipc *ipc) /* CMP */ {
   uint16_t srcdata = fetchword(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint16_t dstdata = DATAREG(dstreg);
-  uint16_t outdata = (sint16)dstdata - (sint16)srcdata;
+  uint16_t outdata = (int16_t)dstdata - (int16_t)srcdata;
   PC+= 2;
 }
 
@@ -428,12 +428,12 @@ void cpu_op_1245b(t_ipc *ipc) /* CMP */ {
   uint16_t srcdata = fetchword(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint16_t dstdata = DATAREG(dstreg);
-  uint16_t outdata = (sint16)dstdata - (sint16)srcdata;
+  uint16_t outdata = (int16_t)dstdata - (int16_t)srcdata;
 
-  VFLAG = (((sint16)srcdata < 0) != ((sint16)dstdata < 0)) &&
-    (((sint16)dstdata < 0) != ((sint16)outdata < 0));
+  VFLAG = (((int16_t)srcdata < 0) != ((int16_t)dstdata < 0)) &&
+    (((int16_t)dstdata < 0) != ((int16_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint16)outdata) < 0;
+  NFLAG = ((int16_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 2;
 }
@@ -445,7 +445,7 @@ void cpu_op_1246a(t_ipc *ipc) /* CMP */ {
   uint16_t srcdata = fetchword(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint16_t dstdata = DATAREG(dstreg);
-  uint16_t outdata = (sint16)dstdata - (sint16)srcdata;
+  uint16_t outdata = (int16_t)dstdata - (int16_t)srcdata;
   PC+= 2;
 }
 
@@ -456,12 +456,12 @@ void cpu_op_1246b(t_ipc *ipc) /* CMP */ {
   uint16_t srcdata = fetchword(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint16_t dstdata = DATAREG(dstreg);
-  uint16_t outdata = (sint16)dstdata - (sint16)srcdata;
+  uint16_t outdata = (int16_t)dstdata - (int16_t)srcdata;
 
-  VFLAG = (((sint16)srcdata < 0) != ((sint16)dstdata < 0)) &&
-    (((sint16)dstdata < 0) != ((sint16)outdata < 0));
+  VFLAG = (((int16_t)srcdata < 0) != ((int16_t)dstdata < 0)) &&
+    (((int16_t)dstdata < 0) != ((int16_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint16)outdata) < 0;
+  NFLAG = ((int16_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 2;
 }
@@ -469,27 +469,27 @@ void cpu_op_1246b(t_ipc *ipc) /* CMP */ {
 void cpu_op_1247a(t_ipc *ipc) /* CMP */ {
   /* mask f1f8, bits b068, mnemonic 15, priv 0, endblk 0, imm_notzero 0, used 0     set -2, size 2, stype 5, dtype 0, sbitpos 0, dbitpos 9, immvalue 0 */
   int srcreg = (ipc->opcode >> 0) & 7;
-  uint32_t srcaddr = (sint32)ADDRREG(srcreg) + (sint32)(sint16)ipc->src;
+  uint32_t srcaddr = (int32_t)ADDRREG(srcreg) + (int32_t)(int16_t)ipc->src;
   uint16_t srcdata = fetchword(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint16_t dstdata = DATAREG(dstreg);
-  uint16_t outdata = (sint16)dstdata - (sint16)srcdata;
+  uint16_t outdata = (int16_t)dstdata - (int16_t)srcdata;
   PC+= 4;
 }
 
 void cpu_op_1247b(t_ipc *ipc) /* CMP */ {
   /* mask f1f8, bits b068, mnemonic 15, priv 0, endblk 0, imm_notzero 0, used 0     set -2, size 2, stype 5, dtype 0, sbitpos 0, dbitpos 9, immvalue 0 */
   int srcreg = (ipc->opcode >> 0) & 7;
-  uint32_t srcaddr = (sint32)ADDRREG(srcreg) + (sint32)(sint16)ipc->src;
+  uint32_t srcaddr = (int32_t)ADDRREG(srcreg) + (int32_t)(int16_t)ipc->src;
   uint16_t srcdata = fetchword(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint16_t dstdata = DATAREG(dstreg);
-  uint16_t outdata = (sint16)dstdata - (sint16)srcdata;
+  uint16_t outdata = (int16_t)dstdata - (int16_t)srcdata;
 
-  VFLAG = (((sint16)srcdata < 0) != ((sint16)dstdata < 0)) &&
-    (((sint16)dstdata < 0) != ((sint16)outdata < 0));
+  VFLAG = (((int16_t)srcdata < 0) != ((int16_t)dstdata < 0)) &&
+    (((int16_t)dstdata < 0) != ((int16_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint16)outdata) < 0;
+  NFLAG = ((int16_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 4;
 }
@@ -497,27 +497,27 @@ void cpu_op_1247b(t_ipc *ipc) /* CMP */ {
 void cpu_op_1248a(t_ipc *ipc) /* CMP */ {
   /* mask f1f8, bits b070, mnemonic 15, priv 0, endblk 0, imm_notzero 0, used 0     set -2, size 2, stype 6, dtype 0, sbitpos 0, dbitpos 9, immvalue 0 */
   int srcreg = (ipc->opcode >> 0) & 7;
-  uint32_t srcaddr = (sint32)ADDRREG(srcreg) + idxval_src(ipc);
+  uint32_t srcaddr = (int32_t)ADDRREG(srcreg) + idxval_src(ipc);
   uint16_t srcdata = fetchword(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint16_t dstdata = DATAREG(dstreg);
-  uint16_t outdata = (sint16)dstdata - (sint16)srcdata;
+  uint16_t outdata = (int16_t)dstdata - (int16_t)srcdata;
   PC+= 4;
 }
 
 void cpu_op_1248b(t_ipc *ipc) /* CMP */ {
   /* mask f1f8, bits b070, mnemonic 15, priv 0, endblk 0, imm_notzero 0, used 0     set -2, size 2, stype 6, dtype 0, sbitpos 0, dbitpos 9, immvalue 0 */
   int srcreg = (ipc->opcode >> 0) & 7;
-  uint32_t srcaddr = (sint32)ADDRREG(srcreg) + idxval_src(ipc);
+  uint32_t srcaddr = (int32_t)ADDRREG(srcreg) + idxval_src(ipc);
   uint16_t srcdata = fetchword(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint16_t dstdata = DATAREG(dstreg);
-  uint16_t outdata = (sint16)dstdata - (sint16)srcdata;
+  uint16_t outdata = (int16_t)dstdata - (int16_t)srcdata;
 
-  VFLAG = (((sint16)srcdata < 0) != ((sint16)dstdata < 0)) &&
-    (((sint16)dstdata < 0) != ((sint16)outdata < 0));
+  VFLAG = (((int16_t)srcdata < 0) != ((int16_t)dstdata < 0)) &&
+    (((int16_t)dstdata < 0) != ((int16_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint16)outdata) < 0;
+  NFLAG = ((int16_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 4;
 }
@@ -528,7 +528,7 @@ void cpu_op_1249a(t_ipc *ipc) /* CMP */ {
   uint16_t srcdata = fetchword(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint16_t dstdata = DATAREG(dstreg);
-  uint16_t outdata = (sint16)dstdata - (sint16)srcdata;
+  uint16_t outdata = (int16_t)dstdata - (int16_t)srcdata;
   PC+= 4;
 }
 
@@ -538,12 +538,12 @@ void cpu_op_1249b(t_ipc *ipc) /* CMP */ {
   uint16_t srcdata = fetchword(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint16_t dstdata = DATAREG(dstreg);
-  uint16_t outdata = (sint16)dstdata - (sint16)srcdata;
+  uint16_t outdata = (int16_t)dstdata - (int16_t)srcdata;
 
-  VFLAG = (((sint16)srcdata < 0) != ((sint16)dstdata < 0)) &&
-    (((sint16)dstdata < 0) != ((sint16)outdata < 0));
+  VFLAG = (((int16_t)srcdata < 0) != ((int16_t)dstdata < 0)) &&
+    (((int16_t)dstdata < 0) != ((int16_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint16)outdata) < 0;
+  NFLAG = ((int16_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 4;
 }
@@ -554,7 +554,7 @@ void cpu_op_1250a(t_ipc *ipc) /* CMP */ {
   uint16_t srcdata = fetchword(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint16_t dstdata = DATAREG(dstreg);
-  uint16_t outdata = (sint16)dstdata - (sint16)srcdata;
+  uint16_t outdata = (int16_t)dstdata - (int16_t)srcdata;
   PC+= 6;
 }
 
@@ -564,12 +564,12 @@ void cpu_op_1250b(t_ipc *ipc) /* CMP */ {
   uint16_t srcdata = fetchword(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint16_t dstdata = DATAREG(dstreg);
-  uint16_t outdata = (sint16)dstdata - (sint16)srcdata;
+  uint16_t outdata = (int16_t)dstdata - (int16_t)srcdata;
 
-  VFLAG = (((sint16)srcdata < 0) != ((sint16)dstdata < 0)) &&
-    (((sint16)dstdata < 0) != ((sint16)outdata < 0));
+  VFLAG = (((int16_t)srcdata < 0) != ((int16_t)dstdata < 0)) &&
+    (((int16_t)dstdata < 0) != ((int16_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint16)outdata) < 0;
+  NFLAG = ((int16_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 6;
 }
@@ -580,7 +580,7 @@ void cpu_op_1251a(t_ipc *ipc) /* CMP */ {
   uint16_t srcdata = fetchword(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint16_t dstdata = DATAREG(dstreg);
-  uint16_t outdata = (sint16)dstdata - (sint16)srcdata;
+  uint16_t outdata = (int16_t)dstdata - (int16_t)srcdata;
   PC+= 4;
 }
 
@@ -590,12 +590,12 @@ void cpu_op_1251b(t_ipc *ipc) /* CMP */ {
   uint16_t srcdata = fetchword(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint16_t dstdata = DATAREG(dstreg);
-  uint16_t outdata = (sint16)dstdata - (sint16)srcdata;
+  uint16_t outdata = (int16_t)dstdata - (int16_t)srcdata;
 
-  VFLAG = (((sint16)srcdata < 0) != ((sint16)dstdata < 0)) &&
-    (((sint16)dstdata < 0) != ((sint16)outdata < 0));
+  VFLAG = (((int16_t)srcdata < 0) != ((int16_t)dstdata < 0)) &&
+    (((int16_t)dstdata < 0) != ((int16_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint16)outdata) < 0;
+  NFLAG = ((int16_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 4;
 }
@@ -606,7 +606,7 @@ void cpu_op_1252a(t_ipc *ipc) /* CMP */ {
   uint16_t srcdata = fetchword(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint16_t dstdata = DATAREG(dstreg);
-  uint16_t outdata = (sint16)dstdata - (sint16)srcdata;
+  uint16_t outdata = (int16_t)dstdata - (int16_t)srcdata;
   PC+= 4;
 }
 
@@ -616,12 +616,12 @@ void cpu_op_1252b(t_ipc *ipc) /* CMP */ {
   uint16_t srcdata = fetchword(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint16_t dstdata = DATAREG(dstreg);
-  uint16_t outdata = (sint16)dstdata - (sint16)srcdata;
+  uint16_t outdata = (int16_t)dstdata - (int16_t)srcdata;
 
-  VFLAG = (((sint16)srcdata < 0) != ((sint16)dstdata < 0)) &&
-    (((sint16)dstdata < 0) != ((sint16)outdata < 0));
+  VFLAG = (((int16_t)srcdata < 0) != ((int16_t)dstdata < 0)) &&
+    (((int16_t)dstdata < 0) != ((int16_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint16)outdata) < 0;
+  NFLAG = ((int16_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 4;
 }
@@ -631,7 +631,7 @@ void cpu_op_1253a(t_ipc *ipc) /* CMP */ {
   uint16_t srcdata = ipc->src;
   int dstreg = (ipc->opcode >> 9) & 7;
   uint16_t dstdata = DATAREG(dstreg);
-  uint16_t outdata = (sint16)dstdata - (sint16)srcdata;
+  uint16_t outdata = (int16_t)dstdata - (int16_t)srcdata;
   PC+= 4;
 }
 
@@ -640,12 +640,12 @@ void cpu_op_1253b(t_ipc *ipc) /* CMP */ {
   uint16_t srcdata = ipc->src;
   int dstreg = (ipc->opcode >> 9) & 7;
   uint16_t dstdata = DATAREG(dstreg);
-  uint16_t outdata = (sint16)dstdata - (sint16)srcdata;
+  uint16_t outdata = (int16_t)dstdata - (int16_t)srcdata;
 
-  VFLAG = (((sint16)srcdata < 0) != ((sint16)dstdata < 0)) &&
-    (((sint16)dstdata < 0) != ((sint16)outdata < 0));
+  VFLAG = (((int16_t)srcdata < 0) != ((int16_t)dstdata < 0)) &&
+    (((int16_t)dstdata < 0) != ((int16_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint16)outdata) < 0;
+  NFLAG = ((int16_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 4;
 }
@@ -656,7 +656,7 @@ void cpu_op_1254a(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = DATAREG(srcreg);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = DATAREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
   PC+= 2;
 }
 
@@ -666,12 +666,12 @@ void cpu_op_1254b(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = DATAREG(srcreg);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = DATAREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
 
-  VFLAG = (((sint32)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
+  VFLAG = (((int32_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 2;
 }
@@ -682,7 +682,7 @@ void cpu_op_1255a(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = ADDRREG(srcreg);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = DATAREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
   PC+= 2;
 }
 
@@ -692,12 +692,12 @@ void cpu_op_1255b(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = ADDRREG(srcreg);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = DATAREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
 
-  VFLAG = (((sint32)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
+  VFLAG = (((int32_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 2;
 }
@@ -709,7 +709,7 @@ void cpu_op_1256a(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = fetchlong(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = DATAREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
   PC+= 2;
 }
 
@@ -720,12 +720,12 @@ void cpu_op_1256b(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = fetchlong(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = DATAREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
 
-  VFLAG = (((sint32)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
+  VFLAG = (((int32_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 2;
 }
@@ -737,7 +737,7 @@ void cpu_op_1257a(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = fetchlong(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = DATAREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
   PC+= 2;
 }
 
@@ -748,12 +748,12 @@ void cpu_op_1257b(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = fetchlong(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = DATAREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
 
-  VFLAG = (((sint32)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
+  VFLAG = (((int32_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 2;
 }
@@ -765,7 +765,7 @@ void cpu_op_1258a(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = fetchlong(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = DATAREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
   PC+= 2;
 }
 
@@ -776,12 +776,12 @@ void cpu_op_1258b(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = fetchlong(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = DATAREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
 
-  VFLAG = (((sint32)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
+  VFLAG = (((int32_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 2;
 }
@@ -789,27 +789,27 @@ void cpu_op_1258b(t_ipc *ipc) /* CMP */ {
 void cpu_op_1259a(t_ipc *ipc) /* CMP */ {
   /* mask f1f8, bits b0a8, mnemonic 15, priv 0, endblk 0, imm_notzero 0, used 0     set -2, size 3, stype 5, dtype 0, sbitpos 0, dbitpos 9, immvalue 0 */
   int srcreg = (ipc->opcode >> 0) & 7;
-  uint32_t srcaddr = (sint32)ADDRREG(srcreg) + (sint32)(sint16)ipc->src;
+  uint32_t srcaddr = (int32_t)ADDRREG(srcreg) + (int32_t)(int16_t)ipc->src;
   uint32_t srcdata = fetchlong(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = DATAREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
   PC+= 4;
 }
 
 void cpu_op_1259b(t_ipc *ipc) /* CMP */ {
   /* mask f1f8, bits b0a8, mnemonic 15, priv 0, endblk 0, imm_notzero 0, used 0     set -2, size 3, stype 5, dtype 0, sbitpos 0, dbitpos 9, immvalue 0 */
   int srcreg = (ipc->opcode >> 0) & 7;
-  uint32_t srcaddr = (sint32)ADDRREG(srcreg) + (sint32)(sint16)ipc->src;
+  uint32_t srcaddr = (int32_t)ADDRREG(srcreg) + (int32_t)(int16_t)ipc->src;
   uint32_t srcdata = fetchlong(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = DATAREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
 
-  VFLAG = (((sint32)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
+  VFLAG = (((int32_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 4;
 }
@@ -817,27 +817,27 @@ void cpu_op_1259b(t_ipc *ipc) /* CMP */ {
 void cpu_op_1260a(t_ipc *ipc) /* CMP */ {
   /* mask f1f8, bits b0b0, mnemonic 15, priv 0, endblk 0, imm_notzero 0, used 0     set -2, size 3, stype 6, dtype 0, sbitpos 0, dbitpos 9, immvalue 0 */
   int srcreg = (ipc->opcode >> 0) & 7;
-  uint32_t srcaddr = (sint32)ADDRREG(srcreg) + idxval_src(ipc);
+  uint32_t srcaddr = (int32_t)ADDRREG(srcreg) + idxval_src(ipc);
   uint32_t srcdata = fetchlong(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = DATAREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
   PC+= 4;
 }
 
 void cpu_op_1260b(t_ipc *ipc) /* CMP */ {
   /* mask f1f8, bits b0b0, mnemonic 15, priv 0, endblk 0, imm_notzero 0, used 0     set -2, size 3, stype 6, dtype 0, sbitpos 0, dbitpos 9, immvalue 0 */
   int srcreg = (ipc->opcode >> 0) & 7;
-  uint32_t srcaddr = (sint32)ADDRREG(srcreg) + idxval_src(ipc);
+  uint32_t srcaddr = (int32_t)ADDRREG(srcreg) + idxval_src(ipc);
   uint32_t srcdata = fetchlong(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = DATAREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
 
-  VFLAG = (((sint32)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
+  VFLAG = (((int32_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 4;
 }
@@ -848,7 +848,7 @@ void cpu_op_1261a(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = fetchlong(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = DATAREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
   PC+= 4;
 }
 
@@ -858,12 +858,12 @@ void cpu_op_1261b(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = fetchlong(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = DATAREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
 
-  VFLAG = (((sint32)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
+  VFLAG = (((int32_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 4;
 }
@@ -874,7 +874,7 @@ void cpu_op_1262a(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = fetchlong(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = DATAREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
   PC+= 6;
 }
 
@@ -884,12 +884,12 @@ void cpu_op_1262b(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = fetchlong(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = DATAREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
 
-  VFLAG = (((sint32)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
+  VFLAG = (((int32_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 6;
 }
@@ -900,7 +900,7 @@ void cpu_op_1263a(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = fetchlong(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = DATAREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
   PC+= 4;
 }
 
@@ -910,12 +910,12 @@ void cpu_op_1263b(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = fetchlong(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = DATAREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
 
-  VFLAG = (((sint32)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
+  VFLAG = (((int32_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 4;
 }
@@ -926,7 +926,7 @@ void cpu_op_1264a(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = fetchlong(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = DATAREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
   PC+= 4;
 }
 
@@ -936,12 +936,12 @@ void cpu_op_1264b(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = fetchlong(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = DATAREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
 
-  VFLAG = (((sint32)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
+  VFLAG = (((int32_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 4;
 }
@@ -951,7 +951,7 @@ void cpu_op_1265a(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = ipc->src;
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = DATAREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
   PC+= 6;
 }
 
@@ -960,12 +960,12 @@ void cpu_op_1265b(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = ipc->src;
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = DATAREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
 
-  VFLAG = (((sint32)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
+  VFLAG = (((int32_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 6;
 }
@@ -976,7 +976,7 @@ void cpu_op_1266a(t_ipc *ipc) /* CMPA */ {
   uint16_t srcdata = DATAREG(srcreg);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)(sint16)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)(int16_t)srcdata;
   PC+= 2;
 }
 
@@ -986,12 +986,12 @@ void cpu_op_1266b(t_ipc *ipc) /* CMPA */ {
   uint16_t srcdata = DATAREG(srcreg);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)(sint16)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)(int16_t)srcdata;
 
-  VFLAG = (((sint32)(sint16)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
-  CFLAG = (uint32_t)(sint32)(sint16)srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  VFLAG = (((int32_t)(int16_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
+  CFLAG = (uint32_t)(int32_t)(int16_t)srcdata > dstdata;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 2;
 }
@@ -1002,7 +1002,7 @@ void cpu_op_1267a(t_ipc *ipc) /* CMPA */ {
   uint16_t srcdata = ADDRREG(srcreg);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)(sint16)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)(int16_t)srcdata;
   PC+= 2;
 }
 
@@ -1012,12 +1012,12 @@ void cpu_op_1267b(t_ipc *ipc) /* CMPA */ {
   uint16_t srcdata = ADDRREG(srcreg);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)(sint16)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)(int16_t)srcdata;
 
-  VFLAG = (((sint32)(sint16)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
-  CFLAG = (uint32_t)(sint32)(sint16)srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  VFLAG = (((int32_t)(int16_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
+  CFLAG = (uint32_t)(int32_t)(int16_t)srcdata > dstdata;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 2;
 }
@@ -1029,7 +1029,7 @@ void cpu_op_1268a(t_ipc *ipc) /* CMPA */ {
   uint16_t srcdata = fetchword(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)(sint16)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)(int16_t)srcdata;
   PC+= 2;
 }
 
@@ -1040,12 +1040,12 @@ void cpu_op_1268b(t_ipc *ipc) /* CMPA */ {
   uint16_t srcdata = fetchword(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)(sint16)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)(int16_t)srcdata;
 
-  VFLAG = (((sint32)(sint16)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
-  CFLAG = (uint32_t)(sint32)(sint16)srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  VFLAG = (((int32_t)(int16_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
+  CFLAG = (uint32_t)(int32_t)(int16_t)srcdata > dstdata;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 2;
 }
@@ -1057,7 +1057,7 @@ void cpu_op_1269a(t_ipc *ipc) /* CMPA */ {
   uint16_t srcdata = fetchword(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)(sint16)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)(int16_t)srcdata;
   PC+= 2;
 }
 
@@ -1068,12 +1068,12 @@ void cpu_op_1269b(t_ipc *ipc) /* CMPA */ {
   uint16_t srcdata = fetchword(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)(sint16)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)(int16_t)srcdata;
 
-  VFLAG = (((sint32)(sint16)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
-  CFLAG = (uint32_t)(sint32)(sint16)srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  VFLAG = (((int32_t)(int16_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
+  CFLAG = (uint32_t)(int32_t)(int16_t)srcdata > dstdata;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 2;
 }
@@ -1085,7 +1085,7 @@ void cpu_op_1270a(t_ipc *ipc) /* CMPA */ {
   uint16_t srcdata = fetchword(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)(sint16)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)(int16_t)srcdata;
   PC+= 2;
 }
 
@@ -1096,12 +1096,12 @@ void cpu_op_1270b(t_ipc *ipc) /* CMPA */ {
   uint16_t srcdata = fetchword(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)(sint16)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)(int16_t)srcdata;
 
-  VFLAG = (((sint32)(sint16)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
-  CFLAG = (uint32_t)(sint32)(sint16)srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  VFLAG = (((int32_t)(int16_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
+  CFLAG = (uint32_t)(int32_t)(int16_t)srcdata > dstdata;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 2;
 }
@@ -1109,27 +1109,27 @@ void cpu_op_1270b(t_ipc *ipc) /* CMPA */ {
 void cpu_op_1271a(t_ipc *ipc) /* CMPA */ {
   /* mask f1f8, bits b0e8, mnemonic 16, priv 0, endblk 0, imm_notzero 0, used 0     set -2, size 2, stype 5, dtype 1, sbitpos 0, dbitpos 9, immvalue 0 */
   int srcreg = (ipc->opcode >> 0) & 7;
-  uint32_t srcaddr = (sint32)ADDRREG(srcreg) + (sint32)(sint16)ipc->src;
+  uint32_t srcaddr = (int32_t)ADDRREG(srcreg) + (int32_t)(int16_t)ipc->src;
   uint16_t srcdata = fetchword(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)(sint16)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)(int16_t)srcdata;
   PC+= 4;
 }
 
 void cpu_op_1271b(t_ipc *ipc) /* CMPA */ {
   /* mask f1f8, bits b0e8, mnemonic 16, priv 0, endblk 0, imm_notzero 0, used 0     set -2, size 2, stype 5, dtype 1, sbitpos 0, dbitpos 9, immvalue 0 */
   int srcreg = (ipc->opcode >> 0) & 7;
-  uint32_t srcaddr = (sint32)ADDRREG(srcreg) + (sint32)(sint16)ipc->src;
+  uint32_t srcaddr = (int32_t)ADDRREG(srcreg) + (int32_t)(int16_t)ipc->src;
   uint16_t srcdata = fetchword(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)(sint16)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)(int16_t)srcdata;
 
-  VFLAG = (((sint32)(sint16)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
-  CFLAG = (uint32_t)(sint32)(sint16)srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  VFLAG = (((int32_t)(int16_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
+  CFLAG = (uint32_t)(int32_t)(int16_t)srcdata > dstdata;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 4;
 }
@@ -1137,27 +1137,27 @@ void cpu_op_1271b(t_ipc *ipc) /* CMPA */ {
 void cpu_op_1272a(t_ipc *ipc) /* CMPA */ {
   /* mask f1f8, bits b0f0, mnemonic 16, priv 0, endblk 0, imm_notzero 0, used 0     set -2, size 2, stype 6, dtype 1, sbitpos 0, dbitpos 9, immvalue 0 */
   int srcreg = (ipc->opcode >> 0) & 7;
-  uint32_t srcaddr = (sint32)ADDRREG(srcreg) + idxval_src(ipc);
+  uint32_t srcaddr = (int32_t)ADDRREG(srcreg) + idxval_src(ipc);
   uint16_t srcdata = fetchword(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)(sint16)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)(int16_t)srcdata;
   PC+= 4;
 }
 
 void cpu_op_1272b(t_ipc *ipc) /* CMPA */ {
   /* mask f1f8, bits b0f0, mnemonic 16, priv 0, endblk 0, imm_notzero 0, used 0     set -2, size 2, stype 6, dtype 1, sbitpos 0, dbitpos 9, immvalue 0 */
   int srcreg = (ipc->opcode >> 0) & 7;
-  uint32_t srcaddr = (sint32)ADDRREG(srcreg) + idxval_src(ipc);
+  uint32_t srcaddr = (int32_t)ADDRREG(srcreg) + idxval_src(ipc);
   uint16_t srcdata = fetchword(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)(sint16)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)(int16_t)srcdata;
 
-  VFLAG = (((sint32)(sint16)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
-  CFLAG = (uint32_t)(sint32)(sint16)srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  VFLAG = (((int32_t)(int16_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
+  CFLAG = (uint32_t)(int32_t)(int16_t)srcdata > dstdata;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 4;
 }
@@ -1168,7 +1168,7 @@ void cpu_op_1273a(t_ipc *ipc) /* CMPA */ {
   uint16_t srcdata = fetchword(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)(sint16)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)(int16_t)srcdata;
   PC+= 4;
 }
 
@@ -1178,12 +1178,12 @@ void cpu_op_1273b(t_ipc *ipc) /* CMPA */ {
   uint16_t srcdata = fetchword(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)(sint16)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)(int16_t)srcdata;
 
-  VFLAG = (((sint32)(sint16)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
-  CFLAG = (uint32_t)(sint32)(sint16)srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  VFLAG = (((int32_t)(int16_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
+  CFLAG = (uint32_t)(int32_t)(int16_t)srcdata > dstdata;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 4;
 }
@@ -1194,7 +1194,7 @@ void cpu_op_1274a(t_ipc *ipc) /* CMPA */ {
   uint16_t srcdata = fetchword(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)(sint16)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)(int16_t)srcdata;
   PC+= 6;
 }
 
@@ -1204,12 +1204,12 @@ void cpu_op_1274b(t_ipc *ipc) /* CMPA */ {
   uint16_t srcdata = fetchword(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)(sint16)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)(int16_t)srcdata;
 
-  VFLAG = (((sint32)(sint16)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
-  CFLAG = (uint32_t)(sint32)(sint16)srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  VFLAG = (((int32_t)(int16_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
+  CFLAG = (uint32_t)(int32_t)(int16_t)srcdata > dstdata;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 6;
 }
@@ -1220,7 +1220,7 @@ void cpu_op_1275a(t_ipc *ipc) /* CMPA */ {
   uint16_t srcdata = fetchword(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)(sint16)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)(int16_t)srcdata;
   PC+= 4;
 }
 
@@ -1230,12 +1230,12 @@ void cpu_op_1275b(t_ipc *ipc) /* CMPA */ {
   uint16_t srcdata = fetchword(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)(sint16)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)(int16_t)srcdata;
 
-  VFLAG = (((sint32)(sint16)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
-  CFLAG = (uint32_t)(sint32)(sint16)srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  VFLAG = (((int32_t)(int16_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
+  CFLAG = (uint32_t)(int32_t)(int16_t)srcdata > dstdata;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 4;
 }
@@ -1246,7 +1246,7 @@ void cpu_op_1276a(t_ipc *ipc) /* CMPA */ {
   uint16_t srcdata = fetchword(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)(sint16)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)(int16_t)srcdata;
   PC+= 4;
 }
 
@@ -1256,12 +1256,12 @@ void cpu_op_1276b(t_ipc *ipc) /* CMPA */ {
   uint16_t srcdata = fetchword(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)(sint16)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)(int16_t)srcdata;
 
-  VFLAG = (((sint32)(sint16)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
-  CFLAG = (uint32_t)(sint32)(sint16)srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  VFLAG = (((int32_t)(int16_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
+  CFLAG = (uint32_t)(int32_t)(int16_t)srcdata > dstdata;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 4;
 }
@@ -1271,7 +1271,7 @@ void cpu_op_1277a(t_ipc *ipc) /* CMPA */ {
   uint16_t srcdata = ipc->src;
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)(sint16)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)(int16_t)srcdata;
   PC+= 4;
 }
 
@@ -1280,12 +1280,12 @@ void cpu_op_1277b(t_ipc *ipc) /* CMPA */ {
   uint16_t srcdata = ipc->src;
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)(sint16)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)(int16_t)srcdata;
 
-  VFLAG = (((sint32)(sint16)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
-  CFLAG = (uint32_t)(sint32)(sint16)srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  VFLAG = (((int32_t)(int16_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
+  CFLAG = (uint32_t)(int32_t)(int16_t)srcdata > dstdata;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 4;
 }
@@ -1314,7 +1314,7 @@ void cpu_op_1278b(t_ipc *ipc) /* EOR */ {
   outdata^= srcdata;
   DATAREG(dstreg) = (DATAREG(dstreg) & ~0xff) | outdata;
 
-  NFLAG = ((sint8)outdata) < 0;
+  NFLAG = ((int8_t)outdata) < 0;
   ZFLAG = !outdata;
   VFLAG = 0;
   CFLAG = 0;
@@ -1347,7 +1347,7 @@ void cpu_op_1279b(t_ipc *ipc) /* EOR */ {
   outdata^= srcdata;
   storebyte(dstaddr, outdata);
 
-  NFLAG = ((sint8)outdata) < 0;
+  NFLAG = ((int8_t)outdata) < 0;
   ZFLAG = !outdata;
   VFLAG = 0;
   CFLAG = 0;
@@ -1382,7 +1382,7 @@ void cpu_op_1280b(t_ipc *ipc) /* EOR */ {
   outdata^= srcdata;
   storebyte(dstaddr, outdata);
 
-  NFLAG = ((sint8)outdata) < 0;
+  NFLAG = ((int8_t)outdata) < 0;
   ZFLAG = !outdata;
   VFLAG = 0;
   CFLAG = 0;
@@ -1415,7 +1415,7 @@ void cpu_op_1281b(t_ipc *ipc) /* EOR */ {
   outdata^= srcdata;
   storebyte(dstaddr, outdata);
 
-  NFLAG = ((sint8)outdata) < 0;
+  NFLAG = ((int8_t)outdata) < 0;
   ZFLAG = !outdata;
   VFLAG = 0;
   CFLAG = 0;
@@ -1427,7 +1427,7 @@ void cpu_op_1282a(t_ipc *ipc) /* EOR */ {
   int srcreg = (ipc->opcode >> 9) & 7;
   uint8_t srcdata = DATAREG(srcreg);
   int dstreg = (ipc->opcode >> 0) & 7;
-  uint32_t dstaddr = (sint32)ADDRREG(dstreg) + (sint32)(sint16)ipc->dst;
+  uint32_t dstaddr = (int32_t)ADDRREG(dstreg) + (int32_t)(int16_t)ipc->dst;
   uint8_t dstdata = fetchbyte(dstaddr);
   uint8_t outdata = dstdata;
 
@@ -1441,14 +1441,14 @@ void cpu_op_1282b(t_ipc *ipc) /* EOR */ {
   int srcreg = (ipc->opcode >> 9) & 7;
   uint8_t srcdata = DATAREG(srcreg);
   int dstreg = (ipc->opcode >> 0) & 7;
-  uint32_t dstaddr = (sint32)ADDRREG(dstreg) + (sint32)(sint16)ipc->dst;
+  uint32_t dstaddr = (int32_t)ADDRREG(dstreg) + (int32_t)(int16_t)ipc->dst;
   uint8_t dstdata = fetchbyte(dstaddr);
   uint8_t outdata = dstdata;
 
   outdata^= srcdata;
   storebyte(dstaddr, outdata);
 
-  NFLAG = ((sint8)outdata) < 0;
+  NFLAG = ((int8_t)outdata) < 0;
   ZFLAG = !outdata;
   VFLAG = 0;
   CFLAG = 0;
@@ -1460,7 +1460,7 @@ void cpu_op_1283a(t_ipc *ipc) /* EOR */ {
   int srcreg = (ipc->opcode >> 9) & 7;
   uint8_t srcdata = DATAREG(srcreg);
   int dstreg = (ipc->opcode >> 0) & 7;
-  uint32_t dstaddr = (sint32)ADDRREG(dstreg) + idxval_dst(ipc);
+  uint32_t dstaddr = (int32_t)ADDRREG(dstreg) + idxval_dst(ipc);
   uint8_t dstdata = fetchbyte(dstaddr);
   uint8_t outdata = dstdata;
 
@@ -1474,14 +1474,14 @@ void cpu_op_1283b(t_ipc *ipc) /* EOR */ {
   int srcreg = (ipc->opcode >> 9) & 7;
   uint8_t srcdata = DATAREG(srcreg);
   int dstreg = (ipc->opcode >> 0) & 7;
-  uint32_t dstaddr = (sint32)ADDRREG(dstreg) + idxval_dst(ipc);
+  uint32_t dstaddr = (int32_t)ADDRREG(dstreg) + idxval_dst(ipc);
   uint8_t dstdata = fetchbyte(dstaddr);
   uint8_t outdata = dstdata;
 
   outdata^= srcdata;
   storebyte(dstaddr, outdata);
 
-  NFLAG = ((sint8)outdata) < 0;
+  NFLAG = ((int8_t)outdata) < 0;
   ZFLAG = !outdata;
   VFLAG = 0;
   CFLAG = 0;
@@ -1512,7 +1512,7 @@ void cpu_op_1284b(t_ipc *ipc) /* EOR */ {
   outdata^= srcdata;
   storebyte(dstaddr, outdata);
 
-  NFLAG = ((sint8)outdata) < 0;
+  NFLAG = ((int8_t)outdata) < 0;
   ZFLAG = !outdata;
   VFLAG = 0;
   CFLAG = 0;
@@ -1543,7 +1543,7 @@ void cpu_op_1285b(t_ipc *ipc) /* EOR */ {
   outdata^= srcdata;
   storebyte(dstaddr, outdata);
 
-  NFLAG = ((sint8)outdata) < 0;
+  NFLAG = ((int8_t)outdata) < 0;
   ZFLAG = !outdata;
   VFLAG = 0;
   CFLAG = 0;
@@ -1574,7 +1574,7 @@ void cpu_op_1286b(t_ipc *ipc) /* EOR */ {
   outdata^= srcdata;
   DATAREG(dstreg) = (DATAREG(dstreg) & ~0xffff) | outdata;
 
-  NFLAG = ((sint16)outdata) < 0;
+  NFLAG = ((int16_t)outdata) < 0;
   ZFLAG = !outdata;
   VFLAG = 0;
   CFLAG = 0;
@@ -1607,7 +1607,7 @@ void cpu_op_1287b(t_ipc *ipc) /* EOR */ {
   outdata^= srcdata;
   storeword(dstaddr, outdata);
 
-  NFLAG = ((sint16)outdata) < 0;
+  NFLAG = ((int16_t)outdata) < 0;
   ZFLAG = !outdata;
   VFLAG = 0;
   CFLAG = 0;
@@ -1640,7 +1640,7 @@ void cpu_op_1288b(t_ipc *ipc) /* EOR */ {
   outdata^= srcdata;
   storeword(dstaddr, outdata);
 
-  NFLAG = ((sint16)outdata) < 0;
+  NFLAG = ((int16_t)outdata) < 0;
   ZFLAG = !outdata;
   VFLAG = 0;
   CFLAG = 0;
@@ -1673,7 +1673,7 @@ void cpu_op_1289b(t_ipc *ipc) /* EOR */ {
   outdata^= srcdata;
   storeword(dstaddr, outdata);
 
-  NFLAG = ((sint16)outdata) < 0;
+  NFLAG = ((int16_t)outdata) < 0;
   ZFLAG = !outdata;
   VFLAG = 0;
   CFLAG = 0;
@@ -1685,7 +1685,7 @@ void cpu_op_1290a(t_ipc *ipc) /* EOR */ {
   int srcreg = (ipc->opcode >> 9) & 7;
   uint16_t srcdata = DATAREG(srcreg);
   int dstreg = (ipc->opcode >> 0) & 7;
-  uint32_t dstaddr = (sint32)ADDRREG(dstreg) + (sint32)(sint16)ipc->dst;
+  uint32_t dstaddr = (int32_t)ADDRREG(dstreg) + (int32_t)(int16_t)ipc->dst;
   uint16_t dstdata = fetchword(dstaddr);
   uint16_t outdata = dstdata;
 
@@ -1699,14 +1699,14 @@ void cpu_op_1290b(t_ipc *ipc) /* EOR */ {
   int srcreg = (ipc->opcode >> 9) & 7;
   uint16_t srcdata = DATAREG(srcreg);
   int dstreg = (ipc->opcode >> 0) & 7;
-  uint32_t dstaddr = (sint32)ADDRREG(dstreg) + (sint32)(sint16)ipc->dst;
+  uint32_t dstaddr = (int32_t)ADDRREG(dstreg) + (int32_t)(int16_t)ipc->dst;
   uint16_t dstdata = fetchword(dstaddr);
   uint16_t outdata = dstdata;
 
   outdata^= srcdata;
   storeword(dstaddr, outdata);
 
-  NFLAG = ((sint16)outdata) < 0;
+  NFLAG = ((int16_t)outdata) < 0;
   ZFLAG = !outdata;
   VFLAG = 0;
   CFLAG = 0;
@@ -1718,7 +1718,7 @@ void cpu_op_1291a(t_ipc *ipc) /* EOR */ {
   int srcreg = (ipc->opcode >> 9) & 7;
   uint16_t srcdata = DATAREG(srcreg);
   int dstreg = (ipc->opcode >> 0) & 7;
-  uint32_t dstaddr = (sint32)ADDRREG(dstreg) + idxval_dst(ipc);
+  uint32_t dstaddr = (int32_t)ADDRREG(dstreg) + idxval_dst(ipc);
   uint16_t dstdata = fetchword(dstaddr);
   uint16_t outdata = dstdata;
 
@@ -1732,14 +1732,14 @@ void cpu_op_1291b(t_ipc *ipc) /* EOR */ {
   int srcreg = (ipc->opcode >> 9) & 7;
   uint16_t srcdata = DATAREG(srcreg);
   int dstreg = (ipc->opcode >> 0) & 7;
-  uint32_t dstaddr = (sint32)ADDRREG(dstreg) + idxval_dst(ipc);
+  uint32_t dstaddr = (int32_t)ADDRREG(dstreg) + idxval_dst(ipc);
   uint16_t dstdata = fetchword(dstaddr);
   uint16_t outdata = dstdata;
 
   outdata^= srcdata;
   storeword(dstaddr, outdata);
 
-  NFLAG = ((sint16)outdata) < 0;
+  NFLAG = ((int16_t)outdata) < 0;
   ZFLAG = !outdata;
   VFLAG = 0;
   CFLAG = 0;
@@ -1770,7 +1770,7 @@ void cpu_op_1292b(t_ipc *ipc) /* EOR */ {
   outdata^= srcdata;
   storeword(dstaddr, outdata);
 
-  NFLAG = ((sint16)outdata) < 0;
+  NFLAG = ((int16_t)outdata) < 0;
   ZFLAG = !outdata;
   VFLAG = 0;
   CFLAG = 0;
@@ -1801,7 +1801,7 @@ void cpu_op_1293b(t_ipc *ipc) /* EOR */ {
   outdata^= srcdata;
   storeword(dstaddr, outdata);
 
-  NFLAG = ((sint16)outdata) < 0;
+  NFLAG = ((int16_t)outdata) < 0;
   ZFLAG = !outdata;
   VFLAG = 0;
   CFLAG = 0;
@@ -1832,7 +1832,7 @@ void cpu_op_1294b(t_ipc *ipc) /* EOR */ {
   outdata^= srcdata;
   DATAREG(dstreg) = outdata;
 
-  NFLAG = ((sint32)outdata) < 0;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   VFLAG = 0;
   CFLAG = 0;
@@ -1865,7 +1865,7 @@ void cpu_op_1295b(t_ipc *ipc) /* EOR */ {
   outdata^= srcdata;
   storelong(dstaddr, outdata);
 
-  NFLAG = ((sint32)outdata) < 0;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   VFLAG = 0;
   CFLAG = 0;
@@ -1898,7 +1898,7 @@ void cpu_op_1296b(t_ipc *ipc) /* EOR */ {
   outdata^= srcdata;
   storelong(dstaddr, outdata);
 
-  NFLAG = ((sint32)outdata) < 0;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   VFLAG = 0;
   CFLAG = 0;
@@ -1937,7 +1937,7 @@ void cpu_op_1297b(t_ipc *ipc) /* EOR */ {
   storeword(dstaddr + 2, (uint16_t)outdata);
   storeword(dstaddr, (uint16_t)(outdata >> 16));
 
-  NFLAG = ((sint32)outdata) < 0;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   VFLAG = 0;
   CFLAG = 0;
@@ -1949,7 +1949,7 @@ void cpu_op_1298a(t_ipc *ipc) /* EOR */ {
   int srcreg = (ipc->opcode >> 9) & 7;
   uint32_t srcdata = DATAREG(srcreg);
   int dstreg = (ipc->opcode >> 0) & 7;
-  uint32_t dstaddr = (sint32)ADDRREG(dstreg) + (sint32)(sint16)ipc->dst;
+  uint32_t dstaddr = (int32_t)ADDRREG(dstreg) + (int32_t)(int16_t)ipc->dst;
   uint32_t dstdata = fetchlong(dstaddr);
   uint32_t outdata = dstdata;
 
@@ -1963,14 +1963,14 @@ void cpu_op_1298b(t_ipc *ipc) /* EOR */ {
   int srcreg = (ipc->opcode >> 9) & 7;
   uint32_t srcdata = DATAREG(srcreg);
   int dstreg = (ipc->opcode >> 0) & 7;
-  uint32_t dstaddr = (sint32)ADDRREG(dstreg) + (sint32)(sint16)ipc->dst;
+  uint32_t dstaddr = (int32_t)ADDRREG(dstreg) + (int32_t)(int16_t)ipc->dst;
   uint32_t dstdata = fetchlong(dstaddr);
   uint32_t outdata = dstdata;
 
   outdata^= srcdata;
   storelong(dstaddr, outdata);
 
-  NFLAG = ((sint32)outdata) < 0;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   VFLAG = 0;
   CFLAG = 0;
@@ -1982,7 +1982,7 @@ void cpu_op_1299a(t_ipc *ipc) /* EOR */ {
   int srcreg = (ipc->opcode >> 9) & 7;
   uint32_t srcdata = DATAREG(srcreg);
   int dstreg = (ipc->opcode >> 0) & 7;
-  uint32_t dstaddr = (sint32)ADDRREG(dstreg) + idxval_dst(ipc);
+  uint32_t dstaddr = (int32_t)ADDRREG(dstreg) + idxval_dst(ipc);
   uint32_t dstdata = fetchlong(dstaddr);
   uint32_t outdata = dstdata;
 
@@ -1996,14 +1996,14 @@ void cpu_op_1299b(t_ipc *ipc) /* EOR */ {
   int srcreg = (ipc->opcode >> 9) & 7;
   uint32_t srcdata = DATAREG(srcreg);
   int dstreg = (ipc->opcode >> 0) & 7;
-  uint32_t dstaddr = (sint32)ADDRREG(dstreg) + idxval_dst(ipc);
+  uint32_t dstaddr = (int32_t)ADDRREG(dstreg) + idxval_dst(ipc);
   uint32_t dstdata = fetchlong(dstaddr);
   uint32_t outdata = dstdata;
 
   outdata^= srcdata;
   storelong(dstaddr, outdata);
 
-  NFLAG = ((sint32)outdata) < 0;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   VFLAG = 0;
   CFLAG = 0;
@@ -2034,7 +2034,7 @@ void cpu_op_1300b(t_ipc *ipc) /* EOR */ {
   outdata^= srcdata;
   storelong(dstaddr, outdata);
 
-  NFLAG = ((sint32)outdata) < 0;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   VFLAG = 0;
   CFLAG = 0;
@@ -2065,7 +2065,7 @@ void cpu_op_1301b(t_ipc *ipc) /* EOR */ {
   outdata^= srcdata;
   storelong(dstaddr, outdata);
 
-  NFLAG = ((sint32)outdata) < 0;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   VFLAG = 0;
   CFLAG = 0;
@@ -2082,7 +2082,7 @@ void cpu_op_1302a(t_ipc *ipc) /* CMP */ {
   uint32_t dstaddr = ADDRREG(dstreg);
   uint32_t dstaddr_tmp = (ADDRREG(dstreg)+= (dstreg == 7 ? 2 : 1), 0);
   uint8_t dstdata = fetchbyte(dstaddr);
-  uint8_t outdata = (sint8)dstdata - (sint8)srcdata;
+  uint8_t outdata = (int8_t)dstdata - (int8_t)srcdata;
   PC+= 2;
 }
 
@@ -2096,12 +2096,12 @@ void cpu_op_1302b(t_ipc *ipc) /* CMP */ {
   uint32_t dstaddr = ADDRREG(dstreg);
   uint32_t dstaddr_tmp = (ADDRREG(dstreg)+= (dstreg == 7 ? 2 : 1), 0);
   uint8_t dstdata = fetchbyte(dstaddr);
-  uint8_t outdata = (sint8)dstdata - (sint8)srcdata;
+  uint8_t outdata = (int8_t)dstdata - (int8_t)srcdata;
 
-  VFLAG = (((sint8)srcdata < 0) != ((sint8)dstdata < 0)) &&
-    (((sint8)dstdata < 0) != ((sint8)outdata < 0));
+  VFLAG = (((int8_t)srcdata < 0) != ((int8_t)dstdata < 0)) &&
+    (((int8_t)dstdata < 0) != ((int8_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint8)outdata) < 0;
+  NFLAG = ((int8_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 2;
 }
@@ -2114,7 +2114,7 @@ void cpu_op_1303a(t_ipc *ipc) /* CMP */ {
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstaddr = (ADDRREG(dstreg)+=2, ADDRREG(dstreg)-2);
   uint16_t dstdata = fetchword(dstaddr);
-  uint16_t outdata = (sint16)dstdata - (sint16)srcdata;
+  uint16_t outdata = (int16_t)dstdata - (int16_t)srcdata;
   PC+= 2;
 }
 
@@ -2126,12 +2126,12 @@ void cpu_op_1303b(t_ipc *ipc) /* CMP */ {
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstaddr = (ADDRREG(dstreg)+=2, ADDRREG(dstreg)-2);
   uint16_t dstdata = fetchword(dstaddr);
-  uint16_t outdata = (sint16)dstdata - (sint16)srcdata;
+  uint16_t outdata = (int16_t)dstdata - (int16_t)srcdata;
 
-  VFLAG = (((sint16)srcdata < 0) != ((sint16)dstdata < 0)) &&
-    (((sint16)dstdata < 0) != ((sint16)outdata < 0));
+  VFLAG = (((int16_t)srcdata < 0) != ((int16_t)dstdata < 0)) &&
+    (((int16_t)dstdata < 0) != ((int16_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint16)outdata) < 0;
+  NFLAG = ((int16_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 2;
 }
@@ -2144,7 +2144,7 @@ void cpu_op_1304a(t_ipc *ipc) /* CMP */ {
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstaddr = (ADDRREG(dstreg)+=4, ADDRREG(dstreg)-4);
   uint32_t dstdata = fetchlong(dstaddr);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
   PC+= 2;
 }
 
@@ -2156,12 +2156,12 @@ void cpu_op_1304b(t_ipc *ipc) /* CMP */ {
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstaddr = (ADDRREG(dstreg)+=4, ADDRREG(dstreg)-4);
   uint32_t dstdata = fetchlong(dstaddr);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
 
-  VFLAG = (((sint32)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
+  VFLAG = (((int32_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 2;
 }
@@ -2172,7 +2172,7 @@ void cpu_op_1305a(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = DATAREG(srcreg);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
   PC+= 2;
 }
 
@@ -2182,12 +2182,12 @@ void cpu_op_1305b(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = DATAREG(srcreg);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
 
-  VFLAG = (((sint32)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
+  VFLAG = (((int32_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 2;
 }
@@ -2198,7 +2198,7 @@ void cpu_op_1306a(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = ADDRREG(srcreg);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
   PC+= 2;
 }
 
@@ -2208,12 +2208,12 @@ void cpu_op_1306b(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = ADDRREG(srcreg);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
 
-  VFLAG = (((sint32)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
+  VFLAG = (((int32_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 2;
 }
@@ -2225,7 +2225,7 @@ void cpu_op_1307a(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = fetchlong(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
   PC+= 2;
 }
 
@@ -2236,12 +2236,12 @@ void cpu_op_1307b(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = fetchlong(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
 
-  VFLAG = (((sint32)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
+  VFLAG = (((int32_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 2;
 }
@@ -2253,7 +2253,7 @@ void cpu_op_1308a(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = fetchlong(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
   PC+= 2;
 }
 
@@ -2264,12 +2264,12 @@ void cpu_op_1308b(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = fetchlong(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
 
-  VFLAG = (((sint32)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
+  VFLAG = (((int32_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 2;
 }
@@ -2281,7 +2281,7 @@ void cpu_op_1309a(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = fetchlong(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
   PC+= 2;
 }
 
@@ -2292,12 +2292,12 @@ void cpu_op_1309b(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = fetchlong(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
 
-  VFLAG = (((sint32)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
+  VFLAG = (((int32_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 2;
 }
@@ -2305,27 +2305,27 @@ void cpu_op_1309b(t_ipc *ipc) /* CMP */ {
 void cpu_op_1310a(t_ipc *ipc) /* CMP */ {
   /* mask f1f8, bits b1e8, mnemonic 15, priv 0, endblk 0, imm_notzero 0, used 0     set -2, size 3, stype 5, dtype 1, sbitpos 0, dbitpos 9, immvalue 0 */
   int srcreg = (ipc->opcode >> 0) & 7;
-  uint32_t srcaddr = (sint32)ADDRREG(srcreg) + (sint32)(sint16)ipc->src;
+  uint32_t srcaddr = (int32_t)ADDRREG(srcreg) + (int32_t)(int16_t)ipc->src;
   uint32_t srcdata = fetchlong(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
   PC+= 4;
 }
 
 void cpu_op_1310b(t_ipc *ipc) /* CMP */ {
   /* mask f1f8, bits b1e8, mnemonic 15, priv 0, endblk 0, imm_notzero 0, used 0     set -2, size 3, stype 5, dtype 1, sbitpos 0, dbitpos 9, immvalue 0 */
   int srcreg = (ipc->opcode >> 0) & 7;
-  uint32_t srcaddr = (sint32)ADDRREG(srcreg) + (sint32)(sint16)ipc->src;
+  uint32_t srcaddr = (int32_t)ADDRREG(srcreg) + (int32_t)(int16_t)ipc->src;
   uint32_t srcdata = fetchlong(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
 
-  VFLAG = (((sint32)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
+  VFLAG = (((int32_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 4;
 }
@@ -2333,27 +2333,27 @@ void cpu_op_1310b(t_ipc *ipc) /* CMP */ {
 void cpu_op_1311a(t_ipc *ipc) /* CMP */ {
   /* mask f1f8, bits b1f0, mnemonic 15, priv 0, endblk 0, imm_notzero 0, used 0     set -2, size 3, stype 6, dtype 1, sbitpos 0, dbitpos 9, immvalue 0 */
   int srcreg = (ipc->opcode >> 0) & 7;
-  uint32_t srcaddr = (sint32)ADDRREG(srcreg) + idxval_src(ipc);
+  uint32_t srcaddr = (int32_t)ADDRREG(srcreg) + idxval_src(ipc);
   uint32_t srcdata = fetchlong(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
   PC+= 4;
 }
 
 void cpu_op_1311b(t_ipc *ipc) /* CMP */ {
   /* mask f1f8, bits b1f0, mnemonic 15, priv 0, endblk 0, imm_notzero 0, used 0     set -2, size 3, stype 6, dtype 1, sbitpos 0, dbitpos 9, immvalue 0 */
   int srcreg = (ipc->opcode >> 0) & 7;
-  uint32_t srcaddr = (sint32)ADDRREG(srcreg) + idxval_src(ipc);
+  uint32_t srcaddr = (int32_t)ADDRREG(srcreg) + idxval_src(ipc);
   uint32_t srcdata = fetchlong(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
 
-  VFLAG = (((sint32)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
+  VFLAG = (((int32_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 4;
 }
@@ -2364,7 +2364,7 @@ void cpu_op_1312a(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = fetchlong(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
   PC+= 4;
 }
 
@@ -2374,12 +2374,12 @@ void cpu_op_1312b(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = fetchlong(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
 
-  VFLAG = (((sint32)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
+  VFLAG = (((int32_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 4;
 }
@@ -2390,7 +2390,7 @@ void cpu_op_1313a(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = fetchlong(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
   PC+= 6;
 }
 
@@ -2400,12 +2400,12 @@ void cpu_op_1313b(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = fetchlong(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
 
-  VFLAG = (((sint32)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
+  VFLAG = (((int32_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 6;
 }
@@ -2416,7 +2416,7 @@ void cpu_op_1314a(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = fetchlong(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
   PC+= 4;
 }
 
@@ -2426,12 +2426,12 @@ void cpu_op_1314b(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = fetchlong(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
 
-  VFLAG = (((sint32)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
+  VFLAG = (((int32_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 4;
 }
@@ -2442,7 +2442,7 @@ void cpu_op_1315a(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = fetchlong(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
   PC+= 4;
 }
 
@@ -2452,12 +2452,12 @@ void cpu_op_1315b(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = fetchlong(srcaddr);
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
 
-  VFLAG = (((sint32)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
+  VFLAG = (((int32_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 4;
 }
@@ -2467,7 +2467,7 @@ void cpu_op_1316a(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = ipc->src;
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
   PC+= 6;
 }
 
@@ -2476,12 +2476,12 @@ void cpu_op_1316b(t_ipc *ipc) /* CMP */ {
   uint32_t srcdata = ipc->src;
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32_t dstdata = ADDRREG(dstreg);
-  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;
+  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;
 
-  VFLAG = (((sint32)srcdata < 0) != ((sint32)dstdata < 0)) &&
-    (((sint32)dstdata < 0) != ((sint32)outdata < 0));
+  VFLAG = (((int32_t)srcdata < 0) != ((int32_t)dstdata < 0)) &&
+    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));
   CFLAG = srcdata > dstdata;
-  NFLAG = ((sint32)outdata) < 0;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 6;
 }

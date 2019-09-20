@@ -24,7 +24,7 @@
 #include "emu.h"
 #include "timer.h"
 #include "state.h"
-#include "ym2610/ym2610.h"
+#include "ym2610.h"
 
 typedef struct timer_struct {
 	struct timer_struct next;	// list of timers

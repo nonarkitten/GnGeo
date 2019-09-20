@@ -57,12 +57,12 @@ int main(int argc, char *argv[])
   (void)argc;
   (void)argv;
 
-  debug("Writing C files... ");
+  printf("Writing C files... ");
   fflush(stdout);
 
   for (i = 0; i < 16; i++) {
 
-    debug("%d. ", i);
+    printf("%d. ", i);
     fflush(stdout);
 
     /* make filename */
@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
 
   }
 
-  debug("done.\n");
+  printf("done.\n");
   fflush(stdout);
 
   /* normal program termination */
@@ -99,9 +99,9 @@ void generate(FILE *output, int topnibble)
 {
   t_iib *iib;
   int i, flags, pcinc;
-  int DEBUG_BRANCH = 0;
-  int DEBUG_SR = 0;
-  int DEBUG_RTE = 0;
+  int printf_BRANCH = 0;
+  int printf_SR = 0;
+  int printf_RTE = 0;
 
   for (i = 0; i < iibs_num; i++) {
     iib = &iibs[i];
@@ -182,8 +182,8 @@ void generate(FILE *output, int topnibble)
 		generate_eaval(output, iib, tp_src);
 		OUT("  uint32_t sr = regs.sr.sr_struct.s;\n");
 		OUT("\n");
-		if (DEBUG_SR)
-		    fputs("  debug(\"SR: %08X %04X\\n\", PC, regs.sr.sr_int);\n",
+		if (printf_SR)
+		    fputs("  printf(\"SR: %08X %04X\\n\", PC, regs.sr.sr_int);\n",
 			  output);
 		if (iib->size == sz_word) {
 		    OUT("  if (!SFLAG)\n");
@@ -213,8 +213,8 @@ void generate(FILE *output, int topnibble)
 		OUT("    /* mode change, swap SP and A7 */\n");
 		OUT("    ADDRREG(7)^= SP; SP^= ADDRREG(7); ADDRREG(7)^= SP;\n");
 		OUT("  }\n");
-		if (DEBUG_SR)
-		    fputs("  debug(\"SR: %08X %04X\\n\", PC, regs.sr.sr_int);\n",
+		if (printf_SR)
+		    fputs("  printf(\"SR: %08X %04X\\n\", PC, regs.sr.sr_int);\n",
 			  output);
 		break;
 
@@ -226,13 +226,13 @@ void generate(FILE *output, int topnibble)
 		generate_eaval(output, iib, tp_dst);
 		switch (iib->size) {
 		case sz_byte:
-		    generate_outdata(output, iib, "(sint8)dstdata - (sint8)srcdata");
+		    generate_outdata(output, iib, "(int8_t)dstdata - (int8_t)srcdata");
 		    break;
 		case sz_word:
-		    generate_outdata(output, iib, "(sint16)dstdata - (sint16)srcdata");
+		    generate_outdata(output, iib, "(int16_t)dstdata - (int16_t)srcdata");
 		    break;
 		case sz_long:
-		    generate_outdata(output, iib, "(sint32)dstdata - (sint32)srcdata");
+		    generate_outdata(output, iib, "(int32_t)dstdata - (int32_t)srcdata");
 		    break;
 		default:
 		    OUT("ERROR size\n");
@@ -263,13 +263,13 @@ void generate(FILE *output, int topnibble)
 		OUT("  uint32_t dstdata = ADDRREG(dstreg);\n");
 		switch (iib->size) {
 		case sz_byte:
-		    OUT("  uint32_t outdata = (sint32)dstdata - (sint8)srcdata;\n");
+		    OUT("  uint32_t outdata = (int32_t)dstdata - (int8_t)srcdata;\n");
 		    break;
 		case sz_word:
-		    OUT("  uint32_t outdata = (sint32)dstdata - (sint16)srcdata;\n");
+		    OUT("  uint32_t outdata = (int32_t)dstdata - (int16_t)srcdata;\n");
 		    break;
 		case sz_long:
-		    OUT("  uint32_t outdata = (sint32)dstdata - (sint32)srcdata;\n");
+		    OUT("  uint32_t outdata = (int32_t)dstdata - (int32_t)srcdata;\n");
 		    break;
 		default:
 		    OUT("ERROR size\n");
@@ -287,15 +287,15 @@ void generate(FILE *output, int topnibble)
 		generate_eaval(output, iib, tp_dst);
 		switch (iib->size) {
 		case sz_byte:
-		    generate_outdata(output, iib, "(sint8)dstdata - (sint8)srcdata "
+		    generate_outdata(output, iib, "(int8_t)dstdata - (int8_t)srcdata "
 				     "- XFLAG");
 		    break;
 		case sz_word:
-		    generate_outdata(output, iib, "(sint16)dstdata - (sint16)srcdata"
+		    generate_outdata(output, iib, "(int16_t)dstdata - (int16_t)srcdata"
 				     "- XFLAG");
 		    break;
 		case sz_long:
-		    generate_outdata(output, iib, "(sint32)dstdata - (sint32)srcdata"
+		    generate_outdata(output, iib, "(int32_t)dstdata - (int32_t)srcdata"
 				     "- XFLAG");
 		    break;
 		default:
@@ -325,13 +325,13 @@ void generate(FILE *output, int topnibble)
 		generate_eaval(output, iib, tp_dst);
 		switch (iib->size) {
 		case sz_byte:
-		    generate_outdata(output, iib, "(sint8)dstdata + (sint8)srcdata");
+		    generate_outdata(output, iib, "(int8_t)dstdata + (int8_t)srcdata");
 		    break;
 		case sz_word:
-		    generate_outdata(output, iib, "(sint16)dstdata + (sint16)srcdata");
+		    generate_outdata(output, iib, "(int16_t)dstdata + (int16_t)srcdata");
 		    break;
 		case sz_long:
-		    generate_outdata(output, iib, "(sint32)dstdata + (sint32)srcdata");
+		    generate_outdata(output, iib, "(int32_t)dstdata + (int32_t)srcdata");
 		    break;
 		default:
 		    OUT("ERROR size\n");
@@ -362,13 +362,13 @@ void generate(FILE *output, int topnibble)
 		OUT("  uint32_t dstdata = ADDRREG(dstreg);\n");
 		switch (iib->size) {
 		case sz_byte:
-		    OUT("  uint32_t outdata = (sint32)dstdata + (sint8)srcdata;\n");
+		    OUT("  uint32_t outdata = (int32_t)dstdata + (int8_t)srcdata;\n");
 		    break;
 		case sz_word:
-		    OUT("  uint32_t outdata = (sint32)dstdata + (sint16)srcdata;\n");
+		    OUT("  uint32_t outdata = (int32_t)dstdata + (int16_t)srcdata;\n");
 		    break;
 		case sz_long:
-		    OUT("  uint32_t outdata = (sint32)dstdata + (sint32)srcdata;\n");
+		    OUT("  uint32_t outdata = (int32_t)dstdata + (int32_t)srcdata;\n");
 		    break;
 		default:
 		    OUT("ERROR size\n");
@@ -386,15 +386,15 @@ void generate(FILE *output, int topnibble)
 		generate_eaval(output, iib, tp_dst);
 		switch (iib->size) {
 		case sz_byte:
-		    generate_outdata(output, iib, "(sint8)dstdata + (sint8)srcdata "
+		    generate_outdata(output, iib, "(int8_t)dstdata + (int8_t)srcdata "
 				     "+ XFLAG");
 		    break;
 		case sz_word:
-		    generate_outdata(output, iib, "(sint16)dstdata + (sint16)srcdata"
+		    generate_outdata(output, iib, "(int16_t)dstdata + (int16_t)srcdata"
 				     "+ XFLAG");
 		    break;
 		case sz_long:
-		    generate_outdata(output, iib, "(sint32)dstdata + (sint32)srcdata"
+		    generate_outdata(output, iib, "(int32_t)dstdata + (int32_t)srcdata"
 				     "+ XFLAG");
 		    break;
 		default:
@@ -430,7 +430,7 @@ void generate(FILE *output, int topnibble)
 		if (flags)
 		    OUT("\n");
 		if (flags && iib->flags.set & IIB_FLAG_N)
-		    OUT("  NFLAG = ((sint32)outdata) < 0;\n");
+		    OUT("  NFLAG = ((int32_t)outdata) < 0;\n");
 		if (flags && iib->flags.set & IIB_FLAG_Z)
 		    generate_stdflag_z(output, iib);
 		if (flags && iib->flags.set & IIB_FLAG_V)
@@ -446,15 +446,15 @@ void generate(FILE *output, int topnibble)
 		generate_ea(output, iib, tp_dst, 1);
 		generate_eaval(output, iib, tp_dst);
 		OUT("\n");
-		OUT("  uint32_t outdata = (sint32)(sint16)srcdata * "
-		    "(sint32)(sint16)dstdata;\n");
+		OUT("  uint32_t outdata = (int32_t)(int16_t)srcdata * "
+		    "(int32_t)(int16_t)dstdata;\n");
 		if (iib->dtype != dt_Dreg)
 		    OUT("ERROR dtype\n");
 		OUT("  DATAREG(dstreg) = outdata;\n");
 		if (flags)
 		    OUT("\n");
 		if (flags && iib->flags.set & IIB_FLAG_N)
-		    OUT("  NFLAG = ((sint32)outdata) < 0;\n");
+		    OUT("  NFLAG = ((int32_t)outdata) < 0;\n");
 		if (flags && iib->flags.set & IIB_FLAG_Z)
 		    generate_stdflag_z(output, iib);
 		if (flags && iib->flags.set & IIB_FLAG_V)
@@ -471,13 +471,13 @@ void generate(FILE *output, int topnibble)
 		generate_eaval(output, iib, tp_dst);
 		switch (iib->size) {
 		case sz_byte:
-		    generate_outdata(output, iib, "(sint8)dstdata - (sint8)srcdata");
+		    generate_outdata(output, iib, "(int8_t)dstdata - (int8_t)srcdata");
 		    break;
 		case sz_word:
-		    generate_outdata(output, iib, "(sint16)dstdata - (sint16)srcdata");
+		    generate_outdata(output, iib, "(int16_t)dstdata - (int16_t)srcdata");
 		    break;
 		case sz_long:
-		    generate_outdata(output, iib, "(sint32)dstdata - (sint32)srcdata");
+		    generate_outdata(output, iib, "(int32_t)dstdata - (int32_t)srcdata");
 		    break;
 		default:
 		    OUT("ERROR size\n");
@@ -504,7 +504,7 @@ void generate(FILE *output, int topnibble)
 		iib->size = sz_long;
 		generate_ea(output, iib, tp_dst, 1);
 		generate_eaval(output, iib, tp_dst);
-		OUT("  uint32_t outdata = (sint32)dstdata - (sint32)(sint16)srcdata;\n");
+		OUT("  uint32_t outdata = (int32_t)dstdata - (int32_t)(int16_t)srcdata;\n");
 		if (flags)
 		    OUT("\n");
 		if (flags && iib->flags.set & IIB_FLAG_V)
@@ -590,7 +590,7 @@ void generate(FILE *output, int topnibble)
 		if (iib->dtype != dt_Areg || iib->size != sz_word)
 		    OUT("Error\n");
 		OUT("\n");
-		OUT("  ADDRREG(dstreg) = (sint32)(sint16)srcdata;\n");
+		OUT("  ADDRREG(dstreg) = (int32_t)(int16_t)srcdata;\n");
 		break;
 
 	    case i_MOVEPMR:
@@ -655,8 +655,8 @@ void generate(FILE *output, int topnibble)
 		generate_eaval(output, iib, tp_src);
 		OUT("  uint32_t sr = regs.sr.sr_struct.s;\n");
 		OUT("\n");
-		if (DEBUG_SR)
-		    fputs("  debug(\"SR: %08X %04X\\n\", PC, regs.sr.sr_int);\n",
+		if (printf_SR)
+		    fputs("  printf(\"SR: %08X %04X\\n\", PC, regs.sr.sr_int);\n",
 			  output);
 		switch (iib->size) {
 		case sz_byte:
@@ -677,8 +677,8 @@ void generate(FILE *output, int topnibble)
 		OUT("    /* mode change, swap SP and A7 */\n");
 		OUT("    ADDRREG(7)^= SP; SP^= ADDRREG(7); ADDRREG(7)^= SP;\n");
 		OUT("  }\n");
-		if (DEBUG_SR)
-		    fputs("  debug(\"SR: %08X %04X\\n\", PC, regs.sr.sr_int);\n",
+		if (printf_SR)
+		    fputs("  printf(\"SR: %08X %04X\\n\", PC, regs.sr.sr_int);\n",
 			  output);
 		break;
 
@@ -774,13 +774,13 @@ void generate(FILE *output, int topnibble)
 		case sz_word:
 		    OUT("  while (datamask) {\n");
 		    OUT("    DATAREG(movem_bit[datamask]) = ");
-		    OUT("(sint32)(sint16)fetchword(dstaddr);\n");
+		    OUT("(int32_t)(int16_t)fetchword(dstaddr);\n");
 		    OUT("    datamask&= ~(1<<movem_bit[datamask]);\n");
 		    OUT("    dstaddr+= 2;\n");
 		    OUT("  }\n");
 		    OUT("  while (addrmask) {\n");
 		    OUT("    ADDRREG(movem_bit[addrmask]) = ");
-		    OUT("(sint32)(sint16)fetchword(dstaddr);\n");
+		    OUT("(int32_t)(int16_t)fetchword(dstaddr);\n");
 		    OUT("    addrmask&= ~(1<<movem_bit[addrmask]);\n");
 		    OUT("    dstaddr+= 2;\n");
 		    OUT("  }\n");
@@ -840,13 +840,13 @@ void generate(FILE *output, int topnibble)
 		generate_eaval(output, iib, tp_src);
 		switch (iib->size) {
 		case sz_byte:
-		    generate_outdata(output, iib, "0 - (sint8)srcdata");
+		    generate_outdata(output, iib, "0 - (int8_t)srcdata");
 		    break;
 		case sz_word:
-		    generate_outdata(output, iib, "0 - (sint16)srcdata");
+		    generate_outdata(output, iib, "0 - (int16_t)srcdata");
 		    break;
 		case sz_long:
-		    generate_outdata(output, iib, "0 - (sint32)srcdata");
+		    generate_outdata(output, iib, "0 - (int32_t)srcdata");
 		    break;
 		default:
 		    OUT("ERROR size\n");
@@ -873,13 +873,13 @@ void generate(FILE *output, int topnibble)
 		generate_eaval(output, iib, tp_src);
 		switch (iib->size) {
 		case sz_byte:
-		    generate_outdata(output, iib, "0 - (sint8)srcdata - XFLAG");
+		    generate_outdata(output, iib, "0 - (int8_t)srcdata - XFLAG");
 		    break;
 		case sz_word:
-		    generate_outdata(output, iib, "0 - (sint16)srcdata - XFLAG");
+		    generate_outdata(output, iib, "0 - (int16_t)srcdata - XFLAG");
 		    break;
 		case sz_long:
-		    generate_outdata(output, iib, "0 - (sint32)srcdata - XFLAG");
+		    generate_outdata(output, iib, "0 - (int32_t)srcdata - XFLAG");
 		    break;
 		default:
 		    OUT("ERROR size\n");
@@ -980,10 +980,10 @@ void generate(FILE *output, int topnibble)
 		generate_eaval(output, iib, tp_dst);
 		generate_outdata(output, iib, NULL);
 		OUT("\n");
-		OUT("  sint8 outdata_low = (dstdata & 0xF) - (srcdata & 0xF) ");
+		OUT("  int8_t outdata_low = (dstdata & 0xF) - (srcdata & 0xF) ");
 		OUT("- XFLAG;\n");
-		OUT("  sint16 precalc = dstdata - srcdata - XFLAG;\n");
-		OUT("  sint16 outdata_tmp = precalc;\n");
+		OUT("  int16_t precalc = dstdata - srcdata - XFLAG;\n");
+		OUT("  int16_t outdata_tmp = precalc;\n");
 		OUT("\n");
 		OUT("  if (outdata_low < 0)\n");
 		OUT("    outdata_tmp-= 0x06;\n");
@@ -1014,9 +1014,9 @@ void generate(FILE *output, int topnibble)
 		generate_eaval(output, iib, tp_src);
 		generate_outdata(output, iib, NULL);
 		OUT("\n");
-		OUT("  sint8 outdata_low = - (srcdata & 0xF) - XFLAG;\n");
-		OUT("  sint16 precalc = - srcdata - XFLAG;\n");
-		OUT("  sint16 outdata_tmp = precalc;\n");
+		OUT("  int8_t outdata_low = - (srcdata & 0xF) - XFLAG;\n");
+		OUT("  int16_t precalc = - srcdata - XFLAG;\n");
+		OUT("  int16_t outdata_tmp = precalc;\n");
 		OUT("\n");
 		OUT("  if (outdata_low < 0)\n");
 		OUT("    outdata_tmp-= 0x06;\n");
@@ -1081,10 +1081,10 @@ void generate(FILE *output, int topnibble)
 		OUT("\n");
 		switch(iib->size) {
 		case sz_word:
-		    generate_outdata(output, iib, "(sint16)(sint8)(srcdata)");
+		    generate_outdata(output, iib, "(int16_t)(int8_t)(srcdata)");
 		    break;
 		case sz_long:
-		    generate_outdata(output, iib, "(sint32)(sint16)(srcdata)");
+		    generate_outdata(output, iib, "(int32_t)(int16_t)(srcdata)");
 		    break;
 		default:
 		    fprintf(output, "ERROR size\n");
@@ -1190,7 +1190,7 @@ void generate(FILE *output, int topnibble)
 		fprintf(output, "\n");
 		if (iib->size != sz_word)
 		    OUT("ERROR size\n");
-		fprintf(output, "  if ((sint16)srcdata < 0) {\n");
+		fprintf(output, "  if ((int16_t)srcdata < 0) {\n");
 		if (flags)
 		    OUT("    NFLAG = 1;\n");
 		fprintf(output, "    reg68k_internal_vector(V_CHK, PC+%d);\n",
@@ -1220,7 +1220,7 @@ void generate(FILE *output, int topnibble)
 		break;
 
 	    case i_RESET:
-		OUT("  debug(\"RESET @ %x\\n\", PC);\n");
+		OUT("  printf(\"RESET @ %x\\n\", PC);\n");
 		OUT("  exit(1);\n");
 		break;
 
@@ -1256,7 +1256,7 @@ void generate(FILE *output, int topnibble)
 		OUT("  ADDRREG(7)-= 4;\n");
 		OUT("  storelong(ADDRREG(7), dstdata);\n");
 		OUT("  ADDRREG(dstreg) = ADDRREG(7);\n");
-		OUT("  ADDRREG(7)+= (sint16)srcdata;\n");
+		OUT("  ADDRREG(7)+= (int16_t)srcdata;\n");
 		break;
 
 	    case i_UNLK:
@@ -1268,10 +1268,10 @@ void generate(FILE *output, int topnibble)
 		break;
 
 	    case i_RTE:
-		if (DEBUG_RTE)
-		    fputs("  debug(\"RTE: 0x%X\\n\", PC);\n", output);
-		if (DEBUG_SR)
-		    fputs("  debug(\"SR: %08X %04X\\n\", PC, regs.sr.sr_int);\n",
+		if (printf_RTE)
+		    fputs("  printf(\"RTE: 0x%X\\n\", PC);\n", output);
+		if (printf_SR)
+		    fputs("  printf(\"SR: %08X %04X\\n\", PC, regs.sr.sr_int);\n",
 			  output);
 		OUT("  if (!SFLAG)\n");
 		fprintf(output, "    reg68k_internal_vector(V_PRIVILEGE, PC+%d);\n",
@@ -1284,37 +1284,37 @@ void generate(FILE *output, int topnibble)
 		OUT("    /* mode change, swap SP and A7 */\n");
 		OUT("    ADDRREG(7)^= SP; SP^= ADDRREG(7); ADDRREG(7)^= SP;\n");
 		OUT("  }\n");
-		if (DEBUG_RTE)
-		    fputs("  debug(\"RTE: ->0x%X\\n\", PC);\n", output);
-		if (DEBUG_SR)
-		    fputs("  debug(\"SR: %08X %04X\\n\", PC, regs.sr.sr_int);\n",
+		if (printf_RTE)
+		    fputs("  printf(\"RTE: ->0x%X\\n\", PC);\n", output);
+		if (printf_SR)
+		    fputs("  printf(\"SR: %08X %04X\\n\", PC, regs.sr.sr_int);\n",
 			  output);
 		pcinc = 0;
 		break;
 
 	    case i_RTS:
-		if (DEBUG_BRANCH)
-		    fputs("  debug(\"RTS: 0x%X\\n\", PC);", output);
+		if (printf_BRANCH)
+		    fputs("  printf(\"RTS: 0x%X\\n\", PC);", output);
 		OUT("  PC = fetchlong(ADDRREG(7));\n");
 		OUT("  ADDRREG(7)+= 4;\n");
-		if (DEBUG_BRANCH)
-		    fputs("  debug(\"RTS: ->0x%X\\n\", PC);", output);
+		if (printf_BRANCH)
+		    fputs("  printf(\"RTS: ->0x%X\\n\", PC);", output);
 		pcinc = 0;
 		break;
 
 	    case i_RTR:
-		if (DEBUG_BRANCH)
-		    fputs("  debug(\"RTR: 0x%X\\n\", PC);\n", output);
-		if (DEBUG_SR)
-		    fputs("  debug(\"SR: %08X %04X\\n\", PC, regs.sr.sr_int);\n",
+		if (printf_BRANCH)
+		    fputs("  printf(\"RTR: 0x%X\\n\", PC);\n", output);
+		if (printf_SR)
+		    fputs("  printf(\"SR: %08X %04X\\n\", PC, regs.sr.sr_int);\n",
 			  output);
 		OUT("  SR = (SR & ~0xFF) | (fetchword(ADDRREG(7)) & 0xFF);\n");
 		OUT("  PC = fetchlong(ADDRREG(7)+2);\n");
 		OUT("  ADDRREG(7)+= 6;\n");
-		if (DEBUG_BRANCH)
-		    fputs("  debug(\"RTR: ->0x%X\\n\", PC);\n", output);
-		if (DEBUG_SR)
-		    fputs("  debug(\"SR: %08X %04X\\n\", PC, regs.sr.sr_int);\n",
+		if (printf_BRANCH)
+		    fputs("  printf(\"RTR: ->0x%X\\n\", PC);\n", output);
+		if (printf_SR)
+		    fputs("  printf(\"SR: %08X %04X\\n\", PC, regs.sr.sr_int);\n",
 			  output);
 		pcinc = 0;
 		break;
@@ -1322,24 +1322,24 @@ void generate(FILE *output, int topnibble)
 	    case i_JSR:
 		generate_ea(output, iib, tp_src, 1);
 		OUT("\n");
-		if (DEBUG_BRANCH)
-		    fputs("  debug(\"JSR: 0x%X\\n\", PC);\n", output);
+		if (printf_BRANCH)
+		    fputs("  printf(\"JSR: 0x%X\\n\", PC);\n", output);
 		OUT("  ADDRREG(7)-= 4;\n");
 		fprintf(output, "  storelong(ADDRREG(7), PC+%d);\n", (iib->wordlen)*2);
 		OUT("  PC = srcaddr;\n");
-		if (DEBUG_BRANCH)
-		    fputs("  debug(\"JSR: ->0x%X\\n\", PC);", output);
+		if (printf_BRANCH)
+		    fputs("  printf(\"JSR: ->0x%X\\n\", PC);", output);
 		pcinc = 0;
 		break;
 
 	    case i_JMP:
 		generate_ea(output, iib, tp_src, 1);
 		OUT("\n");
-		if (DEBUG_BRANCH)
-		    fputs("  debug(\"JMP: 0x%X\\n\", PC);", output);
+		if (printf_BRANCH)
+		    fputs("  printf(\"JMP: 0x%X\\n\", PC);", output);
 		OUT("  PC = srcaddr;\n");
-		if (DEBUG_BRANCH)
-		    fputs("  debug(\"JMP: ->0x%X\\n\", PC);\n", output);
+		if (printf_BRANCH)
+		    fputs("  printf(\"JMP: ->0x%X\\n\", PC);\n", output);
 		pcinc = 0;
 		break;
 	
@@ -1372,7 +1372,7 @@ void generate(FILE *output, int topnibble)
 		OUT("    dstdata-= 1;\n");
 		OUT("    DATAREG(dstreg) = (DATAREG(dstreg) & ~0xFFFF)\n");
 		OUT("| (dstdata & 0xFFFF);\n");
-		OUT("    if ((sint16)dstdata != -1)\n");
+		OUT("    if ((int16_t)dstdata != -1)\n");
 		OUT("      PC = srcdata;\n");
 		OUT("    else\n");
 		fprintf(output, "      PC+= %d;\n", (iib->wordlen)*2);
@@ -1393,7 +1393,7 @@ void generate(FILE *output, int topnibble)
 		OUT("  dstdata-= 1;\n");
 		OUT("  DATAREG(dstreg) = (DATAREG(dstreg) & ~0xFFFF) | ");
 		OUT("(dstdata & 0xFFFF);\n");
-		OUT("  if ((sint16)dstdata != -1)\n");
+		OUT("  if ((int16_t)dstdata != -1)\n");
 		OUT("    PC = srcdata;\n");
 		OUT("  else\n");
 		fprintf(output, "    PC+= %d;\n", (iib->wordlen)*2);
@@ -1405,14 +1405,14 @@ void generate(FILE *output, int topnibble)
 		OUT("  uint32_t srcdata = ipc->src;\n");
 		generate_cc(output, iib);
 		OUT("\n");
-		if (DEBUG_BRANCH)
-		    fputs("  debug(\"Bcc: 0x%X\\n\", PC);\n", output);
+		if (printf_BRANCH)
+		    fputs("  printf(\"Bcc: 0x%X\\n\", PC);\n", output);
 		OUT("  if (cc)\n");
 		OUT("    PC = srcdata;\n");
 		OUT("  else\n");
 		fprintf(output, "    PC+= %d;\n", (iib->wordlen)*2);
-		if (DEBUG_BRANCH)
-		    fputs("  debug(\"Bcc: ->0x%X\\n\", PC);\n", output);
+		if (printf_BRANCH)
+		    fputs("  printf(\"Bcc: ->0x%X\\n\", PC);\n", output);
 		pcinc = 0;
 		break;
 
@@ -1420,13 +1420,13 @@ void generate(FILE *output, int topnibble)
 		/* special case where ipc holds the already PC-relative value */
 		OUT("  uint32_t srcdata = ipc->src;\n");
 		OUT("\n");
-		if (DEBUG_BRANCH)
-		    fputs("  debug(\"BSR: 0x%X\\n\", PC);\n", output);
+		if (printf_BRANCH)
+		    fputs("  printf(\"BSR: 0x%X\\n\", PC);\n", output);
 		OUT("  ADDRREG(7)-= 4;\n");
 		fprintf(output, "  storelong(ADDRREG(7), PC+%d);\n", (iib->wordlen)*2);
 		OUT("  PC = srcdata;\n");
-		if (DEBUG_BRANCH)
-		    fputs("  debug(\"BSR: ->0x%X\\n\", PC);\n", output);
+		if (printf_BRANCH)
+		    fputs("  printf(\"BSR: ->0x%X\\n\", PC);\n", output);
 		pcinc = 0;
 		break;
 
@@ -1453,7 +1453,7 @@ void generate(FILE *output, int topnibble)
 		if (flags && iib->flags.set & IIB_FLAG_V)
 		    OUT("    VFLAG = 0;\n");
 		if (flags && iib->flags.set & IIB_FLAG_N)
-		    OUT("    NFLAG = ((sint16)quotient) < 0;\n");
+		    OUT("    NFLAG = ((int16_t)quotient) < 0;\n");
 		if (flags && iib->flags.set & IIB_FLAG_Z)
 		    OUT("  ZFLAG = !((uint16_t)quotient);\n");
 		if (flags && (iib->flags.set & IIB_FLAG_V ||
@@ -1477,17 +1477,17 @@ void generate(FILE *output, int topnibble)
 		generate_ea(output, iib, tp_src, 1);
 		generate_eaval(output, iib, tp_src); /* 16bit EA */
 		generate_ea(output, iib, tp_dst, 1); /* 32bit Dn */
-		OUT("  sint32 dstdata = DATAREG(dstreg);\n");
-		OUT("  sint32 quotient;\n");
-		OUT("  sint16 remainder;\n");
+		OUT("  int32_t dstdata = DATAREG(dstreg);\n");
+		OUT("  int32_t quotient;\n");
+		OUT("  int16_t remainder;\n");
 		OUT("\n");
 		OUT("  if (srcdata == 0) {\n");
 		fprintf(output, "    reg68k_internal_vector(V_ZERO, PC+%d);\n",
 			(iib->wordlen)*2);
 		OUT("    return;\n");
 		OUT("  }\n");
-		OUT("  quotient = dstdata / (sint16)srcdata;\n");
-		OUT("  remainder = dstdata % (sint16)srcdata;\n");
+		OUT("  quotient = dstdata / (int16_t)srcdata;\n");
+		OUT("  remainder = dstdata % (int16_t)srcdata;\n");
 		OUT("  if (((quotient & 0xffff8000) == 0) ||\n");
 		OUT("      ((quotient & 0xffff8000) == 0xffff8000)) {\n");
 		
@@ -1496,7 +1496,7 @@ void generate(FILE *output, int topnibble)
 		  OUT("    if ((quotient < 0) != (remainder < 0))\n");
 		*/
 
-		OUT("    if (((sint32)dstdata < 0) != (remainder < 0))\n");
+		OUT("    if (((int32_t)dstdata < 0) != (remainder < 0))\n");
 
 		OUT("      remainder = -remainder;\n");
 		OUT("    DATAREG(dstreg) = ((uint16_t)quotient) | ");
@@ -1504,7 +1504,7 @@ void generate(FILE *output, int topnibble)
 		if (flags && iib->flags.set & IIB_FLAG_V)
 		    OUT("    VFLAG = 0;\n");
 		if (flags && iib->flags.set & IIB_FLAG_N)
-		    OUT("    NFLAG = ((sint16)quotient) < 0;\n");
+		    OUT("    NFLAG = ((int16_t)quotient) < 0;\n");
 		if (flags && iib->flags.set & IIB_FLAG_Z)
 		    OUT("    ZFLAG = !((uint16_t)quotient);\n");
 		if (flags && (iib->flags.set & IIB_FLAG_V ||
@@ -1529,15 +1529,15 @@ void generate(FILE *output, int topnibble)
 		OUT("  uint8_t count = srcdata & 63;\n");
 		switch (iib->size) {
 		case sz_byte:
-		    generate_outdata(output, iib, "((sint8)dstdata) >> "
+		    generate_outdata(output, iib, "((int8_t)dstdata) >> "
 				     "(count > 7 ? 7 : count)");
 		    break;
 		case sz_word:
-		    generate_outdata(output, iib, "((sint16)dstdata) >> "
+		    generate_outdata(output, iib, "((int16_t)dstdata) >> "
 				     "(count > 15 ? 15 : count)");
 		    break;
 		case sz_long:
-		    generate_outdata(output, iib, "((sint32)dstdata) >> "
+		    generate_outdata(output, iib, "((int32_t)dstdata) >> "
 				     "(count > 31 ? 31 : count)");
 		    break;
 		default:
@@ -1800,7 +1800,7 @@ void generate(FILE *output, int topnibble)
 		break;
 
 	    case i_ILLG:
-		OUT("  debug(\"Illegal instruction @ %x\\n\", PC);\n");
+		OUT("  printf(\"Illegal instruction @ %x\\n\", PC);\n");
 		OUT("  exit(1);\n");
 		break;
 
@@ -1923,18 +1923,18 @@ void generate_ea(FILE *o, t_iib *iib, t_type type, int update)
       break;
     case dt_Adis:
       if (type == tp_src)
-	fprintf(o, "  uint32_t srcaddr = (sint32)ADDRREG(srcreg) + "
-		"(sint32)(sint16)ipc->src;\n");
+	fprintf(o, "  uint32_t srcaddr = (int32_t)ADDRREG(srcreg) + "
+		"(int32_t)(int16_t)ipc->src;\n");
       else
-	fprintf(o, "  uint32_t dstaddr = (sint32)ADDRREG(dstreg) + "
-		"(sint32)(sint16)ipc->dst;\n");
+	fprintf(o, "  uint32_t dstaddr = (int32_t)ADDRREG(dstreg) + "
+		"(int32_t)(int16_t)ipc->dst;\n");
       break;
     case dt_Aidx:
       if (type == tp_src) {
-	fprintf(o, "  uint32_t srcaddr = (sint32)ADDRREG(srcreg) + "
+	fprintf(o, "  uint32_t srcaddr = (int32_t)ADDRREG(srcreg) + "
 		"idxval_src(ipc);\n");
       } else {
-	fprintf(o, "  uint32_t dstaddr = (sint32)ADDRREG(dstreg) + "
+	fprintf(o, "  uint32_t dstaddr = (int32_t)ADDRREG(dstreg) + "
 		"idxval_dst(ipc);\n");
       }
       break;
@@ -2312,13 +2312,13 @@ void generate_stdflag_n(FILE *o, t_iib *iib)
 {
   switch(iib->size) {
   case sz_byte:
-    fprintf(o, "  NFLAG = ((sint8)outdata) < 0;\n");
+    fprintf(o, "  NFLAG = ((int8_t)outdata) < 0;\n");
     break;
   case sz_word:
-    fprintf(o, "  NFLAG = ((sint16)outdata) < 0;\n");
+    fprintf(o, "  NFLAG = ((int16_t)outdata) < 0;\n");
     break;
   case sz_long:
-    fprintf(o, "  NFLAG = ((sint32)outdata) < 0;\n");
+    fprintf(o, "  NFLAG = ((int32_t)outdata) < 0;\n");
     break;
   default:
     fprintf(o, "ERROR size\n");
@@ -2384,19 +2384,19 @@ void generate_subxflag_cx(FILE *o, t_iib *iib)
   fprintf(o, "  {\n");
   switch(iib->size) {
   case sz_byte:
-    fprintf(o, "    int Sm = (sint8)srcdata < 0;\n");
-    fprintf(o, "    int Dm = (sint8)dstdata < 0;\n");
-    fprintf(o, "    int Rm = (sint8)outdata < 0;\n");
+    fprintf(o, "    int Sm = (int8_t)srcdata < 0;\n");
+    fprintf(o, "    int Dm = (int8_t)dstdata < 0;\n");
+    fprintf(o, "    int Rm = (int8_t)outdata < 0;\n");
     break;
   case sz_word:
-    fprintf(o, "    int Sm = (sint16)srcdata < 0;\n");
-    fprintf(o, "    int Dm = (sint16)dstdata < 0;\n");
-    fprintf(o, "    int Rm = (sint16)outdata < 0;\n");
+    fprintf(o, "    int Sm = (int16_t)srcdata < 0;\n");
+    fprintf(o, "    int Dm = (int16_t)dstdata < 0;\n");
+    fprintf(o, "    int Rm = (int16_t)outdata < 0;\n");
     break;
   case sz_long:
-    fprintf(o, "    int Sm = (sint32)srcdata < 0;\n");
-    fprintf(o, "    int Dm = (sint32)dstdata < 0;\n");
-    fprintf(o, "    int Rm = (sint32)outdata < 0;\n");
+    fprintf(o, "    int Sm = (int32_t)srcdata < 0;\n");
+    fprintf(o, "    int Dm = (int32_t)dstdata < 0;\n");
+    fprintf(o, "    int Rm = (int32_t)outdata < 0;\n");
     break;
   default:
     fprintf(o, "ERROR size\n");
@@ -2411,7 +2411,7 @@ void generate_cmpaflag_c(FILE *o, t_iib *iib)
   /* see generate_subflag_c - this is just the same but with a sign extend
      on the source */
   (void)iib;
-  fprintf(o, "  CFLAG = (uint32_t)(sint32)(sint16)srcdata > dstdata;\n");
+  fprintf(o, "  CFLAG = (uint32_t)(int32_t)(int16_t)srcdata > dstdata;\n");
 }
 
 void generate_subflag_v(FILE *o, t_iib *iib)
@@ -2426,16 +2426,16 @@ void generate_subflag_v(FILE *o, t_iib *iib)
      of Sm != the sign of Dm, and the sign of Dm != the sign of Rm. */
   switch(iib->size) {
   case sz_byte:
-    fprintf(o, "  VFLAG = (((sint8)srcdata < 0) != ((sint8)dstdata < 0)) ");
-    fprintf(o, "&&\n    (((sint8)dstdata < 0) != ((sint8)outdata < 0));\n");
+    fprintf(o, "  VFLAG = (((int8_t)srcdata < 0) != ((int8_t)dstdata < 0)) ");
+    fprintf(o, "&&\n    (((int8_t)dstdata < 0) != ((int8_t)outdata < 0));\n");
     break;
   case sz_word:
-    fprintf(o, "  VFLAG = (((sint16)srcdata < 0) != ((sint16)dstdata < 0)) ");
-    fprintf(o, "&&\n    (((sint16)dstdata < 0) != ((sint16)outdata < 0));\n");
+    fprintf(o, "  VFLAG = (((int16_t)srcdata < 0) != ((int16_t)dstdata < 0)) ");
+    fprintf(o, "&&\n    (((int16_t)dstdata < 0) != ((int16_t)outdata < 0));\n");
     break;
   case sz_long:
-    fprintf(o, "  VFLAG = (((sint32)srcdata < 0) != ((sint32)dstdata < 0)) ");
-    fprintf(o, "&&\n    (((sint32)dstdata < 0) != ((sint32)outdata < 0));\n");
+    fprintf(o, "  VFLAG = (((int32_t)srcdata < 0) != ((int32_t)dstdata < 0)) ");
+    fprintf(o, "&&\n    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));\n");
     break;
   default:
     fprintf(o, "ERROR size\n");
@@ -2448,9 +2448,9 @@ void generate_cmpaflag_v(FILE *o, t_iib *iib)
   /* see generate_subflag_v - this is just the sz_long version with a sign
      extend on the source */
   (void)iib;
-  fprintf(o, "  VFLAG = (((sint32)(sint16)srcdata < 0) != ");
-  fprintf(o, "((sint32)dstdata < 0)) ");
-  fprintf(o, "&&\n    (((sint32)dstdata < 0) != ((sint32)outdata < 0));\n");
+  fprintf(o, "  VFLAG = (((int32_t)(int16_t)srcdata < 0) != ");
+  fprintf(o, "((int32_t)dstdata < 0)) ");
+  fprintf(o, "&&\n    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));\n");
 }
 
 void generate_stdxflag_z(FILE *o, t_iib *iib)
@@ -2492,19 +2492,19 @@ void generate_addxflag_cx(FILE *o, t_iib *iib)
   fprintf(o, "  {\n");
   switch(iib->size) {
   case sz_byte:
-    fprintf(o, "    int Sm = (sint8)srcdata < 0;\n");
-    fprintf(o, "    int Dm = (sint8)dstdata < 0;\n");
-    fprintf(o, "    int Rm = (sint8)outdata < 0;\n");
+    fprintf(o, "    int Sm = (int8_t)srcdata < 0;\n");
+    fprintf(o, "    int Dm = (int8_t)dstdata < 0;\n");
+    fprintf(o, "    int Rm = (int8_t)outdata < 0;\n");
     break;
   case sz_word:
-    fprintf(o, "    int Sm = (sint16)srcdata < 0;\n");
-    fprintf(o, "    int Dm = (sint16)dstdata < 0;\n");
-    fprintf(o, "    int Rm = (sint16)outdata < 0;\n");
+    fprintf(o, "    int Sm = (int16_t)srcdata < 0;\n");
+    fprintf(o, "    int Dm = (int16_t)dstdata < 0;\n");
+    fprintf(o, "    int Rm = (int16_t)outdata < 0;\n");
     break;
   case sz_long:
-    fprintf(o, "    int Sm = (sint32)srcdata < 0;\n");
-    fprintf(o, "    int Dm = (sint32)dstdata < 0;\n");
-    fprintf(o, "    int Rm = (sint32)outdata < 0;\n");
+    fprintf(o, "    int Sm = (int32_t)srcdata < 0;\n");
+    fprintf(o, "    int Dm = (int32_t)dstdata < 0;\n");
+    fprintf(o, "    int Rm = (int32_t)outdata < 0;\n");
     break;
   default:
     fprintf(o, "ERROR size\n");
@@ -2524,16 +2524,16 @@ void generate_addflag_v(FILE *o, t_iib *iib)
      of Sm == the sign of Dm, and the sign of Dm != the sign of Rm. */
   switch(iib->size) {
   case sz_byte:
-    fprintf(o, "  VFLAG = (((sint8)srcdata < 0) == ((sint8)dstdata < 0)) ");
-    fprintf(o, "&&\n    (((sint8)dstdata < 0) != ((sint8)outdata < 0));\n");
+    fprintf(o, "  VFLAG = (((int8_t)srcdata < 0) == ((int8_t)dstdata < 0)) ");
+    fprintf(o, "&&\n    (((int8_t)dstdata < 0) != ((int8_t)outdata < 0));\n");
     break;
   case sz_word:
-    fprintf(o, "  VFLAG = (((sint16)srcdata < 0) == ((sint16)dstdata < 0)) ");
-    fprintf(o, "&&\n    (((sint16)dstdata < 0) != ((sint16)outdata < 0));\n");
+    fprintf(o, "  VFLAG = (((int16_t)srcdata < 0) == ((int16_t)dstdata < 0)) ");
+    fprintf(o, "&&\n    (((int16_t)dstdata < 0) != ((int16_t)outdata < 0));\n");
     break;
   case sz_long:
-    fprintf(o, "  VFLAG = (((sint32)srcdata < 0) == ((sint32)dstdata < 0)) ");
-    fprintf(o, "&&\n    (((sint32)dstdata < 0) != ((sint32)outdata < 0));\n");
+    fprintf(o, "  VFLAG = (((int32_t)srcdata < 0) == ((int32_t)dstdata < 0)) ");
+    fprintf(o, "&&\n    (((int32_t)dstdata < 0) != ((int32_t)outdata < 0));\n");
     break;
   default:
     fprintf(o, "ERROR size\n");
@@ -2577,13 +2577,13 @@ void generate_negxflag_cx(FILE *o, t_iib *iib)
   fprintf(o, "  XFLAG = CFLAG ");
   switch(iib->size) {
   case sz_byte:
-    fprintf(o, "= ((sint8)srcdata < 0) || ((sint8)outdata < 0);\n");
+    fprintf(o, "= ((int8_t)srcdata < 0) || ((int8_t)outdata < 0);\n");
     break;
   case sz_word:
-    fprintf(o, "= ((sint16)srcdata < 0) || ((sint16)outdata < 0);\n");
+    fprintf(o, "= ((int16_t)srcdata < 0) || ((int16_t)outdata < 0);\n");
     break;
   case sz_long:
-    fprintf(o, "= ((sint32)srcdata < 0) || ((sint32)outdata < 0);\n");
+    fprintf(o, "= ((int32_t)srcdata < 0) || ((int32_t)outdata < 0);\n");
     break;
   default:
     fprintf(o, "ERROR size\n");
@@ -2597,13 +2597,13 @@ void generate_negxflag_v(FILE *o, t_iib *iib)
      unlike NEG, NEGX is done properly */
   switch(iib->size) {
   case sz_byte:
-    fprintf(o, "  VFLAG = ((sint8)srcdata < 0) && ((sint8)outdata < 0);\n");
+    fprintf(o, "  VFLAG = ((int8_t)srcdata < 0) && ((int8_t)outdata < 0);\n");
     break;
   case sz_word:
-    fprintf(o, "  VFLAG = ((sint16)srcdata < 0) && ((sint16)outdata < 0);\n");
+    fprintf(o, "  VFLAG = ((int16_t)srcdata < 0) && ((int16_t)outdata < 0);\n");
     break;
   case sz_long:
-    fprintf(o, "  VFLAG = ((sint32)srcdata < 0) && ((sint32)outdata < 0);\n");
+    fprintf(o, "  VFLAG = ((int32_t)srcdata < 0) && ((int32_t)outdata < 0);\n");
     break;
   default:
     fprintf(o, "ERROR size\n");

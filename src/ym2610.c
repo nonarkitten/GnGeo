@@ -112,7 +112,7 @@
 #include <math.h>
 
 #include "mvs.h"
-#include "../state.h"
+#include "state.h"
 #include "2610intf.h"
 #include "ym2610.h"
 
@@ -417,7 +417,7 @@ static const u8 ALIGN_DATA lfo_pm_output[7 * 8][8] = { /* 7 bits meaningful (of 
 
 };
 
-#include "../conf.h"
+#include "conf.h"
 int enablefm = 0;
 int enable16 = 0;
 

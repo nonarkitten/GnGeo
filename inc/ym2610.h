@@ -10,8 +10,8 @@
 #define _YM2610_H_
 
 #include "mvs.h"
-#include "../emu.h"
-#include "../timer.h"
+#include "emu.h"
+#include "timer.h"
 
 /* for busy flag emulation , function FM_GET_TIME_NOW() should be */
 /* return the present time in second unit with value     */

@@ -28,7 +28,7 @@ void cpu_op_1064b(t_ipc *ipc) /* MOVE */ {
 
   VFLAG = 0;
   CFLAG = 0;
-  NFLAG = ((sint32)outdata) < 0;
+  NFLAG = ((int32_t)outdata) < 0;
   ZFLAG = !outdata;
   PC+= 2;
 }

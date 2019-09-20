@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 
   /* loop until end of file */
 
-  debug("Writing CPU definitions... ");
+  printf("Writing CPU definitions... ");
   fflush(stdout);
 
   while (!feof(input)) {
@@ -145,7 +145,7 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  debug("done.\n");
+  printf("done.\n");
   fflush(stdout);
 
   return(0);
@@ -749,7 +749,7 @@ void procline(char *line, int lineno, FILE *outiibs, FILE *outfuncs,
 	      case sz_word: bits |= (1<<start[bitz]); break;
 	      case sz_long: bits |= (2<<start[bitz]); break;
 	      default:
-		debug("%d: Invalid size\n", lineno);
+		printf("%d: Invalid size\n", lineno);
 		continue;
 	      }
 	      if (expand_s_immsize) {
@@ -759,7 +759,7 @@ void procline(char *line, int lineno, FILE *outiibs, FILE *outfuncs,
 		case sz_word: stype = dt_ImmW; break;
 		case sz_long: stype = dt_ImmL; break;
 		default:
-		  debug("%d: Invalid size\n", lineno);
+		  printf("%d: Invalid size\n", lineno);
 		  exit(1);
 		}
 	      }
@@ -816,7 +816,7 @@ void procline(char *line, int lineno, FILE *outiibs, FILE *outfuncs,
 		  case sz_word: stype = dt_ImmW; break;
 		  case sz_long: stype = dt_ImmL; break;
 		  default:
-		    debug("%d: Invalid size\n", lineno);
+		    printf("%d: Invalid size\n", lineno);
 		    exit(1);
 		  }
 		  break;
@@ -865,7 +865,7 @@ void procline(char *line, int lineno, FILE *outiibs, FILE *outfuncs,
 		  case sz_word: dtype = dt_ImmW; break;
 		  case sz_long: dtype = dt_ImmL; break;
 		  default:
-		    debug("%d: Invalid size\n", lineno);
+		    printf("%d: Invalid size\n", lineno);
 		    exit(1);
 		  }
 		  break;
@@ -914,7 +914,7 @@ void procline(char *line, int lineno, FILE *outiibs, FILE *outfuncs,
 		  case sz_word: dtype = dt_ImmW; break;
 		  case sz_long: dtype = dt_ImmL; break;
 		  default:
-		    debug("%d: Invalid size\n", lineno);
+		    printf("%d: Invalid size\n", lineno);
 		    exit(1);
 		  }
 		  break;
@@ -954,7 +954,7 @@ void procline(char *line, int lineno, FILE *outiibs, FILE *outfuncs,
 	      case dt_ImmV:
 		break;
 	      default:
-		debug("%d: Invalid type\n", lineno);
+		printf("%d: Invalid type\n", lineno);
 		exit(1);
 	      }
 	    }
@@ -996,7 +996,7 @@ void procline(char *line, int lineno, FILE *outiibs, FILE *outfuncs,
 		clocks = size != sz_long ? 8 : clocks_6or8(stype);
 		clocks+= clocks_eacalc(stype, size);
 	      } else {
-		debug("%d: clock count invalid type\n", lineno);
+		printf("%d: clock count invalid type\n", lineno);
 		exit(1);
 	      }
 	      break;
@@ -1041,7 +1041,7 @@ void procline(char *line, int lineno, FILE *outiibs, FILE *outfuncs,
 	    case i_MOVE:
 	    case i_MOVEA:
 	      if ((idx = clocks_typetoindex(dtype)) == -1) {
-		debug("%d: clock count invalid MOVE type\n", lineno);
+		printf("%d: clock count invalid MOVE type\n", lineno);
 		exit(1);
 	      }
 	      clocks = clocks_movetable[clocks_typetoindex(stype)*9+idx];
@@ -1137,7 +1137,7 @@ void procline(char *line, int lineno, FILE *outiibs, FILE *outfuncs,
 	      case dt_Pdis: clocks = 10; break;
 	      case dt_Pidx: clocks = 14; break;
 	      default:
-		debug("%d: clock count invalid type\n", lineno);
+		printf("%d: clock count invalid type\n", lineno);
 		exit(1);
 	      }
 	      break;
@@ -1151,7 +1151,7 @@ void procline(char *line, int lineno, FILE *outiibs, FILE *outfuncs,
 	      case dt_Pdis: clocks = 18; break;
 	      case dt_Pidx: clocks = 22; break;
 	      default:
-		debug("%d: clock count invalid type\n", lineno);
+		printf("%d: clock count invalid type\n", lineno);
 		exit(1);
 	      }
 	      break;
@@ -1165,7 +1165,7 @@ void procline(char *line, int lineno, FILE *outiibs, FILE *outfuncs,
 	      case dt_Pdis: clocks =  8; break;
 	      case dt_Pidx: clocks = 12; break;
 	      default:
-		debug("%d: clock count invalid type\n", lineno);
+		printf("%d: clock count invalid type\n", lineno);
 		exit(1);
 	      }
 	      break;
@@ -1179,7 +1179,7 @@ void procline(char *line, int lineno, FILE *outiibs, FILE *outfuncs,
 	      case dt_Pdis: clocks = 16; break;
 	      case dt_Pidx: clocks = 20; break;
 	      default:
-		debug("%d: clock count invalid type\n", lineno);
+		printf("%d: clock count invalid type\n", lineno);
 		exit(1);
 	      }
 	      break;
@@ -1277,12 +1277,12 @@ void procline(char *line, int lineno, FILE *outiibs, FILE *outfuncs,
 	      clocks = 4; /* exception */
 	      break;
 	    default:
-	      debug("%d: Invalid mnemonic type\n", lineno);
+	      printf("%d: Invalid mnemonic type\n", lineno);
 	      exit(1);
 	    }
 
 	    if (clocks == -1) {
-	      debug("%d: Clocks not found\n", lineno);
+	      printf("%d: Clocks not found\n", lineno);
 	      exit(1);
 	    }
 
@@ -1361,7 +1361,7 @@ int clocks_typetoindex(t_datatype type)
   default:
     break;
   }
-  debug("Invalid type for clocks\n");
+  printf("Invalid type for clocks\n");
   exit(1);
 }
 
@@ -1390,7 +1390,7 @@ int clocks_eacalc(t_datatype type, t_size size)
   case dt_ImmV:
   case dt_Ill: return 0;
   }
-  debug("Invalid type for clocks\n");
+  printf("Invalid type for clocks\n");
   exit(1);
 }
 

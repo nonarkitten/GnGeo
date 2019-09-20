@@ -1,4 +1,4 @@
-APPNAME	:= ../libs/liblz4w
+APPNAME	:= ../libs/liblz4w.a
 SOURCES	:= $(wildcard *.c *.s)
 OBJECTS	:= $(patsubst %.c,%.o,$(patsubst %.s,%.o,$(SOURCES)))
 
@@ -8,7 +8,7 @@ DEFINES	:= \
 	-DUSE_GENERATOR68K -DUSE_MAMEZ80 \
 	-DDATA_DIRECTORY=\"${pkgdatadir}\"
 	
-INCLUDE	:= \
+INCLUDE	:= -I$(CURDIR)/../inc\
 	-IADE\:include.arti -IADE\:include/os-include -I.
 
 LIBS      = -lm -lz-b
@@ -24,16 +24,26 @@ FLAGS    := \
 CC       := m68k-amigaos-gcc $(FLAGS) $(INCLUDE) $(DEFINES) -Wall
 AS       := as -m68040
 
-all: $(OBJECTS)
-	$(CC) -c $(OBJECTS) -o $(APPNAME) $(LIBPATH) $(LIBS)
+.PHONY: all
+all: $(OBJECTS) $(CURDIR)/$(APPNAME)
 
-%.o: ../%.c
+$(CURDIR)/$(APPNAME):
+	rm -f $(CURDIR)/$(APPNAME) 
+	ar q $(CURDIR)/$(APPNAME) $(OBJECTS)
+	ranlib $(CURDIR)/$(APPNAME)
+#	$(CC) -c $(OBJECTS) $(APPNAME) $(LIBPATH) $(LIBS)
+
+%.o: %.c
 	$(CC) $(CCFLAGS) $(DEFINES) $(INCLUDE) -c $< -o $@
 
-%.o: ../%.s
+%.o: %.s
 	$(AS) $< -o $@
 
+.PHONY: clean
 clean:
-	delete #?
-	delete $(APPNAME)
+	rm -f *.o
+	rm -f $(CURDIR)/$(APPNAME) 
+
+.PHONY: rebuild
+rebuild: clean all
 
