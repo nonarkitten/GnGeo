@@ -26,6 +26,7 @@ uint32_t timer_get_time_ms(void);
 timer_struct *timer_insert(uint32_t, int, timer_callback);
 void timer_free(timer_struct * ts);
 void timer_free_all(void);
+void timer_init(void);
 
 // call frequently to avoid missed timers
 void my_timer(void);

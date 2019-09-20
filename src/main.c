@@ -116,7 +116,29 @@ int real_AC68080 = 0;
 
 extern void ParseArguments(int argc, char *argv[]);
 extern void convert_audio_rom(void);
+extern const uint8_t gngeo_logo[];
+extern const uint8_t gngeo_logo_clut[];
+static void load_logo(void) {
+	uint16_t pal[16] = { 0 };
+	uint8_t *logo = gngeo_logo;
+	uint16_t *pix = bufferpixels;
+	int i, x;
 
+	for(i=0;i<16;i++) {
+		uint8_t r = gngeo_logo_clut[i * 4 + 0] & 0xF8;
+		uint8_t g = gngeo_logo_clut[i * 4 + 1] & 0xFC;
+		uint8_t b = gngeo_logo_clut[i * 4 + 2] & 0xF8;
+		uint16_t c = (r << 8) | (g << 3) | b;
+		pal[i] = c;
+	}
+	for(i=0;i<200;i++) {
+		for(x=0;x<320;x++) {
+			*pix++ = pal[*logo++];
+		}
+		pix += (PITCH >> 1) - 320;
+	}
+	screen_update();
+}
 int main(int argc, char *argv[]) {
     char *rom_name;
     BPTR file_lock;
@@ -137,6 +159,10 @@ int main(int argc, char *argv[]) {
 	real_AC68080 = AC68080;
 		
 	ParseArguments(argc, argv);
+	if(!arg[OPTION_DEBUG]) {
+		init_sdl();
+		load_logo();
+	}
 
 	file_lock = GetProgramDir();
 	SetProgramDir(file_lock);
@@ -155,7 +181,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	//convert_audio_rom();
-	init_sdl();
+	if(arg[OPTION_DEBUG]) init_sdl();
 	
 	printf("%d\n", __LINE__);
 	debug("Startup took %u ms, ", (uint32_t)((int)timer_get_time_ms() - (int)initStart));
