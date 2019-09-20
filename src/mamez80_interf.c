@@ -18,7 +18,7 @@
 
 #include "emu.h"
 #include "memory.h"
-#include "mamez80/z80.h"
+#include "z80.h"
 #include "state.h"
 
 static uint8_t *z80map1, *z80map2, *z80map3, *z80map4;
