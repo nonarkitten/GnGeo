@@ -18,19 +18,21 @@ LIBPATH	:=
 # -funit-at-a-time -frename-registers -fweb -fsingle-precision-constant
 FLAGS    := \
 	-noixemul \
-	-msoft-float -w -O3 -m68040 -noixemul -fshort-double -fshort-enums -ffast-math \
+	-msoft-float -w -O3 -m68040 -noixemul -fshort-enums -ffast-math \
 	-finline-functions -fomit-frame-pointer -fexpensive-optimizations \
 	
 CC       := m68k-amigaos-gcc $(FLAGS) $(INCLUDE) $(DEFINES) -Wall
-AS       := as -m68040
+AS       := m68k-amigaos-as -m68040
+AR       := m68k-amigaos-ar q
+RANLIB   := m68k-amigaos-ranlib 
 
 .PHONY: all
 all: $(OBJECTS) $(CURDIR)/$(APPNAME)
 
 $(CURDIR)/$(APPNAME):
 	rm -f $(CURDIR)/$(APPNAME) 
-	ar q $(CURDIR)/$(APPNAME) $(OBJECTS)
-	ranlib $(CURDIR)/$(APPNAME)
+	$(AR) $(CURDIR)/$(APPNAME) $(OBJECTS)
+	$(RANLIB) $(CURDIR)/$(APPNAME)
 #	$(CC) -c $(OBJECTS) $(APPNAME) $(LIBPATH) $(LIBS)
 
 %.o: %.c

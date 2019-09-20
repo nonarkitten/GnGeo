@@ -16,20 +16,21 @@ LIBS      = -lgen68k -llz4w
 LIBPATH  := -L./libs
 
 # -funit-at-a-time -frename-registers -fweb -fsingle-precision-constant
-FLAGS    := -noixemul -msoft-float -w -Os  -m68020-60 -fshort-double -fshort-enums \
+FLAGS    := -noixemul -msoft-float -w -Os  -m68020-60 -fshort-enums \
 	-ffast-math -finline-functions -fomit-frame-pointer \
    
 CC       := m68k-amigaos-gcc $(FLAGS) $(INCLUDE) $(DEFINES) -Wall
 VASM     := vasm -Faout -quiet -x -m68020 -spaces -showopt
-GAS      := as
+GAS      := m68k-amigaos-as
 
 .PHONY: all
 all: premake $(OBJECTS)
-	$(CC) -flto -s $(OBJECTS) -o $(APPNAME) $(LIBPATH) $(LIBS)
-	shrinkler $(APPNAME) $(APPNAME)
+	$(CC) -s $(OBJECTS) -o $(APPNAME) $(LIBPATH) $(LIBS)
+	#shrinkler $(APPNAME) $(APPNAME)
 
 .PHONY: premake
 premake:
+	mkdir -p obj
 	$(MAKE) -C lz4w
 	$(MAKE) -C gen68k
 

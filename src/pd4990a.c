@@ -84,26 +84,26 @@ void pd4990a_addretrace()
 }
 
 void pd4990a_init_save_state(void) {
-    create_state_register(ST_PD4990A,"seconds",1,&pd4990a.seconds,sizeof(int32_t),REG_INT32);
-    create_state_register(ST_PD4990A,"minutes",1,&pd4990a.minutes,sizeof(int32_t),REG_INT32);
-    create_state_register(ST_PD4990A,"hours",1,&pd4990a.hours,sizeof(int32_t),REG_INT32);
-    create_state_register(ST_PD4990A,"days",1,&pd4990a.days,sizeof(int32_t),REG_INT32);
-    create_state_register(ST_PD4990A,"month",1,&pd4990a.month,sizeof(int32_t),REG_INT32);
-    create_state_register(ST_PD4990A,"year",1,&pd4990a.year,sizeof(int32_t),REG_INT32);
-    create_state_register(ST_PD4990A,"weekday",1,&pd4990a.weekday,sizeof(int32_t),REG_INT32);
+    create_state_register(ST_PD4990A,"seconds",1,&pd4990a.seconds,sizeof(int32_t),REG_int32_t);
+    create_state_register(ST_PD4990A,"minutes",1,&pd4990a.minutes,sizeof(int32_t),REG_int32_t);
+    create_state_register(ST_PD4990A,"hours",1,&pd4990a.hours,sizeof(int32_t),REG_int32_t);
+    create_state_register(ST_PD4990A,"days",1,&pd4990a.days,sizeof(int32_t),REG_int32_t);
+    create_state_register(ST_PD4990A,"month",1,&pd4990a.month,sizeof(int32_t),REG_int32_t);
+    create_state_register(ST_PD4990A,"year",1,&pd4990a.year,sizeof(int32_t),REG_int32_t);
+    create_state_register(ST_PD4990A,"weekday",1,&pd4990a.weekday,sizeof(int32_t),REG_int32_t);
 
-    create_state_register(ST_PD4990A,"retraces",1,&retraces,sizeof(int32_t),REG_INT32);
-    create_state_register(ST_PD4990A,"testbit",1,&testbit,sizeof(int32_t),REG_INT32);
+    create_state_register(ST_PD4990A,"retraces",1,&retraces,sizeof(int32_t),REG_int32_t);
+    create_state_register(ST_PD4990A,"testbit",1,&testbit,sizeof(int32_t),REG_int32_t);
     
-    create_state_register(ST_PD4990A,"testwaits",1,&testwaits,sizeof(int32_t),REG_INT32);
-    create_state_register(ST_PD4990A,"maxwaits",1,&maxwaits,sizeof(int32_t),REG_INT32);
-    create_state_register(ST_PD4990A,"shiftlo",1,&shiftlo,sizeof(uint32_t),REG_INT32);
-    create_state_register(ST_PD4990A,"shifthi",1,&shifthi,sizeof(uint32_t),REG_INT32);
-    create_state_register(ST_PD4990A,"reading",1,&reading,sizeof(int8_t),REG_INT8);
-    create_state_register(ST_PD4990A,"writing",1,&writing,sizeof(int8_t),REG_INT8);
+    create_state_register(ST_PD4990A,"testwaits",1,&testwaits,sizeof(int32_t),REG_int32_t);
+    create_state_register(ST_PD4990A,"maxwaits",1,&maxwaits,sizeof(int32_t),REG_int32_t);
+    create_state_register(ST_PD4990A,"shiftlo",1,&shiftlo,sizeof(uint32_t),REG_int32_t);
+    create_state_register(ST_PD4990A,"shifthi",1,&shifthi,sizeof(uint32_t),REG_int32_t);
+    create_state_register(ST_PD4990A,"reading",1,&reading,sizeof(int8_t),REG_int8_t);
+    create_state_register(ST_PD4990A,"writing",1,&writing,sizeof(int8_t),REG_int8_t);
 
-    create_state_register(ST_PD4990A,"outputbit",1,&outputbit,sizeof(int32_t),REG_INT32);
-    create_state_register(ST_PD4990A,"bitno",1,&bitno,sizeof(int32_t),REG_INT32);
+    create_state_register(ST_PD4990A,"outputbit",1,&outputbit,sizeof(int32_t),REG_int32_t);
+    create_state_register(ST_PD4990A,"bitno",1,&bitno,sizeof(int32_t),REG_int32_t);
 
 }
 

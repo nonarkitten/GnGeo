@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "generator.h"
 
@@ -48,14 +49,21 @@ void generate_bits(FILE *o, t_iib *iib);
 
 /* program entry routine */
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]){
+  char newpath[1024]; 
   FILE *output;
   int i;
   char tmp[256];
 
   (void)argc;
   (void)argv;
+
+#ifndef __AMIGA__
+  strcpy(newpath, argv[0]);
+  if (strrchr(newpath, '\\')) *strrchr(newpath, '\\') = 0;
+  fprintf(stderr, "Current path %s\n", newpath);
+  _chdir(newpath);
+#endif
 
   printf("Writing C files... ");
   fflush(stdout);

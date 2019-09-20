@@ -19,7 +19,7 @@
 #include <config.h>
 #include <string.h>
 #include <stdlib.h>
-#include <zlib.h>
+//#include <zlib.h>
 #include "video.h"
 #include "memory.h"
 #include "emu.h"
@@ -90,8 +90,6 @@ static uint8_t dr, dg, db, sr, sg, sb;
 // #define BLEND16_50(a,b) ((((a)&0xf7de)>>1)+(((b)&0xf7de)>>1))
 // #define BLEND16_25(a,b) alpha_blend(a,b,63)
 
-//#define static inline static inline
-#define static inline extern
 
 char dda_y_skip[17];
 uint32_t dda_y_skip_i;

@@ -39,7 +39,7 @@
 #include "screen.h"
 #include "neocrypt.h"
 
-#include "menu.h"
+//#include "menu.h"
 #include "event.h"
 
 #include <devices/timer.h>

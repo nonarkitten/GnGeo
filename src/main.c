@@ -39,7 +39,7 @@
 // #include "effect.h"
 // #include "gngeo_icon.h"
 #include "event.h"
-#include "menu.h"
+//#include "menu.h"
 // #include "frame_skip.h"
 
 #include <graphics/gfx.h>

@@ -26,7 +26,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <zlib.h>
+//#include <zlib.h>
 #include <stdbool.h>
 
 #include "unzip.h"
@@ -39,7 +39,7 @@
 #include "screen.h"
 #include "sound.h"
 // #include "transpack.h"
-#include "menu.h"
+//#include "menu.h"
 // #include "frame_skip.h"
 
 #if defined (__AMIGA__)
@@ -242,57 +242,14 @@ void save_memcard(char *name) {
 }
 
 int close_game(void) {
-	//if (arg[OPTION_FILE] == NULL) return false;
 	save_nvram(arg[OPTION_FILE]);
 	save_memcard(arg[OPTION_FILE]);
-
 	dr_free_roms(&memory.rom);
-	//trans_pack_free();
-
-	return true;
-}
-
-int load_game_config(char *rom_name) {
-	char *gpath;
-	char *drconf;
-#ifdef EMBEDDED_FS
-	gpath=ROOTPATH"conf/";
-#else
-	gpath=get_gngeo_dir();
-#endif
-//	cf_reset_to_default();
-//	cf_open_file(NULL); /* Reset possible previous setting */
-	if (rom_name) {
-		if (strstr(rom_name,".gno")!=NULL) {
-			char *name=dr_gno_romname(rom_name);
-			if (name) {
-				debug("Tring to load a gno file %s %s\n",rom_name,name);
-				drconf=(char *)alloca(strlen(gpath)+strlen(name)+strlen(".cf")+1);
-				sprintf(drconf,"%s%s.cf",gpath,name);
-			} else {
-				debug("Error while loading %s\n",rom_name);
-				return false;
-			}
-		} else {
-			drconf=(char*)alloca(strlen(gpath)+strlen(rom_name)+strlen(".cf")+1);
-			sprintf(drconf,"%s%s.cf",gpath,rom_name);
-		}
-//		cf_open_file(drconf);
-	}
 	return true;
 }
 
 int init_game(char *rom_name) {
-	//debug("AAA Blitter %s effect %s\n",CF_STR(cf_get_item_by_name("blitter")),CF_STR(cf_get_item_by_name("effect")));
-
-	load_game_config(rom_name);
-	/* reinit screen if necessary */
-	//screen_change_blitter_and_effect(NULL,NULL);
-	//reset_frame_skip();
 	screen_reinit();
-	//debug("BBB Blitter %s effect %s\n",CF_STR(cf_get_item_by_name("blitter")),CF_STR(cf_get_item_by_name("effect")));
-	/* open transpack if need */
-	//trans_pack_open(CF_STR(cf_get_item_by_name("transpack")));
 
 	if (strstr(rom_name, ".gno") != NULL) {
 		dr_open_gno(rom_name);

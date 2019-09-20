@@ -108,7 +108,6 @@ typedef struct Audio {
 static AudioT TheAudio;
 static int AudioInitialized = 0;
 static int CpuClock = 0;
-static paused = 1;
 
 __saveds __interrupt static int AudioServer(ChanT num asm("a1"));
 

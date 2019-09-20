@@ -18,7 +18,7 @@
 // #include "transpack.h"
 #include "conf.h"
 #include "resfile.h"
-#include "menu.h"
+//#include "menu.h"
 
 /* Prototype */
 void kof98_decrypt_68k(GAME_ROMS *r);

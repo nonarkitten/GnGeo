@@ -22,10 +22,7 @@
 #define u32 uint32_t
 
 #define ALIGN_DATA
-#ifndef static inline
-#define static inline static __inline__
-#endif
-#define SOUND_SAMPLES 512
+#define SOUND_SAMPLES 256
 
 #define Limit(val, max, min)                    \
 {                                               \

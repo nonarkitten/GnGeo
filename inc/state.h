@@ -2,7 +2,7 @@
 #define _STATE_H_
 
 #include "emu.h"
-#include "zlib.h"
+//#include "zlib.h"
  
 #include <stdbool.h>
 
@@ -23,9 +23,9 @@ typedef enum ST_DATA_TYPE {
     REG_uint8_t=1,
     REG_uint16_t,
     REG_uint32_t,
-    REG_INT8,
-    REG_INT16,
-    REG_INT32
+    REG_int8_t,
+    REG_int16_t,
+    REG_int32_t
 }ST_DATA_TYPE;
 
 
@@ -64,8 +64,8 @@ typedef struct Z80_STATE {
     uint8_t  ram[0x800];
 }Z80_STATE;
 
-typedef struct YM2610_STATE {
-}YM2610_STATE;
+//typedef struct YM2610_STATE {
+//} YM2610_STATE;
 
 typedef struct NEOGEO_STATE {
     uint16_t vptr;
@@ -96,6 +96,18 @@ uint32_t how_many_slot(char *game);
  
 
 void neogeo_init_save_state(void);
+
+
+//#if !defined(HAVE_LIBZ) || !defined (HAVE_MMAP)
+#define gzopen fopen
+#define gzread(f,data,size) fread(data,size,1,f)
+#define gzwrite(f,data,size) fwrite(data,size,1,f)
+#define gzclose fclose
+#define gzFile FILE
+#define gzeof feof
+#define gzseek fseek
+
+//#endif
 
 #endif
 

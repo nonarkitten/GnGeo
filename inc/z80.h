@@ -7,15 +7,6 @@
 #endif
 
 #include "emu.h"
-#define uint8_t     uint8_t
-#define uint16_t    uint16_t
-#define uint32_t    uint32_t
-#define INT8      int8_t
-#define INT16     int16_t
-#define INT32     int32_t
-#ifndef static inline
-#define static inline __inline__
-#endif
 
 #define CALL_MAME_DEBUG
 
@@ -32,8 +23,7 @@ typedef union {
         uint32_t d;
 }       PAIR;
 
-typedef struct
-{
+typedef struct {
         void (*reset)(int);                     /* reset callback         */
         int  (*interrupt_entry)(int);   /* entry callback         */
         void (*interrupt_reti)(int);    /* reti callback          */
@@ -46,25 +36,23 @@ typedef struct
 #define Z80_INT_IEO     0x02    /* interrupt disable mask(IEO)  */
 
 #define Z80_VECTOR(device,state) (((device)<<8)|(state))
-enum
-{
-  /* line states */
-  CLEAR_LINE = 0,  /* clear (a fired, held or pulsed) line */
-  ASSERT_LINE,     /* assert an interrupt immediately */
-  HOLD_LINE,       /* hold interrupt line until acknowledged */
-  PULSE_LINE,      /* pulse interrupt line -for one instruction */
+typedef enum {
+        /* line states */
+        CLEAR_LINE = 0,  /* clear (a fired, held or pulsed) line */
+        ASSERT_LINE,     /* assert an interrupt immediately */
+        HOLD_LINE,       /* hold interrupt line until acknowledged */
+        PULSE_LINE,      /* pulse interrupt line -for one instruction */
 
-  /* internal flags (not for use by drivers!) */
-  INTERNAL_CLEAR_LINE = 100 + CLEAR_LINE,
-  INTERNAL_ASSERT_LINE = 100 + ASSERT_LINE,
+        /* internal flags (not for use by drivers!) */
+        INTERNAL_CLEAR_LINE = 100 + CLEAR_LINE,
+        INTERNAL_ASSERT_LINE = 100 + ASSERT_LINE,
 
-  /* interrupt parameters */
-  MAX_IRQ_LINES = 16,                     /* maximum number of IRQ lines per CPU */
-  IRQ_LINE_NMI = 127                      /* IRQ line for NMIs */
-};
+        /* interrupt parameters */
+        MAX_IRQ_LINES = 16,                     /* maximum number of IRQ lines per CPU */
+        IRQ_LINE_NMI = 127                      /* IRQ line for NMIs */
+} LINE_STATE_T;
 
-enum
-{
+typedef enum {
         MAX_REGS = 128,                         /* maximum number of register of any CPU */
 
         /* This value is passed to activecpu_get_reg to retrieve the previous
@@ -87,15 +75,12 @@ enum
          * ie. lower negative values. The actual element size (uint16_t or uint32_t)
          * depends on the CPU core. */
         REG_SP_CONTENTS = -4
-};
-
+} SPECIAL_REGS_T;
 
 #define change_pc16(pc) Z80.PC.w.l=pc;
 
 /* ---- END of mame extract ----- */
-
-enum
-{
+typedef enum {
         CPU_INFO_REG,
         CPU_INFO_FLAGS = MAX_REGS,
         CPU_INFO_NAME,
@@ -105,23 +90,23 @@ enum
         CPU_INFO_CREDITS,
         CPU_INFO_REG_LAYOUT,
         CPU_INFO_WIN_LAYOUT
-};
+} CPU_FLAGS_T;
 
-enum {
+typedef enum {
 	Z80_PC=1, Z80_SP, Z80_AF, Z80_BC, Z80_DE, Z80_HL,
 	Z80_IX, Z80_IY,	Z80_AF2, Z80_BC2, Z80_DE2, Z80_HL2,
 	Z80_R, Z80_I, Z80_IM, Z80_IFF1, Z80_IFF2, Z80_HALT,
 	Z80_NMI_STATE, Z80_IRQ_STATE, Z80_DC0, Z80_DC1, Z80_DC2, Z80_DC3
-};
+} CPU_REGS_T;
 
-enum {
+typedef enum {
 	Z80_TABLE_op,
 	Z80_TABLE_cb,
 	Z80_TABLE_ed,
 	Z80_TABLE_xy,
 	Z80_TABLE_xycb,
 	Z80_TABLE_ex	/* cycles counts for taken jr/jp/call and interrupt latency (rst opcodes) */
-};
+} CPU_OPCODES_T;
 
 extern int z80_ICount;              /* T-state count                        */
 

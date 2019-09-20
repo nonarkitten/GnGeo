@@ -51,7 +51,7 @@
 #include "emu.h"
 #include "resfile.h"
 #include "mame_layer.h"
-#include "menu.h"
+//#include "menu.h"
 
 /***************************************************************************
 

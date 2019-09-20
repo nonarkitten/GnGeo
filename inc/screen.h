@@ -11,7 +11,7 @@
 #include <dos/dos.h>
 
 #include "emu.h"
-#include "list.h"
+//#include "list.h"
 
 #define PITCH 768
 
@@ -46,8 +46,8 @@ uint8_t get_blitter_by_name(char *name);
 void print_blitter_list(void);
 void print_effect_list(void);
 //void screen_change_blitter_and_effect(char *bname,char *ename);
-LIST* create_effect_list(void);
-LIST* create_blitter_list(void);
+//LIST* create_effect_list(void);
+//LIST* create_blitter_list(void);
 
 int screen_init();
 int screen_reinit(void);

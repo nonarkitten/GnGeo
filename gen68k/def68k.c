@@ -23,7 +23,20 @@ typedef enum {
 /* file-scope global variables */
 
 static int total = 0;
-static int clocks_movetable[]; /* pre-declaration */
+static int clocks_movetable[] = {
+   4,   4,  8,  8,  8, 12, 14, 12, 16,
+   4,   4,  8,  8,  8, 12, 14, 12, 16,
+   8,   8, 12, 12, 12, 16, 18, 16, 20,
+   8,   8, 12, 12, 12, 16, 18, 16, 20,
+   10, 10, 14, 14, 14, 18, 20, 18, 22,
+   12, 12, 16, 16, 16, 20, 22, 20, 24,
+   14, 14, 18, 18, 18, 22, 24, 22, 26,
+   12, 12, 16, 16, 16, 20, 22, 20, 24,
+   16, 16, 20, 20, 20, 24, 26, 24, 28,
+   12, 12, 16, 16, 16, 20, 22, 20, 24,
+   14, 14, 18, 18, 18, 22, 24, 22, 26,
+	8,  8, 12, 12, 12, 16, 18, 16, 20
+};
 
 /* private functions for forward references */
 
@@ -39,13 +52,20 @@ int clocks_typetoindex(t_datatype type);
 int main(int argc, char *argv[])
 {
   FILE *input, *outiibs, *outfuncs, *outproto;
+  char newpath[1024];
   char buf[BUFLEN], *p;
   int lineno = 0;
 
   (void)argc;
   (void)argv;
 
+#ifndef __AMIGA__
   /* open output files and write headers */
+  strcpy(newpath, argv[0]);
+  if (strrchr(newpath, '\\')) *strrchr(newpath, '\\') = 0;
+  fprintf(stderr, "Current path %s\n", newpath);
+  _chdir(newpath);
+#endif
 
   if ((outiibs = fopen(FNAME_OUTIIBS, "w")) == NULL) {
     perror("fopen outiibs");
@@ -1321,20 +1341,7 @@ void procline(char *line, int lineno, FILE *outiibs, FILE *outfuncs,
   } /* block */
 }
 
-static int clocks_movetable[] = {
-   4,   4,  8,  8,  8, 12, 14, 12, 16,
-   4,   4,  8,  8,  8, 12, 14, 12, 16,
-   8,   8, 12, 12, 12, 16, 18, 16, 20,
-   8,   8, 12, 12, 12, 16, 18, 16, 20,
-   10, 10, 14, 14, 14, 18, 20, 18, 22,
-   12, 12, 16, 16, 16, 20, 22, 20, 24,
-   14, 14, 18, 18, 18, 22, 24, 22, 26,
-   12, 12, 16, 16, 16, 20, 22, 20, 24,
-   16, 16, 20, 20, 20, 24, 26, 24, 28,
-   12, 12, 16, 16, 16, 20, 22, 20, 24,
-   14, 14, 18, 18, 18, 22, 24, 22, 26,
-    8,  8, 12, 12, 12, 16, 18, 16, 20
-};
+
 
 int clocks_typetoindex(t_datatype type)
 {

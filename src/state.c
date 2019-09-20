@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #include "memory.h"
 #include "state.h"
@@ -25,17 +26,6 @@ static int endian_flag=0x0;
 #define ROOTPATH "data/"
 #else
 #define ROOTPATH ""
-#endif
-
-#if !defined(HAVE_LIBZ) || !defined (HAVE_MMAP)
-#define gzopen fopen
-#define gzread(f,data,size) fread(data,size,1,f)
-#define gzwrite(f,data,size) fwrite(data,size,1,f)
-#define gzclose fclose
-#define gzFile FILE
-#define gzeof feof
-#define gzseek fseek
-
 #endif
 
 static ST_REG *reglist;
@@ -86,13 +76,13 @@ static void *find_data_by_name(ST_MODULE_TYPE module,uint8_t num,char *name) {
 static int sizeof_st_type(ST_DATA_TYPE type) {
     switch (type) {
     case REG_uint8_t:
-    case REG_INT8:
+    case REG_int8_t:
 	return 1;
     case REG_uint16_t:
-    case REG_INT16:
+    case REG_int16_t:
 	return 2;
     case REG_uint32_t:
-    case REG_INT32:
+    case REG_int32_t:
 	return 4;
     }
     return 0; /* never go here */
@@ -108,7 +98,7 @@ void swap_buf16_if_need(uint8_t src_endian,uint16_t* buf,uint32_t size)
 #endif
     if (my_endian!=src_endian) {
 	for (i=0;i<size;i++)
-	    SwapSHORT(buf[i]);
+		__builtin_bswap16(buf[i]);
     }
 }
 
@@ -122,7 +112,7 @@ void swap_buf32_if_need(uint8_t src_endian,uint32_t* buf,uint32_t size)
 #endif
     if (my_endian!=src_endian) {
 	for (i=0;i<size;i++)
-	    buf[i]=SwapLONG(buf[i]);
+	    buf[i]= __builtin_bswap32(buf[i]);
     }
 }
 

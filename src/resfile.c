@@ -30,7 +30,7 @@ void zread_uint32_tle(ZFILE *gz, uint32_t *c) {
 	int rc;
 	rc = gn_unzip_fread(gz, (uint8_t*)c, sizeof(uint32_t));
 #ifdef WORDS_BIGENDIAN
-	*c=SwapLONG(*c);
+	*c= __builtin_bswap32(*c);
 #endif
 	//debug("H32  %08x %d\n",*c,rc);
 }

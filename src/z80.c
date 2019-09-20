@@ -144,8 +144,8 @@ typedef struct {
 /* 24 */	PAIR	AF2,BC2,DE2,HL2;
 /* 34 */	uint8_t	R,R2,IFF1,IFF2,HALT,IM,I;
 /* 3B */	uint8_t	irq_max;			/* number of daisy chain devices */
-/* 3C */	INT8	request_irq;		/* daisy chain next request device*/
-/* 3D */	INT8	service_irq;		/* daisy chain next reti handling device */
+/* 3C */	int8_t	request_irq;		/* daisy chain next request device*/
+/* 3D */	int8_t	service_irq;		/* daisy chain next reti handling device */
 /* 3E */	uint8_t	nmi_state;			/* nmi line state */
 /* 3F */	uint8_t	irq_state;			/* irq line state */
 /* 40 */	uint8_t	int_state[Z80_MAXDAISY];
@@ -723,8 +723,8 @@ static inline uint32_t ARG16(void)
  * Calculate the effective address EA of an opcode using
  * IX+offset resp. IY+offset addressing.
  ***************************************************************/
-#define EAX EA = (uint32_t)(uint16_t)(_IX+(INT8)ARG())
-#define EAY EA = (uint32_t)(uint16_t)(_IY+(INT8)ARG())
+#define EAX EA = (uint32_t)(uint16_t)(_IX+(int8_t)ARG())
+#define EAY EA = (uint32_t)(uint16_t)(_IY+(int8_t)ARG())
 
 /***************************************************************
  * POP
@@ -801,7 +801,7 @@ static inline uint32_t ARG16(void)
 #define JR()													\
 {																\
 	unsigned oldpc = _PCD-1;									\
-	INT8 arg = (INT8)ARG(); /* ARG() also increments _PC */ 	\
+	int8_t arg = (int8_t)ARG(); /* ARG() also increments _PC */ 	\
 	_PC += arg; 			/* so don't do _PC += ARG() */      \
 	change_pc16(_PCD);											\
 	/* speed up busy loop */									\
@@ -840,7 +840,7 @@ static inline uint32_t ARG16(void)
 #define JR_COND(cond,opcode)									\
 	if( cond )													\
 	{															\
-		INT8 arg = (INT8)ARG(); /* ARG() also increments _PC */ \
+		int8_t arg = (int8_t)ARG(); /* ARG() also increments _PC */ \
 		_PC += arg; 			/* so don't do _PC += ARG() */  \
 		CC(ex,opcode);											\
 		change_pc16(_PCD);										\
@@ -4168,8 +4168,8 @@ void z80_init(void)
   state_save_register_uint8_t("z80", cpu, "IM", &Z80.IM, 1);
   state_save_register_uint8_t("z80", cpu, "I", &Z80.I, 1);
   state_save_register_uint8_t("z80", cpu, "irq_max", &Z80.irq_max, 1);
-  state_save_register_INT8("z80", cpu, "request_irq", &Z80.request_irq, 1);
-  state_save_register_INT8("z80", cpu, "service_irq", &Z80.service_irq, 1);
+  state_save_register_int8_t("z80", cpu, "request_irq", &Z80.request_irq, 1);
+  state_save_register_int8_t("z80", cpu, "service_irq", &Z80.service_irq, 1);
   state_save_register_uint8_t("z80", cpu, "int_state", Z80.int_state, 4);
   state_save_register_uint8_t("z80", cpu, "nmi_state", &Z80.nmi_state, 1);
   state_save_register_uint8_t("z80", cpu, "irq_state", &Z80.irq_state, 1);
