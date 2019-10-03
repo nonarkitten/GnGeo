@@ -22,9 +22,9 @@ FLAGS    := \
 	-finline-functions -fomit-frame-pointer -fexpensive-optimizations \
 	
 CC       := m68k-amigaos-gcc $(FLAGS) $(INCLUDE) $(DEFINES) -Wall
-AS       := m68k-amigaos-as -m68040
-AR       := m68k-amigaos-ar q
-RANLIB   := m68k-amigaos-ranlib 
+AS       := as -m68040
+AR       := ar q
+RANLIB   := ranlib 
 
 .PHONY: all
 all: $(OBJECTS) $(CURDIR)/$(APPNAME)

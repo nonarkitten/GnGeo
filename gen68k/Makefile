@@ -14,8 +14,8 @@ FLAGS    := -noixemul -msoft-float -w -Os  -m68020-60 -fshort-enums \
 LIBS      = -lm
 
 CC       := m68k-amigaos-gcc -pipe $(FLAGS) $(INCLUDE) $(DEFINES) $(LIBS) -Wall
-AR		 := m68k-amigaos-ar q
-RANLIB   := m68k-amigaos-ranlib
+AR		 := ar q
+RANLIB   := ranlib
 #SOURCES  := $(wildcard src/*.c src/*.s )
 #OBJECTS  := $(patsubst %.c,%.o, $(patsubst %.s,%.o, $(SOURCES)))
 

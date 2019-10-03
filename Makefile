@@ -21,12 +21,12 @@ FLAGS    := -noixemul -msoft-float -w -Os  -m68020-60 -fshort-enums \
    
 CC       := m68k-amigaos-gcc $(FLAGS) $(INCLUDE) $(DEFINES) -Wall
 VASM     := vasm -Faout -quiet -x -m68020 -spaces -showopt
-GAS      := m68k-amigaos-as
+GAS      := as
 
 .PHONY: all
 all: premake $(OBJECTS)
 	$(CC) -s $(OBJECTS) -o $(APPNAME) $(LIBPATH) $(LIBS)
-	#shrinkler $(APPNAME) $(APPNAME)
+	shrinkler $(APPNAME) $(APPNAME)
 
 .PHONY: premake
 premake:
