@@ -39,7 +39,7 @@
 // #include "effect.h"
 // #include "gngeo_icon.h"
 #include "event.h"
-//#include "menu.h"
+#include "menu.h"
 // #include "frame_skip.h"
 
 #include <graphics/gfx.h>
@@ -126,6 +126,7 @@ static void load_logo(void) {
 	int i, x;
 
 	for(i=0;i<16;i++) {
+		// CLUT is stored in little endian -- boo
 		uint8_t b = gngeo_logo_clut[i * 4 + 0] & 0xF8;
 		uint8_t g = gngeo_logo_clut[i * 4 + 1] & 0xFC;
 		uint8_t r = gngeo_logo_clut[i * 4 + 2] & 0xF8;
@@ -150,7 +151,7 @@ int main(int argc, char *argv[]) {
     int bench = 0;
 
 	timer_init();
-	initStart = timer_get_time();
+	initStart = timer_get_time_ms();
 
     if(!LowLevelBase) LowLevelBase = (struct Library *) OpenLibrary("lowlevel.library",0);
 	if(!LowLevelBase) exit(-1);
@@ -170,7 +171,7 @@ int main(int argc, char *argv[]) {
 		init_sdl();
 		load_logo();
 		load_logo();
-		while(((int)timer_get_time() - initStart) < 4000) ;	
+		while(((int)timer_get_time_ms() - (int)initStart) < 4000) ;	
 	}
 
 	file_lock = GetProgramDir();
@@ -191,7 +192,7 @@ int main(int argc, char *argv[]) {
 	if(arg[OPTION_DEBUG]) init_sdl();
 	
 	printf("%d\n", __LINE__);
-	debug("Startup took %u ms, ", (uint32_t)((int)timer_get_time() - (int)initStart));
+	debug("Startup took %u ms, ", (uint32_t)((int)timer_get_time_ms() - (int)initStart));
 	suspend_os();
 	main_loop();
 
