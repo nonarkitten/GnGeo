@@ -152,8 +152,16 @@ int handle_event(void) {
 	uint8_t waspaused;
 	uint32_t getkey, joypos0, joypos1;
 	uint8_t port;
-	uint8_t fire1p1, fire2p1;
-	uint8_t fire1p2, fire2p2;
+	uint16_t raw_buttons;
+	
+	// 15    OUTRY   Output enable for Paula pin 36 POT1Y, pin 9
+	// 14    DATRY   I/O data Paula pin 36
+	// 13    OUTRX   Output enable for Paula pin 35 POT1X, pin 5
+	// 12    DATRX   I/O data Paula pin 35
+	// 11    OUTLY   Output enable for Paula pin 33 POT0Y, pin 9
+	// 10    DATLY   I/O data Paula pin 33
+	// 09    OUTLX   Output enable for Paula pin 32	POT0X, pin 5
+	// 08    DATLX   I/O data Paula pin 32// 	
 	
     /* CD32 joypad handler code supplied by Gabry (ggreco@iol.it) */
 
@@ -163,6 +171,7 @@ int handle_event(void) {
 	waspaused = keys[PAUSE_GNGEO].kq_Pressed;
 
 	QueryKeys(&keys, KEY_COUNT);
+	raw_buttons = *(volatile uint16_t*)0xDFF016;
 
 	if(keys[EXIT_GNGEO].kq_Pressed) exit(0);
 	if(!waspaused && keys[PAUSE_GNGEO].kq_Pressed) paused ^= 1;
@@ -172,10 +181,11 @@ int handle_event(void) {
 	if(arg[OPTION_P1JOY] || arg[OPTION_P13BUTTON]) {
 		joypos1 = ReadJoyPort(1);
 		if(arg[OPTION_P13BUTTON]) {
-			fire1p1 = (fire1p1 << 1) | !!(*(volatile uint16_t*)0xDFF016 & 0x0100);
-			fire2p1 = (fire2p1 << 1) | !!(*(volatile uint16_t*)0xDFF016 & 0x0400);
-			if (fire1p1 & 3 == 2) joypos1 |= JPF_BUTTON_BLUE;
-			if (fire2p1 & 3 == 2) joypos1 |= JPF_BUTTON_YELLOW;
+			if(raw_buttons & 0x1000) joypos1 |= JPF_BUTTON_BLUE;
+			else joypos1 &= ~JPF_BUTTON_BLUE;
+				
+			if(raw_buttons & 0x4000) joypos1 |= JPF_BUTTON_YELLOW;
+			else joypos1 &= ~JPF_BUTTON_YELLOW;
 		}
 	} else {
 		joypos1 = 0;
@@ -197,11 +207,12 @@ int handle_event(void) {
 	if(arg[OPTION_P2JOY] || arg[OPTION_P23BUTTON]) {
 		joypos0 = ReadJoyPort(0);
 		if(arg[OPTION_P23BUTTON]) {
-			fire1p2 = (fire1p2 << 1) | !!(*(volatile uint16_t*)0xDFF016 & 0x0100);
-			fire2p2 = (fire2p2 << 1) | !!(*(volatile uint16_t*)0xDFF016 & 0x0400);
-			if (fire1p2 & 3 == 2) joypos0 |= JPF_BUTTON_BLUE;
-			if (fire2p2 & 3 == 2) joypos0 |= JPF_BUTTON_YELLOW;
-		}
+			if(raw_buttons & 0x0100) joypos0 |= JPF_BUTTON_BLUE;
+			else joypos0 &= ~JPF_BUTTON_BLUE;
+				
+			if(raw_buttons & 0x0400) joypos0 |= JPF_BUTTON_YELLOW;
+			else joypos0 &= ~JPF_BUTTON_YELLOW;
+		}		
 	} else {
 		joypos0 = 0;
 	}
