@@ -8,7 +8,7 @@ DEFINES  := \
 INCLUDE  := -I$(CURDIR)/../inc \
 	-IADE\:include.arti -IADE\:os-include -I.
 
-FLAGS    := -noixemul -msoft-float -w -Os  -m68020-60 -fshort-enums \
+FLAGS    := -noixemul -w -Os  -m68020-60 -fshort-enums \
 	-ffast-math -finline-functions -fomit-frame-pointer \
 
 LIBS      = -lm

@@ -13,6 +13,8 @@
 #include <dos/dos.h>
 #include <workbench/startup.h>
 
+#include <proto/exec.h>
+
 #define LITERAL_LENGTH_MASK 0xF000
 #define LITERAL_LENGTH_SFT  12
 #define MATCH_LENGTH_MASK   0x0F00

@@ -16,7 +16,7 @@ LIBS      = -lgen68k -llz4w
 LIBPATH  := -L./libs
 
 # -funit-at-a-time -frename-registers -fweb -fsingle-precision-constant
-FLAGS    := -noixemul -msoft-float -w -Os  -m68020-60 -fshort-enums \
+FLAGS    := -noixemul -w -Os  -m68020-60 -fshort-enums \
 	-ffast-math -finline-functions -fomit-frame-pointer \
    
 CC       := m68k-amigaos-gcc $(FLAGS) $(INCLUDE) $(DEFINES) -Wall
@@ -31,8 +31,8 @@ all: premake $(OBJECTS)
 .PHONY: premake
 premake:
 	mkdir -p obj
-	$(MAKE) -C lz4w
-	$(MAKE) -C gen68k
+	#$(MAKE) -C lz4w
+	#$(MAKE) -C gen68k
 
 %.o: ../src/%.c
 	$(CC) -c $< -o $@
@@ -42,8 +42,8 @@ premake:
 
 .PHONY: clean
 clean:
-	$(MAKE) -C lz4w clean
-	$(MAKE) -C gen68k clean
+	#$(MAKE) -C lz4w clean
+	#$(MAKE) -C gen68k clean
 	rm -rf obj/*
 	rm -f $(APPNAME)
 

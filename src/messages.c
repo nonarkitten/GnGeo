@@ -32,7 +32,7 @@
 
 #include "font.h"
 
-static char message[128] = { 0 };
+static char message[256] = { 0 };
 static timer_struct *msg_timer;
 extern 
 
@@ -41,45 +41,55 @@ void stop_message(int param) {
 	message[0] = 0;
 }
 
-void draw_message(const char *string) {
+void draw_message(const char *string, ...) {
+	va_list args;
+	va_start (args, string);
+	vsprintf (message, string, args);
+	va_end (args);
+
 	if (msg_timer == NULL) {
 		msg_timer = timer_insert(MESSAGE_DELAY, 0, stop_message);
 	} else {
 		timer_set_time(msg_timer, MESSAGE_DELAY);
 	}
-    strcpy(message, string);
+    //strcpy(message, string);
 }
 
 static inline void draw_pixel(int X,int Y,int C) {
 	bufferpixels[((X)<<1) + ((Y) * PITCH)]=(C);
 }
 
-void render_message(int fps) {
+extern void dtostr(char *out, int precision, double value);
+void render_message(double fps) {
 	static char display_buffer[256] = { 0 };
 	uint8_t * bitmap, c;
 	int len, i, x, y, bytes_per_row;
 	int bits, bytes;
+	char buffer[32];
 
-	if (arg[OPTION_SHOWFPS])
-		len = sprintf(display_buffer, "%3d fps %s", fps, message);
-	else
-		len = sprintf(display_buffer, "        %s", fps, message);
+	if (arg[OPTION_SHOWFPS]) {
+		fps /= 120.0;
+		dtostr(buffer, 2, fps);
+		len = sprintf(display_buffer, "%s fps %s", buffer, message);
+	} else {
+		len = sprintf(display_buffer, "        %s", message);
+	}
 
-	bytes_per_row = font_6x8.height * (font_6x8.width / 8);
+	bytes_per_row = (font_6x8.width + 7) / 8;
 	for (i = 0; i < len; i++) {
 		c = display_buffer[i];
-		if (c >= font_6x8.first_char && c <= font_6x8.last_char) {
+		if ((c >= font_6x8.first_char) && (c <= font_6x8.last_char)) {
 			c -= font_6x8.first_char;
-			bitmap = &font_6x8.font_bitmap[bytes_per_row * c];
+			bitmap = &font_6x8.font_bitmap[(font_6x8.height * bytes_per_row) * c];
 			for (y = 0; y < font_6x8.height; y++) {
 				bits = font_6x8.width;
 				for (bytes = 0; bytes < bytes_per_row; bytes++) {
 					c = *bitmap++;
-					for (x = 0; x < 8; x++) {
-						if (c & 0x80) draw_pixel(20 + x, 4 + y, 0xFFFF);
+					for (x = 0; x < ((bits > 7) ? 8 : bits); x++) {
+						if (c & 0x80) draw_pixel(20 + x + (bytes + (i * bytes_per_row)) * font_6x8.width, 4 + y, 0xFFFF);
 						c <<= 1;
 					}
-					bits -= 8;
+					//bits -= 8;
 				}
 			}
 		}

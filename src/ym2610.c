@@ -519,10 +519,10 @@ typedef struct {
 typedef struct {
 	int clock; /* master clock  (Hz)   */
 	int rate; /* sampling rate (Hz)   */
-	float freqbase; /* frequency base       */
-	float TimerBase; /* Timer base time      */
+	double freqbase; /* frequency base       */
+	double TimerBase; /* Timer base time      */
 #if FM_BUSY_FLAG_SUPPORT
-	float BusyExpire; /* ExpireTime of Busy clear */
+	double BusyExpire; /* ExpireTime of Busy clear */
 #endif
 	u8 address; /* address register     */
 	u8 irq; /* interrupt level      */
@@ -614,7 +614,7 @@ typedef struct {
 /* ADPCM type B struct */
 typedef struct adpcmb_state {
 	//s32 *pan; /* pan : &output_pointer[pan]   */
-	float freqbase;
+	double freqbase;
 	int output_range;
 	u32 now_addr; /* current address      */
 	u32 now_step; /* currect step         */
@@ -1323,7 +1323,7 @@ static inline void refresh_fc_eg_chan(FM_CH *CH) {
 /* initialize time tables */
 static void init_timetables(const u8 *dttable) {
 	int i, d;
-	float rate;
+	double rate;
 
 //#if 0
 	printf("FM.C: samplerate=%8i chip clock=%8i  freqbase=%f  \n",
@@ -1333,8 +1333,8 @@ static void init_timetables(const u8 *dttable) {
 	/* DeTune table */
 	for (d = 0; d <= 3; d++) {
 		for (i = 0; i <= 31; i++) {
-			rate = ((float) dttable[d * 32 + i]) * SIN_LEN * YM2610.OPN.ST.freqbase
-					* (1 << FREQ_SH) / ((float) (1 << 20));
+			rate = ((double) dttable[d * 32 + i]) * SIN_LEN * YM2610.OPN.ST.freqbase
+					* (1 << FREQ_SH) / ((double) (1 << 20));
 			YM2610.OPN.ST.dt_tab[d][i] = (s32) rate;
 			YM2610.OPN.ST.dt_tab[d + 4][i] = -YM2610.OPN.ST.dt_tab[d][i];
 #if 0
@@ -1373,7 +1373,7 @@ static void reset_channels(FM_CH *CH, int num) {
 static void OPNInitTable(void) {
 	signed int i, x;
 	signed int n;
-	float o, m;
+	double o, m;
 
 
 
@@ -1430,11 +1430,11 @@ static void OPNSetPres(int pres, int TimerPres, int SSGpres) {
 
 	/* frequency base */
 	YM2610.OPN.ST.freqbase =
-			(YM2610.OPN.ST.rate) ? ((float) YM2610.OPN.ST.clock / YM2610.OPN.ST.rate) / pres : 0;
+			(YM2610.OPN.ST.rate) ? ((double) YM2610.OPN.ST.clock / YM2610.OPN.ST.rate) / pres : 0;
 
 	YM2610.OPN.ST.freqbase *= 2.0;
 #if 0
-	YM2610.OPN.ST.rate = (float)YM2610.OPN.ST.clock / pres;
+	YM2610.OPN.ST.rate = (double)YM2610.OPN.ST.clock / pres;
 	YM2610.OPN.ST.freqbase = 1.0f;
 #endif
 
@@ -1442,11 +1442,11 @@ static void OPNSetPres(int pres, int TimerPres, int SSGpres) {
 	YM2610.OPN.eg_timer_overflow = (3) * (1 << EG_SH);
 
 	/* Timer base time */
-	YM2610.OPN.ST.TimerBase = 1.0f / ((float) YM2610.OPN.ST.clock / (float) TimerPres);
+	YM2610.OPN.ST.TimerBase = 1.0f / ((double) YM2610.OPN.ST.clock / (double) TimerPres);
 
 	/* SSG part  prescaler set */
 	if (SSGpres)
-		SSG.step = ((float) SSG_STEP * YM2610.OPN.ST.rate * 8)
+		SSG.step = ((double) SSG_STEP * YM2610.OPN.ST.rate * 8.0)
 				/ (YM2610.OPN.ST.clock * 2 / SSGpres);
 
 	/* make time tables */
@@ -1458,7 +1458,7 @@ static void OPNSetPres(int pres, int TimerPres, int SSGpres) {
 	for (i = 0; i < 4096; i++) {
 		/* freq table for octave 7 */
 		/* OPN phase increment counter = 20bit */
-		YM2610.OPN.fn_table[i] = (u32) ((float) i * 32 * YM2610.OPN.ST.freqbase
+		YM2610.OPN.fn_table[i] = (u32) ((double) i * 32 * YM2610.OPN.ST.freqbase
 				* (1 << (FREQ_SH - 10))); /* -10 because chip works with 10.10 fixed point, while we use 16.16 */
 #if 0
 		logerror("FM.C: fn_table[%4i] = %08x (dec=%8i)\n",
@@ -1971,7 +1971,7 @@ static int SSG_CALC(int outn) {
 
 static void SSG_init_table(void) {
 	int i;
-	float out;
+	double out;
 
 	/* calculate the volume->voltage conversion table */
 	/* The AY-3-8910 has 16 levels, in a logarithmic scale (3dB per step) */
@@ -2188,28 +2188,19 @@ static inline void OPNB_ADPCMA_write(int r, int v) {
 				if ((v >> c) & 1) {
 					int enable = 1;
 					/**** start adpcm ****/
-					// 					adpcma[c].step = (u32) ((float) (1 << ADPCM_SHIFT)
-					// 							* ((float) YM2610.OPN.ST.freqbase) / 3.0);
 					adpcma[c].now_addr = adpcma[c].start;
-					//adpcma[c].now_step = 0;
-					//adpcma[c].adpcma_acc = 0;
-					//adpcma[c].adpcma_step = 0;
 					adpcma[c].adpcma_out = 0;
-					//adpcma[c].flag = 1;
 
 					if (pcmbufA == NULL) {
 						/* Check ROM Mapped */
-						//						logerror("YM2610: ADPCM-A rom not mapped\n");
 						enable = 0;
 					} else {
 						if (adpcma[c].end >= pcmsizeA) {
 							/* Check End in Range */
-//							logerror("YM2610: ADPCM-A end out of range: $%08x\n", adpcma[c].end);
 							/* adpcma[c].end = pcmsizeA - 1; *//* JB: DO NOT uncomment this, otherwise you will break the comparison in the ADPCM_CALC_CHA() */
 						}
 						if (adpcma[c].start >= pcmsizeA) /* Check Start in Range */
 						{
-//							logerror("YM2610: ADPCM-A start out of range: $%08x\n", adpcma[c].start);
 							enable = 0;
 						}
 					}
@@ -2531,9 +2522,6 @@ static void OPNB_ADPCMB_write(ADPCMB *adpcmb, int r, int v) {
 	case 0x19: /* DELTA-N L (ADPCM Playback Prescaler) */
 	case 0x1a: /* DELTA-N H */
 		adpcmb->delta = (YM2610.regs[0x1a] << 8) | YM2610.regs[0x19];
-//		adpcmb->step =
-//				(u32) ((float) (adpcmb->delta /* * (1 << (ADPCMb_SHIFT - 16)) */)
-//						* (adpcmb->freqbase));
 		/*logerror("DELTAT deltan:09=%2x 0a=%2x\n", YM2610.regs[0x19], YM2610.regs[0x1a]);*/
 		break;
 
@@ -2653,7 +2641,7 @@ void YM2610Init(int clock, int rate, void *pcmroma, int pcmsizea, void *pcmromb,
 	sav_IRQHandler = IRQHandler;
 
 	/* SSG */
-	SSG.step = ((float) SSG_STEP * rate * 8) / clock;
+	SSG.step = ((double) SSG_STEP * rate * 8) / clock;
 	
 	/* ADPCM-A */
 	pcmbufA = (u8 *) pcmroma;
@@ -2686,15 +2674,8 @@ void YM2610ChangeSamplerate(int rate) {
 	printf("Max sample: %d\n", max_sample);
 
 	YM2610.OPN.ST.rate = rate;
-	SSG.step = ((float) SSG_STEP * rate * 8) / YM2610.OPN.ST.clock;
-	OPNSetPres(6 * 24, 6 * 24, 4 * 2); /* OPN 1/6, SSG 1/4 */
-	
-// 	for (i = 0; i < 6; i++) {
-// 		YM2610.adpcma[i].step = (u32) ((float) (1 << ADPCM_SHIFT)
-// 				* ((float) YM2610.OPN.ST.freqbase) / 3.0);
-// 	}
-	
-//	YM2610.adpcmb.freqbase = YM2610.OPN.ST.freqbase;
+	SSG.step = ((double) SSG_STEP * rate * 8) / YM2610.OPN.ST.clock;
+	OPNSetPres(6 * 24, 6 * 24, 4 * 2); /* OPN 1/6, SSG 1/4 */	
 }
 
 /* reset one of chip */
@@ -2734,8 +2715,8 @@ void YM2610Reset(void) {
 	}
 	/**** ADPCM work initial ****/
 	for (i = 0; i < 6; i++) {
-		YM2610.adpcma[i].step = (u32) ((float) (1 << ADPCM_SHIFT)
-				* ((float) YM2610.OPN.ST.freqbase) / 3.0);
+		YM2610.adpcma[i].step = (u32) ((double) (1 << ADPCM_SHIFT)
+				* ((double) YM2610.OPN.ST.freqbase) / 3.0);
 		YM2610.adpcma[i].now_addr = 0;
 		YM2610.adpcma[i].now_step = 0;
 		YM2610.adpcma[i].start = 0;
@@ -2948,7 +2929,7 @@ int16_t R_Mix[LENGTH];
 	frequency in half to 9,259Hz. Each channel is then played on the modulo of their
 	respective channel and 3.
 	
-	ADPCM-B is sampled each clock cycle -- our playback is 27kHz exactly float the
+	ADPCM-B is sampled each clock cycle -- our playback is 27kHz exactly double the
 	internal frequency of ADPCM-B. So we calculate ADPCM-B each time the counter rolls
 	over and copy it every other time.
 	

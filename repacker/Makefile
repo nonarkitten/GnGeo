@@ -19,8 +19,7 @@ LIBPATH	:= \
 
 # -funit-at-a-time -frename-registers -fweb -fsingle-precision-constant
 FLAGS    := \
-	-noixemul \
-	-msoft-float -w -O3 -m68040 -noixemul -fshort-double -fshort-enums -ffast-math \
+	-w -O3 -m68040 -noixemul -fshort-double -fshort-enums -ffast-math \
 	-finline-functions -fomit-frame-pointer -fexpensive-optimizations \
 	
 CC       := m68k-amigaos-gcc $(FLAGS) $(INCLUDE) $(DEFINES) -Wall

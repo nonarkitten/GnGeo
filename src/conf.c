@@ -1,23 +1,5 @@
-#include <exec/types.h>
-#include <libraries/dos.h>
-#include <workbench/workbench.h>
-#include <workbench/startup.h>
+#include "amiga.h"
 
-#include <exec/types.h>
-#include <exec/libraries.h>
-#include <libraries/asl.h>
- 
-#include <proto/dos.h>
-#include <proto/exec.h>
-#include <proto/asl.h>
-#include <dos/dos.h>
-#include <dos/dosextens.h>
-#include <proto/dos.h>
-
-#include <clib/alib_protos.h>
-#include <clib/exec_protos.h>
-#include <clib/dos_protos.h>
-#include <clib/icon_protos.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -178,11 +160,15 @@ void ParseArguments(int argc, char *argv[]) {
 			olddir = CurrentDir(wbarg->wa_Lock);
 		// concatenate tooltypes
 		if((*wbarg->wa_Name) && (dobj=GetDiskObject(wbarg->wa_Name))) {
-			char *tool, **toolarray = (char **)dobj->do_ToolTypes;
+			char *tool, **toolarray = dobj->do_ToolTypes;
 			while(tool = *toolarray++) length += sprintf(buffer + length, " %s", tool);
 		}	 		
 		if(olddir != -1)  CurrentDir(olddir); /* CD back where we were */
     }
+
+	for(i=0; i<length; i++) {
+		if(buffer[i] && (buffer[i] < ' ')) buffer[i] = ' ';
+	}
 
 	buffer[length++] = '\n'; buffer[length] = 0;
 	debug("Parsing args:\n%s\n", buffer);

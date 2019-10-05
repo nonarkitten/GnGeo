@@ -1,31 +1,13 @@
+#include "amiga.h"
+
 #include <stdio.h>
 #include <config.h>
 
-#include <devices/gameport.h>
-#include <devices/input.h>
-#include <devices/keymap.h>
-#include <devices/timer.h>
-#include <dos/dos.h>
-#include <exec/exec.h>
-#include <graphics/gfx.h>
-#include <graphics/gfxbase.h>
-#include <graphics/gfxmacros.h>
-#include <intuition/intuition.h>
-#include <libraries/asl.h>
-#include <libraries/lowlevel.h>
-
-#include <proto/dos.h>
-#include <proto/exec.h>
-#include <proto/graphics.h>
-
-#include <cybergraphx/cybergraphics.h>
-#include <inline/cybergraphics.h>
-
 #include "conf.h"
-// #include "effect.h"
 #include "emu.h"
 #include "screen.h"
 #include "video.h"
+#include "timer.h"
 
 static Rect screen_rect;
 static int vsync;
@@ -59,7 +41,11 @@ struct ScreenBuffer *_hardwareScreenBuffer[2];
 
 static uint8_t _currentScreenBuffer;
 static struct BitMap bm[2];
-
+static const TagItem[] = {
+  CYBRBIDTG_NominalWidth, 320, 
+  CYBRBIDTG_NominalHeight, 240, 
+  CYBRBIDTG_Depth, 16, TAG_DONE
+};
 static void initAmigaGraphics(void) {
   if (firsttime) {
     uint32_t modeId = INVALID_ID;
@@ -74,10 +60,7 @@ static void initAmigaGraphics(void) {
 
     debug("Opened CyberGraphX library\n");
 
-    modeId = BestCModeIDTags(
-		CYBRBIDTG_NominalWidth, 320, 
-		CYBRBIDTG_NominalHeight, 240, 
-		CYBRBIDTG_Depth, 16, TAG_DONE);
+    modeId = BestCModeIDTagList( &TagItem );
 
     debug("ModeID: %08X\n", modeId);
 
@@ -200,12 +183,18 @@ static void video_dim_screen(uint8_t *buffer) {
 }
 
 static void video_do_fps(void) {
-	static uint32_t last_time = 0;
-	static uint32_t fps_avg = 60;
-	uint32_t time = timer_get_time();
-	uint32_t this_fps = 1000 / ((int)time - (int)last_time);
-	fps_avg = (fps_avg >> 1) + (this_fps >> 1);
-	render_message(fps_avg);
+	static double last_time = 0;
+	static double fps_avg = 60.0;
+	double time = timer_get_time();
+  if(last_time != 0) {
+    double time_d = time - last_time;
+    if(time_d > 0.0) {
+    	double this_fps = 1.0 / time_d;
+      fps_avg = fps_avg * 0.9 + this_fps * 0.1;
+    }
+
+  	render_message(fps_avg);
+  }
 	last_time = time;
 }
 

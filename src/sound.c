@@ -16,38 +16,20 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
  */  
     
+#include "amiga.h"
+
 #include <config.h>
 #include <string.h>
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
-//#include "SDL.h"
+
 #include "sound.h"
 #include "emu.h"
 #include "conf.h"
 #include "memory.h"
 #include "profiler.h"
-//#include "gnutil.h"
 #include "ym2610.h"
-
-#include <dos/dostags.h>
-#include <exec/types.h>
-#include <exec/memory.h>
-#include <exec/tasks.h>
-#include <graphics/gfxbase.h>
-#include <libraries/dos.h>
-#include <devices/audio.h>
-#include <proto/exec.h>
-#include <proto/dos.h>
-#include <stdarg.h>
- 
-#include <clib/exec_protos.h>
-#include <clib/alib_protos.h>
-#include <clib/dos_protos.h>
-
-#include <clib/timer_protos.h>
-#include <clib/exec_protos.h>
-
 
 //                    ___ __        _____________ ________   
 //  _____   __ __  __| _/|__| ____ |   \______   \\_____  \  
@@ -56,18 +38,6 @@
 //  (____  /____/\____ | |__|\____/|___||____|_  /\_____\ \_/
 //       \/           \/                       \/        \__)
 
-#include <devices/audio.h>
-#include <hardware/intbits.h>
-#include <hardware/dmabits.h>
-#include <hardware/custom.h>
-#include <hardware/cia.h>
-#include <exec/exec.h>
-#include <proto/exec.h>
-
-//#include "std/debug.h"
-//#include "std/memory.h"
-//#include "std/types.h"
-//#include "system/hardware.h"
 #define INTF_LEVEL3 (INTF_VERTB | INTF_BLIT | INTF_COPER)
 #define INTF_LEVEL4 (INTF_AUD0 | INTF_AUD1 | INTF_AUD2 | INTF_AUD3)
 
@@ -274,8 +244,8 @@ void RemixAmigaAmmx(void) {
 
 __saveds __interrupt static int AudioServer(void) {
 	extern void YM2610Update_Amiga(void);
-	extern  uint32_t timerSound;
-	uint32_t timerTemp;
+	extern  double timerSound;
+	double timerTemp;
 	void *temp;
 	
 	if(!paused) {
@@ -309,7 +279,7 @@ __saveds __interrupt static int AudioServer(void) {
 			temp = lLBuffer; lLBuffer = _lLBuffer; _lLBuffer = temp;
 		}
 
-		if(arg[OPTION_BENCH]) timerSound += (uint32_t)((int)timer_get_time() - (int)timerTemp);
+		if(arg[OPTION_BENCH]) timerSound += timer_get_time() - timerTemp;
 	}
 	custom->intreq = 1 << INTB_AUD0;
 	return 0;

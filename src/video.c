@@ -16,6 +16,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
  */
 
+#include "amiga.h"
+
 #include <config.h>
 #include <string.h>
 #include <stdlib.h>
@@ -28,8 +30,8 @@
 #include "screen.h"
 // #include "frame_skip.h"
 // #include "transpack.h"
-#include <cybergraphx/cybergraphics.h>
-#include <proto/cybergraphics.h>
+//#include <cybergraphx/cybergraphics.h>
+//#include <proto/cybergraphics.h>
 extern int neogeo_fix_bank_type;
 
 

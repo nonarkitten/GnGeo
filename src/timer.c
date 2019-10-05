@@ -47,7 +47,7 @@ static struct timeval now;
 
 double timer_get_time(void) {
 	GetSysTime(&now);
-	return (double)now.tv_secs + (double)now.tv_micro / 1000.0;
+	return (double)now.tv_secs + (double)now.tv_micro / 1000000.0;
 }
 
 void timer_set_time(timer_struct *timer, double duration) {

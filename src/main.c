@@ -94,7 +94,7 @@ static void resume_os(void) {
 }
 
 static void cleanup(void) {
-	resume_os();
+	//resume_os();
 	close_audio();
 	screen_close();
     close_game();
@@ -113,7 +113,7 @@ int HostCpuClock = 0;
 int HostPAL = 0;
 int AC68080 = 0;
 int real_AC68080 = 0;
-uint32_t initStart;
+double initStart;
 
 extern void ParseArguments(int argc, char *argv[]);
 extern void convert_audio_rom(void);
@@ -145,13 +145,16 @@ static void load_logo(void) {
 	}
 	screen_update();
 }
+extern void dtostr(char *out, int precision, double value);
+
 int main(int argc, char *argv[]) {
     char *rom_name;
     BPTR file_lock;
     int bench = 0;
+	char buffer[32];
 
 	timer_init();
-	initStart = timer_get_time() * 1000.0f;
+	initStart = timer_get_time();
 
     if(!LowLevelBase) LowLevelBase = (struct Library *) OpenLibrary("lowlevel.library",0);
 	if(!LowLevelBase) exit(-1);
@@ -177,24 +180,28 @@ int main(int argc, char *argv[]) {
 	}
 
 	atexit(cleanup);
-	suspend_os();
+	timer_init();
 
-	if(!arg[OPTION_DEBUG]) {
-		init_sdl();
+	//if(!arg[OPTION_DEBUG]) {
+		//init_sdl();
 		//load_logo();
 		//load_logo();
 		//while(((int)timer_get_time_ms() - (int)initStart) < 4000) ;	
-	}
+	//}
 
 	if (init_game(rom_name)!=TRUE) {
 		error("Can't init %s...\n",rom_name);
 	}
 
 	//convert_audio_rom();
-	if(arg[OPTION_DEBUG]) init_sdl();
+	//if(arg[OPTION_DEBUG]) 
+	init_sdl();
 	
-	printf("%d\n", __LINE__);
-	debug("Startup took %u ms, ", (uint32_t)((int)(timer_get_time()*1000.0) - (int)initStart));
+	debug("%d\n", __LINE__);
+	dtostr(buffer, 1, timer_get_time() - initStart);
+	debug("Startup took %s s, ", buffer);
+
+	//suspend_os();
 	main_loop();
 
     return 0;
