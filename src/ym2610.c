@@ -1325,10 +1325,10 @@ static void init_timetables(const u8 *dttable) {
 	int i, d;
 	double rate;
 
-//#if 0
+#if 0
 	printf("FM.C: samplerate=%8i chip clock=%8i  freqbase=%f  \n",
 			YM2610.OPN.ST.rate, YM2610.OPN.ST.clock, YM2610.OPN.ST.freqbase );
-//#endif
+#endif
 
 	/* DeTune table */
 	for (d = 0; d <= 3; d++) {

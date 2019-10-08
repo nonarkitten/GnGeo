@@ -33,7 +33,6 @@ typedef union {
 
 extern const uint16_t ddaxskip_i[17];
 
-extern uint8_t line_limit[256], *limit;
 static uint32_t scalex;
 
 static uint32_t* last_palbase = 0;
@@ -77,187 +76,147 @@ static inline void handle_palette(uint32_t* palbase) {
 	);
 }
 
-static inline void draw_tile_m68k_norm (uint16_t*tilepos, uint32_t*gfxdata, uint16_t scaley) {
-	int16_t y;
-    
-	for(y = 16; y >= 0; y--) {
+static __attribute((regparm(4))) inline void draw_tile_m68k_norm (uint16_t*tilepos, uint32_t*gfxdata, uint16_t scaley) {
+	while(scaley) {
 		if(scaley & 0x8000) {
-			#ifdef HONOUR_SPRITE_LIMIT
-            if(*limit < 96) {
-				*limit += 1;
-			#endif
- 				__asm__ volatile ( "\n"
-                    "\tmove.w  (%0),d0 \n" 
-                    "\tmove.w  2(%0),d1 \n"
-                    "\tmove.w  4(%0),d2 \n" 
-                    "\tmove.w  6(%0),d3 \n" 
+			__asm__ volatile ( "\n"
+			"\tmove.w  0(%0),d0 \n" 
+			"\tmove.w  2(%0),d1 \n"
+			"\tmove.w  4(%0),d2 \n" 
+			"\tmove.w  6(%0),d3 \n" 
 
-                    // TRANSi takes 8, 4-bit values from source and uses
-                    // words stored in E8 thru E23 to write the dest
-                    // since this needs 128-bit, this uses a register pair
-                    "\tdc.w 	0xfe00,0x1803 \n" // TRANSi-LO D0, E0:E1
-                    "\tdc.w 	0xfe01,0x1A03 \n" // TRANSi-LO D1, E2:E3
-                    "\tdc.w 	0xfe02,0x1C03 \n" // TRANSi-LO D2, E4:E5
-                    "\tdc.w 	0xfe03,0x1E03 \n" // TRANSi-LO D3, E6:E7
+			// TRANSi takes 8, 4-bit values from source and uses
+			// words stored in E8 thru E23 to write the dest
+			// since this needs 128-bit, this uses a register pair
+			"\tdc.w 	0xfe00,0x1803 \n" // TRANSi-LO D0, E0:E1
+			"\tdc.w 	0xfe01,0x1a03 \n" // TRANSi-LO D1, E2:E3
+			"\tdc.w 	0xfe02,0x1c03 \n" // TRANSi-LO D2, E4:E5
+			"\tdc.w 	0xfe03,0x1e03 \n" // TRANSi-LO D3, E6:E7
 
-                    // STOREM3 will conditionally store each word
-                    "\tdc.w 	0xFE12,0x9926 \n" // STOREM3.W E1,E1,(A2)
-                    "\tdc.w 	0xFE2A,0xBB26,0x0008 \n" // STOREM3.W E3,E3,(8,A2)
-                    "\tdc.w 	0xFE2A,0xDD26,0x0010 \n" // STOREM3.W E5,E5,(16,A2)
-                    "\tdc.w 	0xFE2A,0xFF26,0x0018 \n" // STOREM3.W E7,E7,(24,A2)
+			// STOREM3 will conditionally store each word
+			"\tdc.w 	0xfe11,0x9926 \n" // STOREM3.W E1,E1,(A1)
+			"\tdc.w 	0xfe29,0xbb26,0x0008 \n" // STOREM3.W E3,E3,(8,A1)
+			"\tdc.w 	0xfe29,0xdd26,0x0010 \n" // STOREM3.W E5,E5,(16,A1)
+			"\tdc.w 	0xfe29,0xff26,0x0018 \n" // STOREM3.W E7,E7,(24,A1)
 
-                    : "+a"(gfxdata),"+a"(tilepos)
-                    :: "d0","d1","d2","d3"
-                );			
-            #ifdef HONOUR_SPRITE_LIMIT
-			}
-            limit++;          
-			#endif
+			: "+a"(gfxdata),"+a"(tilepos)
+			:: "d0","d1","d2","d3"
+			);			
 			tilepos += PITCH / 2;
-        }
-		scaley <<= 1;
+		}
         gfxdata += 2;
+		scaley <<= 1;
 	}
 }
-static inline void draw_tile_m68k_xflip_norm (uint16_t*tilepos, uint32_t*gfxdata, uint16_t scaley) {
-	int16_t y;
-    
-	for(y = 16; y >= 0; y--) {
+static __attribute((regparm(4))) inline void draw_tile_m68k_xflip_norm (uint16_t*tilepos, uint32_t*gfxdata, uint16_t scaley) {
+	while(scaley) {
 		if(scaley & 0x8000) {
-			#ifdef HONOUR_SPRITE_LIMIT
-            if(*limit < 96) {
-				*limit += 1;
-			#endif
-                __asm__ volatile ( "\n"
-                    "\tmove.w  (%0),d3 \n" 
-                    "\tmove.w  2(%0),d2 \n"
-                    "\tmove.w  4(%0),d1 \n" 
-                    "\tmove.w  6(%0),d0 \n" 
+			__asm__ volatile ( "\n"
+			"\tmove.w  0(%0),d3 \n" 
+			"\tmove.w  2(%0),d2 \n"
+			"\tmove.w  4(%0),d1 \n" 
+			"\tmove.w  6(%0),d0 \n" 
 
-                    // TRANSi takes 8, 4-bit values from source and uses
-                    // words stored in E8 thru E23 to write the dest
-                    // since this needs 128-bit, this uses a register pair
-                    "\tdc.w 	0xfe00,0x1803 \n" // TRANSi-LO D0, E0:E1
-                    "\tdc.w 	0xfe01,0x1A03 \n" // TRANSi-LO D1, E2:E3
-                    "\tdc.w 	0xfe02,0x1C03 \n" // TRANSi-LO D2, E4:E5
-                    "\tdc.w 	0xfe03,0x1E03 \n" // TRANSi-LO D3, E6:E7
+			// TRANSi takes 8, 4-bit values from source and uses
+			// words stored in E8 thru E23 to write the dest
+			// since this needs 128-bit, this uses a register pair
+			"\tdc.w 	0xfe00,0x1803 \n" // TRANSi-LO D0, E0:E1
+			"\tdc.w 	0xfe01,0x1A03 \n" // TRANSi-LO D1, E2:E3
+			"\tdc.w 	0xfe02,0x1C03 \n" // TRANSi-LO D2, E4:E5
+			"\tdc.w 	0xfe03,0x1E03 \n" // TRANSi-LO D3, E6:E7
 
-					// VPERM to shuffle the colours to match the fix layer format
-					"dc.w 	0xfe3F,0x9909,0x6745,0x2301 \n" // VPERM #IMMD,E1,E1,E1
-					"dc.w 	0xfe3F,0xBB0B,0x6745,0x2301 \n" // VPERM #IMMD,E3,E3,E3
-					"dc.w 	0xfe3F,0xDD0D,0x6745,0x2301 \n" // VPERM #IMMD,E5,E5,E5
-					"dc.w 	0xfe3F,0xFF0F,0x6745,0x2301 \n" // VPERM #IMMD,E7,E7,E7
+			// VPERM to shuffle the colours to match the fix layer format
+			"dc.w 		0xfe3F,0x9909,0x6745,0x2301 \n" // VPERM #IMMD,E1,E1,E1
+			"dc.w 		0xfe3F,0xBB0B,0x6745,0x2301 \n" // VPERM #IMMD,E3,E3,E3
+			"dc.w 		0xfe3F,0xDD0D,0x6745,0x2301 \n" // VPERM #IMMD,E5,E5,E5
+			"dc.w 		0xfe3F,0xFF0F,0x6745,0x2301 \n" // VPERM #IMMD,E7,E7,E7
 
-                    // STOREM3 will conditionally store each word
-                    "\tdc.w 	0xFE12,0x9926 \n" // STOREM3.W E1,E1,(A2)
-                    "\tdc.w 	0xFE2A,0xBB26,0x0008 \n" // STOREM3.W E3,E3,(8,A2)
-                    "\tdc.w 	0xFE2A,0xDD26,0x0010 \n" // STOREM3.W E5,E5,(16,A2)
-                    "\tdc.w 	0xFE2A,0xFF26,0x0018 \n" // STOREM3.W E7,E7,(24,A2)
+			// STOREM3 will conditionally store each word
+			"\tdc.w 	0xFE11,0x9926 \n" // STOREM3.W E1,E1,(A2)
+			"\tdc.w 	0xFE29,0xBB26,0x0008 \n" // STOREM3.W E3,E3,(8,A2)
+			"\tdc.w 	0xFE29,0xDD26,0x0010 \n" // STOREM3.W E5,E5,(16,A2)
+			"\tdc.w 	0xFE29,0xFF26,0x0018 \n" // STOREM3.W E7,E7,(24,A2)
 
-                    : "+a"(gfxdata),"+a"(tilepos)
-                    :: "d0","d1","d2","d3"
-                );	
-			#ifdef HONOUR_SPRITE_LIMIT		
-            }
-            limit++;          
-			#endif
+			: "+a"(gfxdata),"+a"(tilepos)
+			:: "d0","d1","d2","d3"
+			);	
 			tilepos += PITCH / 2;
-        }
+		}
+		gfxdata += 2;
 		scaley <<= 1;
-        gfxdata += 2;
 	}
 }
-static inline void draw_tile_m68k_yflip_norm  (uint16_t*tilepos, uint32_t*gfxdata, uint16_t scaley) { 
-	int16_t y;
-    
+static __attribute((regparm(4))) inline void draw_tile_m68k_yflip_norm  (uint16_t*tilepos, uint32_t*gfxdata, uint16_t scaley) { 
 	gfxdata += 30;
-	for(y = 16; y >= 0; y--) {
+	while(scaley) {
 		if(scaley & 0x8000) {
-			#ifdef HONOUR_SPRITE_LIMIT
-            if(*limit < 96) {
-				*limit += 1;
-			#endif
-                __asm__ volatile ( "\n"
-                    "\tmove.w  (%0),d0 \n" 
-                    "\tmove.w  2(%0),d1 \n"
-                    "\tmove.w  4(%0),d2 \n" 
-                    "\tmove.w  6(%0),d3 \n" 
+			__asm__ volatile ( "\n"
+			"\tmove.w  0(%0),d0 \n" 
+			"\tmove.w  2(%0),d1 \n"
+			"\tmove.w  4(%0),d2 \n" 
+			"\tmove.w  6(%0),d3 \n" 
 
-                    // TRANSi takes 8, 4-bit values from source and uses
-                    // words stored in E8 thru E23 to write the dest
-                    // since this needs 128-bit, this uses a register pair
-                    "\tdc.w 	0xfe00,0x1803 \n" // TRANSi-LO D0, E0:E1
-                    "\tdc.w 	0xfe01,0x1A03 \n" // TRANSi-LO D1, E2:E3
-                    "\tdc.w 	0xfe02,0x1C03 \n" // TRANSi-LO D2, E4:E5
-                    "\tdc.w 	0xfe03,0x1E03 \n" // TRANSi-LO D3, E6:E7
+			// TRANSi takes 8, 4-bit values from source and uses
+			// words stored in E8 thru E23 to write the dest
+			// since this needs 128-bit, this uses a register pair
+			"\tdc.w 	0xfe00,0x1803 \n" // TRANSi-LO D0, E0:E1
+			"\tdc.w 	0xfe01,0x1a03 \n" // TRANSi-LO D1, E2:E3
+			"\tdc.w 	0xfe02,0x1c03 \n" // TRANSi-LO D2, E4:E5
+			"\tdc.w 	0xfe03,0x1e03 \n" // TRANSi-LO D3, E6:E7
 
-                    // STOREM3 will conditionally store each word
-                    "\tdc.w 	0xFE12,0x9926 \n" // STOREM3.W E1,E1,(A2)
-                    "\tdc.w 	0xFE2A,0xBB26,0x0008 \n" // STOREM3.W E3,E3,(8,A2)
-                    "\tdc.w 	0xFE2A,0xDD26,0x0010 \n" // STOREM3.W E5,E5,(16,A2)
-                    "\tdc.w 	0xFE2A,0xFF26,0x0018 \n" // STOREM3.W E7,E7,(24,A2)
+			// STOREM3 will conditionally store each word
+			"\tdc.w 	0xfe11,0x9926 \n" // STOREM3.W E1,E1,(A1)
+			"\tdc.w 	0xfe29,0xbb26,0x0008 \n" // STOREM3.W E3,E3,(8,A1)
+			"\tdc.w 	0xfe29,0xdd26,0x0010 \n" // STOREM3.W E5,E5,(16,A1)
+			"\tdc.w 	0xfe29,0xff26,0x0018 \n" // STOREM3.W E7,E7,(24,A1)
 
-                    : "+a"(gfxdata),"+a"(tilepos)
-                    :: "d0","d1","d2","d3"
-                );			
-			#ifdef HONOUR_SPRITE_LIMIT		
-            }
-            limit++;          
-			#endif
+			: "+a"(gfxdata),"+a"(tilepos)
+			:: "d0","d1","d2","d3"
+			);			
 			tilepos += PITCH / 2;
-        }
-		scaley <<= 1;
+		}
         gfxdata -= 2;
-	}	
+		scaley <<= 1;
+	}
 }
-static inline void draw_tile_m68k_xyflip_norm (uint16_t*tilepos, uint32_t*gfxdata, uint16_t scaley) { 
-	int16_t y;
-    
+static __attribute((regparm(4))) inline void draw_tile_m68k_xyflip_norm (uint16_t*tilepos, uint32_t*gfxdata, uint16_t scaley) { 
 	gfxdata += 30;
-	for(y = 16; y >= 0; y--) {
+	while(scaley) {
 		if(scaley & 0x8000) {
-			#ifdef HONOUR_SPRITE_LIMIT
-            if(*limit < 96) {
-				*limit += 1;
-			#endif
-                __asm__ volatile ( "\n"
-                    "\tmove.w  (%0),d3 \n" 
-                    "\tmove.w  2(%0),d2 \n"
-                    "\tmove.w  4(%0),d1 \n" 
-                    "\tmove.w  6(%0),d0 \n" 
+			__asm__ volatile ( "\n"
+			"\tmove.w  0(%0),d3 \n" 
+			"\tmove.w  2(%0),d2 \n"
+			"\tmove.w  4(%0),d1 \n" 
+			"\tmove.w  6(%0),d0 \n" 
 
-                    // TRANSi takes 8, 4-bit values from source and uses
-                    // words stored in E8 thru E23 to write the dest
-                    // since this needs 128-bit, this uses a register pair
-                    "\tdc.w 	0xfe00,0x1803 \n" // TRANSi-LO D0, E0:E1
-                    "\tdc.w 	0xfe01,0x1A03 \n" // TRANSi-LO D1, E2:E3
-                    "\tdc.w 	0xfe02,0x1C03 \n" // TRANSi-LO D2, E4:E5
-                    "\tdc.w 	0xfe03,0x1E03 \n" // TRANSi-LO D3, E6:E7
+			// TRANSi takes 8, 4-bit values from source and uses
+			// words stored in E8 thru E23 to write the dest
+			// since this needs 128-bit, this uses a register pair
+			"\tdc.w 	0xfe00,0x1803 \n" // TRANSi-LO D0, E0:E1
+			"\tdc.w 	0xfe01,0x1A03 \n" // TRANSi-LO D1, E2:E3
+			"\tdc.w 	0xfe02,0x1C03 \n" // TRANSi-LO D2, E4:E5
+			"\tdc.w 	0xfe03,0x1E03 \n" // TRANSi-LO D3, E6:E7
 
-					// VPERM to shuffle the colours to match the fix layer format
-					"dc.w 	0xfe3F,0x9909,0x6745,0x2301 \n" // VPERM #IMMD,E1,E1,E1
-					"dc.w 	0xfe3F,0xBB0B,0x6745,0x2301 \n" // VPERM #IMMD,E3,E3,E3
-					"dc.w 	0xfe3F,0xDD0D,0x6745,0x2301 \n" // VPERM #IMMD,E5,E5,E5
-					"dc.w 	0xfe3F,0xFF0F,0x6745,0x2301 \n" // VPERM #IMMD,E7,E7,E7
+			// VPERM to shuffle the colours to match the fix layer format
+			"dc.w 		0xfe3F,0x9909,0x6745,0x2301 \n" // VPERM #IMMD,E1,E1,E1
+			"dc.w 		0xfe3F,0xBB0B,0x6745,0x2301 \n" // VPERM #IMMD,E3,E3,E3
+			"dc.w 		0xfe3F,0xDD0D,0x6745,0x2301 \n" // VPERM #IMMD,E5,E5,E5
+			"dc.w 		0xfe3F,0xFF0F,0x6745,0x2301 \n" // VPERM #IMMD,E7,E7,E7
 
-                    // STOREM3 will conditionally store each word
-                    "\tdc.w 	0xFE12,0x9926 \n" // STOREM3.W E1,E1,(A2)
-                    "\tdc.w 	0xFE2A,0xBB26,0x0008 \n" // STOREM3.W E3,E3,(8,A2)
-                    "\tdc.w 	0xFE2A,0xDD26,0x0010 \n" // STOREM3.W E5,E5,(16,A2)
-                    "\tdc.w 	0xFE2A,0xFF26,0x0018 \n" // STOREM3.W E7,E7,(24,A2)
+			// STOREM3 will conditionally store each word
+			"\tdc.w 	0xFE11,0x9926 \n" // STOREM3.W E1,E1,(A2)
+			"\tdc.w 	0xFE29,0xBB26,0x0008 \n" // STOREM3.W E3,E3,(8,A2)
+			"\tdc.w 	0xFE29,0xDD26,0x0010 \n" // STOREM3.W E5,E5,(16,A2)
+			"\tdc.w 	0xFE29,0xFF26,0x0018 \n" // STOREM3.W E7,E7,(24,A2)
 
-                    : "+a"(gfxdata),"+a"(tilepos)
-                    :: "d0","d1","d2","d3"
-                );			
-			#ifdef HONOUR_SPRITE_LIMIT		
-            }
-            limit++;          
-			#endif
+			: "+a"(gfxdata),"+a"(tilepos)
+			:: "d0","d1","d2","d3"
+			);	
 			tilepos += PITCH / 2;
-        }
+		}
+		gfxdata -= 2;
 		scaley <<= 1;
-        gfxdata -= 2;
-	}	
+	}
 }
 
 static inline void draw_tile_m68k_xzoom (uint32_t*palbase,uint16_t*tilepos,uint32_t*gfxdata,int scaley) {
@@ -267,32 +226,27 @@ static inline void draw_tile_m68k_xzoom (uint32_t*palbase,uint16_t*tilepos,uint3
 	for(;;) {
 		tilepos = org_tilepos;
 		if(scaley & 0x8000) {
-			if(*limit < 96) {
-				*limit += 1;
-			
-				pixeldata.pixel = gfxdata[0]; 
-				if(scalex & 0x8000) { if(pixeldata.p.p0) *tilepos = (uint16_t)palbase[pixeldata.p.p0]; tilepos++; }
-				if(scalex & 0x4000) { if(pixeldata.p.p1) *tilepos = (uint16_t)palbase[pixeldata.p.p1]; tilepos++; }
-				if(scalex & 0x2000) { if(pixeldata.p.p2) *tilepos = (uint16_t)palbase[pixeldata.p.p2]; tilepos++; }
-				if(scalex & 0x1000) { if(pixeldata.p.p3) *tilepos = (uint16_t)palbase[pixeldata.p.p3]; tilepos++; }
-				if(scalex & 0x0800) { if(pixeldata.p.p4) *tilepos = (uint16_t)palbase[pixeldata.p.p4]; tilepos++; }
-				if(scalex & 0x0400) { if(pixeldata.p.p5) *tilepos = (uint16_t)palbase[pixeldata.p.p5]; tilepos++; }
-				if(scalex & 0x0200) { if(pixeldata.p.p6) *tilepos = (uint16_t)palbase[pixeldata.p.p6]; tilepos++; }
-				if(scalex & 0x0100) { if(pixeldata.p.p7) *tilepos = (uint16_t)palbase[pixeldata.p.p7]; tilepos++; }
- 
-				pixeldata.pixel = gfxdata[1]; 
-				if(scalex & 0x0080) { if(pixeldata.p.p0) *tilepos = (uint16_t)palbase[pixeldata.p.p0]; tilepos++; }
-				if(scalex & 0x0040) { if(pixeldata.p.p1) *tilepos = (uint16_t)palbase[pixeldata.p.p1]; tilepos++; }
-				if(scalex & 0x0020) { if(pixeldata.p.p2) *tilepos = (uint16_t)palbase[pixeldata.p.p2]; tilepos++; }
-				if(scalex & 0x0010) { if(pixeldata.p.p3) *tilepos = (uint16_t)palbase[pixeldata.p.p3]; tilepos++; }
-				if(scalex & 0x0008) { if(pixeldata.p.p4) *tilepos = (uint16_t)palbase[pixeldata.p.p4]; tilepos++; }
-				if(scalex & 0x0004) { if(pixeldata.p.p5) *tilepos = (uint16_t)palbase[pixeldata.p.p5]; tilepos++; }
-				if(scalex & 0x0002) { if(pixeldata.p.p6) *tilepos = (uint16_t)palbase[pixeldata.p.p6]; tilepos++; }
-				if(scalex & 0x0001) { if(pixeldata.p.p7) *tilepos = (uint16_t)palbase[pixeldata.p.p7]; tilepos++; }
-			
-			}
+			pixeldata.pixel = gfxdata[0]; 
+			if(scalex & 0x8000) { if(pixeldata.p.p0) *tilepos = (uint16_t)palbase[pixeldata.p.p0]; tilepos++; }
+			if(scalex & 0x4000) { if(pixeldata.p.p1) *tilepos = (uint16_t)palbase[pixeldata.p.p1]; tilepos++; }
+			if(scalex & 0x2000) { if(pixeldata.p.p2) *tilepos = (uint16_t)palbase[pixeldata.p.p2]; tilepos++; }
+			if(scalex & 0x1000) { if(pixeldata.p.p3) *tilepos = (uint16_t)palbase[pixeldata.p.p3]; tilepos++; }
+			if(scalex & 0x0800) { if(pixeldata.p.p4) *tilepos = (uint16_t)palbase[pixeldata.p.p4]; tilepos++; }
+			if(scalex & 0x0400) { if(pixeldata.p.p5) *tilepos = (uint16_t)palbase[pixeldata.p.p5]; tilepos++; }
+			if(scalex & 0x0200) { if(pixeldata.p.p6) *tilepos = (uint16_t)palbase[pixeldata.p.p6]; tilepos++; }
+			if(scalex & 0x0100) { if(pixeldata.p.p7) *tilepos = (uint16_t)palbase[pixeldata.p.p7]; tilepos++; }
+
+			pixeldata.pixel = gfxdata[1]; 
+			if(scalex & 0x0080) { if(pixeldata.p.p0) *tilepos = (uint16_t)palbase[pixeldata.p.p0]; tilepos++; }
+			if(scalex & 0x0040) { if(pixeldata.p.p1) *tilepos = (uint16_t)palbase[pixeldata.p.p1]; tilepos++; }
+			if(scalex & 0x0020) { if(pixeldata.p.p2) *tilepos = (uint16_t)palbase[pixeldata.p.p2]; tilepos++; }
+			if(scalex & 0x0010) { if(pixeldata.p.p3) *tilepos = (uint16_t)palbase[pixeldata.p.p3]; tilepos++; }
+			if(scalex & 0x0008) { if(pixeldata.p.p4) *tilepos = (uint16_t)palbase[pixeldata.p.p4]; tilepos++; }
+			if(scalex & 0x0004) { if(pixeldata.p.p5) *tilepos = (uint16_t)palbase[pixeldata.p.p5]; tilepos++; }
+			if(scalex & 0x0002) { if(pixeldata.p.p6) *tilepos = (uint16_t)palbase[pixeldata.p.p6]; tilepos++; }
+			if(scalex & 0x0001) { if(pixeldata.p.p7) *tilepos = (uint16_t)palbase[pixeldata.p.p7]; tilepos++; }
+
 			org_tilepos += PITCH / 2;
-			limit++;
 		}
 		if(!y) break;
 		scaley <<= 1;
@@ -307,32 +261,27 @@ static inline void draw_tile_m68k_xzoomX  (uint32_t*palbase,uint16_t*tilepos,uin
 	for(;;) {
 		tilepos = org_tilepos;
 		if(scaley & 0x8000) {
-			if(*limit < 96) {
-				*limit += 1;
-			
-				pixeldata.pixel = gfxdata[1];
-				if(scalex & 0x0001) { if(pixeldata.p.p7) *tilepos = (uint16_t)palbase[pixeldata.p.p7]; tilepos++; }
-				if(scalex & 0x0002) { if(pixeldata.p.p6) *tilepos = (uint16_t)palbase[pixeldata.p.p6]; tilepos++; }
-				if(scalex & 0x0004) { if(pixeldata.p.p5) *tilepos = (uint16_t)palbase[pixeldata.p.p5]; tilepos++; }
-				if(scalex & 0x0008) { if(pixeldata.p.p4) *tilepos = (uint16_t)palbase[pixeldata.p.p4]; tilepos++; }
-				if(scalex & 0x0010) { if(pixeldata.p.p3) *tilepos = (uint16_t)palbase[pixeldata.p.p3]; tilepos++; }
-				if(scalex & 0x0020) { if(pixeldata.p.p2) *tilepos = (uint16_t)palbase[pixeldata.p.p2]; tilepos++; }
-				if(scalex & 0x0040) { if(pixeldata.p.p1) *tilepos = (uint16_t)palbase[pixeldata.p.p1]; tilepos++; }
-				if(scalex & 0x0080) { if(pixeldata.p.p0) *tilepos = (uint16_t)palbase[pixeldata.p.p0]; tilepos++; }
+			pixeldata.pixel = gfxdata[1];
+			if(scalex & 0x0001) { if(pixeldata.p.p7) *tilepos = (uint16_t)palbase[pixeldata.p.p7]; tilepos++; }
+			if(scalex & 0x0002) { if(pixeldata.p.p6) *tilepos = (uint16_t)palbase[pixeldata.p.p6]; tilepos++; }
+			if(scalex & 0x0004) { if(pixeldata.p.p5) *tilepos = (uint16_t)palbase[pixeldata.p.p5]; tilepos++; }
+			if(scalex & 0x0008) { if(pixeldata.p.p4) *tilepos = (uint16_t)palbase[pixeldata.p.p4]; tilepos++; }
+			if(scalex & 0x0010) { if(pixeldata.p.p3) *tilepos = (uint16_t)palbase[pixeldata.p.p3]; tilepos++; }
+			if(scalex & 0x0020) { if(pixeldata.p.p2) *tilepos = (uint16_t)palbase[pixeldata.p.p2]; tilepos++; }
+			if(scalex & 0x0040) { if(pixeldata.p.p1) *tilepos = (uint16_t)palbase[pixeldata.p.p1]; tilepos++; }
+			if(scalex & 0x0080) { if(pixeldata.p.p0) *tilepos = (uint16_t)palbase[pixeldata.p.p0]; tilepos++; }
 
-				pixeldata.pixel = gfxdata[0];
-				if(scalex & 0x0100) { if(pixeldata.p.p7) *tilepos = (uint16_t)palbase[pixeldata.p.p7]; tilepos++; }
-				if(scalex & 0x0200) { if(pixeldata.p.p6) *tilepos = (uint16_t)palbase[pixeldata.p.p6]; tilepos++; }
-				if(scalex & 0x0400) { if(pixeldata.p.p5) *tilepos = (uint16_t)palbase[pixeldata.p.p5]; tilepos++; }
-				if(scalex & 0x0800) { if(pixeldata.p.p4) *tilepos = (uint16_t)palbase[pixeldata.p.p4]; tilepos++; }
-				if(scalex & 0x1000) { if(pixeldata.p.p3) *tilepos = (uint16_t)palbase[pixeldata.p.p3]; tilepos++; }
-				if(scalex & 0x2000) { if(pixeldata.p.p2) *tilepos = (uint16_t)palbase[pixeldata.p.p2]; tilepos++; }
-				if(scalex & 0x4000) { if(pixeldata.p.p1) *tilepos = (uint16_t)palbase[pixeldata.p.p1]; tilepos++; }
-				if(scalex & 0x8000) { if(pixeldata.p.p0) *tilepos = (uint16_t)palbase[pixeldata.p.p0]; tilepos++; }
-			}
+			pixeldata.pixel = gfxdata[0];
+			if(scalex & 0x0100) { if(pixeldata.p.p7) *tilepos = (uint16_t)palbase[pixeldata.p.p7]; tilepos++; }
+			if(scalex & 0x0200) { if(pixeldata.p.p6) *tilepos = (uint16_t)palbase[pixeldata.p.p6]; tilepos++; }
+			if(scalex & 0x0400) { if(pixeldata.p.p5) *tilepos = (uint16_t)palbase[pixeldata.p.p5]; tilepos++; }
+			if(scalex & 0x0800) { if(pixeldata.p.p4) *tilepos = (uint16_t)palbase[pixeldata.p.p4]; tilepos++; }
+			if(scalex & 0x1000) { if(pixeldata.p.p3) *tilepos = (uint16_t)palbase[pixeldata.p.p3]; tilepos++; }
+			if(scalex & 0x2000) { if(pixeldata.p.p2) *tilepos = (uint16_t)palbase[pixeldata.p.p2]; tilepos++; }
+			if(scalex & 0x4000) { if(pixeldata.p.p1) *tilepos = (uint16_t)palbase[pixeldata.p.p1]; tilepos++; }
+			if(scalex & 0x8000) { if(pixeldata.p.p0) *tilepos = (uint16_t)palbase[pixeldata.p.p0]; tilepos++; }
 			
 			org_tilepos += PITCH / 2;
-			limit++;
 		}
 		if(!y) break;
 		scaley <<= 1;
@@ -348,33 +297,28 @@ static inline void draw_tile_m68k_xzoomY  (uint32_t*palbase,uint16_t*tilepos,uin
 	gfxdata += 30;
 	for(;;) {
 		tilepos = org_tilepos;
-		if(scaley & 0x8000) {
-			if(*limit < 96) {
-				*limit += 1;
-						
-				pixeldata.pixel = gfxdata[0]; 
-				if(scalex & 0x8000) { if(pixeldata.p.p0) *tilepos = (uint16_t)palbase[pixeldata.p.p0]; tilepos++; }
-				if(scalex & 0x4000) { if(pixeldata.p.p1) *tilepos = (uint16_t)palbase[pixeldata.p.p1]; tilepos++; }
-				if(scalex & 0x2000) { if(pixeldata.p.p2) *tilepos = (uint16_t)palbase[pixeldata.p.p2]; tilepos++; }
-				if(scalex & 0x1000) { if(pixeldata.p.p3) *tilepos = (uint16_t)palbase[pixeldata.p.p3]; tilepos++; }
-				if(scalex & 0x0800) { if(pixeldata.p.p4) *tilepos = (uint16_t)palbase[pixeldata.p.p4]; tilepos++; }
-				if(scalex & 0x0400) { if(pixeldata.p.p5) *tilepos = (uint16_t)palbase[pixeldata.p.p5]; tilepos++; }
-				if(scalex & 0x0200) { if(pixeldata.p.p6) *tilepos = (uint16_t)palbase[pixeldata.p.p6]; tilepos++; }
-				if(scalex & 0x0100) { if(pixeldata.p.p7) *tilepos = (uint16_t)palbase[pixeldata.p.p7]; tilepos++; }
+		if(scaley & 0x8000) {						
+			pixeldata.pixel = gfxdata[0]; 
+			if(scalex & 0x8000) { if(pixeldata.p.p0) *tilepos = (uint16_t)palbase[pixeldata.p.p0]; tilepos++; }
+			if(scalex & 0x4000) { if(pixeldata.p.p1) *tilepos = (uint16_t)palbase[pixeldata.p.p1]; tilepos++; }
+			if(scalex & 0x2000) { if(pixeldata.p.p2) *tilepos = (uint16_t)palbase[pixeldata.p.p2]; tilepos++; }
+			if(scalex & 0x1000) { if(pixeldata.p.p3) *tilepos = (uint16_t)palbase[pixeldata.p.p3]; tilepos++; }
+			if(scalex & 0x0800) { if(pixeldata.p.p4) *tilepos = (uint16_t)palbase[pixeldata.p.p4]; tilepos++; }
+			if(scalex & 0x0400) { if(pixeldata.p.p5) *tilepos = (uint16_t)palbase[pixeldata.p.p5]; tilepos++; }
+			if(scalex & 0x0200) { if(pixeldata.p.p6) *tilepos = (uint16_t)palbase[pixeldata.p.p6]; tilepos++; }
+			if(scalex & 0x0100) { if(pixeldata.p.p7) *tilepos = (uint16_t)palbase[pixeldata.p.p7]; tilepos++; }
 
-				pixeldata.pixel = gfxdata[1];
-				if(scalex & 0x0080) { if(pixeldata.p.p0) *tilepos = (uint16_t)palbase[pixeldata.p.p0]; tilepos++; }
-				if(scalex & 0x0040) { if(pixeldata.p.p1) *tilepos = (uint16_t)palbase[pixeldata.p.p1]; tilepos++; }
-				if(scalex & 0x0020) { if(pixeldata.p.p2) *tilepos = (uint16_t)palbase[pixeldata.p.p2]; tilepos++; }
-				if(scalex & 0x0010) { if(pixeldata.p.p3) *tilepos = (uint16_t)palbase[pixeldata.p.p3]; tilepos++; }
-				if(scalex & 0x0008) { if(pixeldata.p.p4) *tilepos = (uint16_t)palbase[pixeldata.p.p4]; tilepos++; }
-				if(scalex & 0x0004) { if(pixeldata.p.p5) *tilepos = (uint16_t)palbase[pixeldata.p.p5]; tilepos++; }
-				if(scalex & 0x0002) { if(pixeldata.p.p6) *tilepos = (uint16_t)palbase[pixeldata.p.p6]; tilepos++; }
-				if(scalex & 0x0001) { if(pixeldata.p.p7) *tilepos = (uint16_t)palbase[pixeldata.p.p7]; tilepos++; }
-			}
+			pixeldata.pixel = gfxdata[1];
+			if(scalex & 0x0080) { if(pixeldata.p.p0) *tilepos = (uint16_t)palbase[pixeldata.p.p0]; tilepos++; }
+			if(scalex & 0x0040) { if(pixeldata.p.p1) *tilepos = (uint16_t)palbase[pixeldata.p.p1]; tilepos++; }
+			if(scalex & 0x0020) { if(pixeldata.p.p2) *tilepos = (uint16_t)palbase[pixeldata.p.p2]; tilepos++; }
+			if(scalex & 0x0010) { if(pixeldata.p.p3) *tilepos = (uint16_t)palbase[pixeldata.p.p3]; tilepos++; }
+			if(scalex & 0x0008) { if(pixeldata.p.p4) *tilepos = (uint16_t)palbase[pixeldata.p.p4]; tilepos++; }
+			if(scalex & 0x0004) { if(pixeldata.p.p5) *tilepos = (uint16_t)palbase[pixeldata.p.p5]; tilepos++; }
+			if(scalex & 0x0002) { if(pixeldata.p.p6) *tilepos = (uint16_t)palbase[pixeldata.p.p6]; tilepos++; }
+			if(scalex & 0x0001) { if(pixeldata.p.p7) *tilepos = (uint16_t)palbase[pixeldata.p.p7]; tilepos++; }
 			
 			org_tilepos += PITCH / 2;
-			limit++;
 		}
 		if(!y) break;
 		scaley <<= 1;
@@ -391,31 +335,27 @@ static inline void  draw_tile_m68k_xzoomXY (uint32_t*palbase,uint16_t*tilepos,ui
 	for(;;) {
 		tilepos = org_tilepos;
 		if(scaley & 0x8000) {
-			if(*limit < 96) {
-				*limit += 1;
-						
-				pixeldata.pixel = gfxdata[1];
-				if(scalex & 0x0001) { if(pixeldata.p.p7) *tilepos = (uint16_t)palbase[pixeldata.p.p7]; tilepos++; }
-				if(scalex & 0x0002) { if(pixeldata.p.p6) *tilepos = (uint16_t)palbase[pixeldata.p.p6]; tilepos++; }
-				if(scalex & 0x0004) { if(pixeldata.p.p5) *tilepos = (uint16_t)palbase[pixeldata.p.p5]; tilepos++; }
-				if(scalex & 0x0008) { if(pixeldata.p.p4) *tilepos = (uint16_t)palbase[pixeldata.p.p4]; tilepos++; }
-				if(scalex & 0x0010) { if(pixeldata.p.p3) *tilepos = (uint16_t)palbase[pixeldata.p.p3]; tilepos++; }
-				if(scalex & 0x0020) { if(pixeldata.p.p2) *tilepos = (uint16_t)palbase[pixeldata.p.p2]; tilepos++; }
-				if(scalex & 0x0040) { if(pixeldata.p.p1) *tilepos = (uint16_t)palbase[pixeldata.p.p1]; tilepos++; }
-				if(scalex & 0x0080) { if(pixeldata.p.p0) *tilepos = (uint16_t)palbase[pixeldata.p.p0]; tilepos++; }
+			pixeldata.pixel = gfxdata[1];
+			if(scalex & 0x0001) { if(pixeldata.p.p7) *tilepos = (uint16_t)palbase[pixeldata.p.p7]; tilepos++; }
+			if(scalex & 0x0002) { if(pixeldata.p.p6) *tilepos = (uint16_t)palbase[pixeldata.p.p6]; tilepos++; }
+			if(scalex & 0x0004) { if(pixeldata.p.p5) *tilepos = (uint16_t)palbase[pixeldata.p.p5]; tilepos++; }
+			if(scalex & 0x0008) { if(pixeldata.p.p4) *tilepos = (uint16_t)palbase[pixeldata.p.p4]; tilepos++; }
+			if(scalex & 0x0010) { if(pixeldata.p.p3) *tilepos = (uint16_t)palbase[pixeldata.p.p3]; tilepos++; }
+			if(scalex & 0x0020) { if(pixeldata.p.p2) *tilepos = (uint16_t)palbase[pixeldata.p.p2]; tilepos++; }
+			if(scalex & 0x0040) { if(pixeldata.p.p1) *tilepos = (uint16_t)palbase[pixeldata.p.p1]; tilepos++; }
+			if(scalex & 0x0080) { if(pixeldata.p.p0) *tilepos = (uint16_t)palbase[pixeldata.p.p0]; tilepos++; }
 
-				pixeldata.pixel = gfxdata[0];
-				if(scalex & 0x0100) { if(pixeldata.p.p7) *tilepos = (uint16_t)palbase[pixeldata.p.p7]; tilepos++; }
-				if(scalex & 0x0200) { if(pixeldata.p.p6) *tilepos = (uint16_t)palbase[pixeldata.p.p6]; tilepos++; }
-				if(scalex & 0x0400) { if(pixeldata.p.p5) *tilepos = (uint16_t)palbase[pixeldata.p.p5]; tilepos++; }
-				if(scalex & 0x0800) { if(pixeldata.p.p4) *tilepos = (uint16_t)palbase[pixeldata.p.p4]; tilepos++; }
-				if(scalex & 0x1000) { if(pixeldata.p.p3) *tilepos = (uint16_t)palbase[pixeldata.p.p3]; tilepos++; }
-				if(scalex & 0x2000) { if(pixeldata.p.p2) *tilepos = (uint16_t)palbase[pixeldata.p.p2]; tilepos++; }
-				if(scalex & 0x4000) { if(pixeldata.p.p1) *tilepos = (uint16_t)palbase[pixeldata.p.p1]; tilepos++; }
-				if(scalex & 0x8000) { if(pixeldata.p.p0) *tilepos = (uint16_t)palbase[pixeldata.p.p0]; tilepos++; }
-			}
+			pixeldata.pixel = gfxdata[0];
+			if(scalex & 0x0100) { if(pixeldata.p.p7) *tilepos = (uint16_t)palbase[pixeldata.p.p7]; tilepos++; }
+			if(scalex & 0x0200) { if(pixeldata.p.p6) *tilepos = (uint16_t)palbase[pixeldata.p.p6]; tilepos++; }
+			if(scalex & 0x0400) { if(pixeldata.p.p5) *tilepos = (uint16_t)palbase[pixeldata.p.p5]; tilepos++; }
+			if(scalex & 0x0800) { if(pixeldata.p.p4) *tilepos = (uint16_t)palbase[pixeldata.p.p4]; tilepos++; }
+			if(scalex & 0x1000) { if(pixeldata.p.p3) *tilepos = (uint16_t)palbase[pixeldata.p.p3]; tilepos++; }
+			if(scalex & 0x2000) { if(pixeldata.p.p2) *tilepos = (uint16_t)palbase[pixeldata.p.p2]; tilepos++; }
+			if(scalex & 0x4000) { if(pixeldata.p.p1) *tilepos = (uint16_t)palbase[pixeldata.p.p1]; tilepos++; }
+			if(scalex & 0x8000) { if(pixeldata.p.p0) *tilepos = (uint16_t)palbase[pixeldata.p.p0]; tilepos++; }
+
 			org_tilepos += PITCH / 2;
-			limit++;
 		}
 		if(!y) break;
 		scaley <<= 1;
@@ -559,9 +499,7 @@ void draw_tiles_ammx(void) {
 					uint32_t *gfxdata = (uint32_t*)&memory.rom.tiles.p[(tileno % memory.nb_of_tiles)<<7];
 					uint16_t scaley = ddaxskip_i[yskip];
 					const int pitch = PITCH / 2;
-	
-					limit = &line_limit[sy];
-	
+		
 					if (rzx==16) {
 						handle_palette(palbase);
 						if (tileatr & 0x01) {

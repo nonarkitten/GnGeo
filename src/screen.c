@@ -192,8 +192,10 @@ static void video_do_fps(void) {
     	double this_fps = 1.0 / time_d;
       fps_avg = fps_avg * 0.9 + this_fps * 0.1;
     }
-
-  	render_message(fps_avg);
+    if(arg[OPTION_FRAMESKIP])
+  	  render_message(2.0 * fps_avg);
+    else 
+  	  render_message(fps_avg);
   }
 	last_time = time;
 }

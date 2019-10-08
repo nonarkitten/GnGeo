@@ -68,7 +68,7 @@ void render_message(double fps) {
 	char buffer[32];
 
 	if (arg[OPTION_SHOWFPS]) {
-		fps /= 120.0;
+		//fps /= 120.0;
 		dtostr(buffer, 2, fps);
 		len = sprintf(display_buffer, "%s fps %s", buffer, message);
 	} else {

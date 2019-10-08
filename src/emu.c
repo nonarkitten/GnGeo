@@ -315,7 +315,7 @@ void main_loop(void) {
 
 			for(i=0; i<nb_interlace; i++) {
 				cpu_z80_run(cpu_z80_timeslice_scanline);
-				handle_event();
+//				handle_event();
 				timer_run();
 			}
 			if(arg[OPTION_BENCH]) {
